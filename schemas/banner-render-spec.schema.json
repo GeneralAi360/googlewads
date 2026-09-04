@@ -173,6 +173,7 @@
       "properties": {
         "enabled": {"type": "boolean"},
         "target_slot": {"type": "string"},
+        "target_slots": {"type": "array", "minItems": 1, "items": {"type": "string"}},
         "box": {"$ref": "#/$defs/slot"},
         "color": {"$ref": "#/$defs/color"},
         "opacity": {"type": "integer", "minimum": 0, "maximum": 255},
@@ -186,6 +187,7 @@
       "additionalProperties": false,
       "properties": {
         "enabled": {"type": "boolean"},
+        "target_slot": {"type": "string"},
         "target_slots": {"type": "array", "minItems": 1, "items": {"type": "string"}},
         "box": {"$ref": "#/$defs/slot"},
         "color": {"$ref": "#/$defs/color"},
