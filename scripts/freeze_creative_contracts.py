@@ -57,6 +57,22 @@ def validated_reference_ids(reference_index: dict[str, Any] | None) -> set[str] 
     return {item["reference_id"] for item in reference_index.get("reports") or []}
 
 
+def validate_preproduction_freeze(preproduction: dict[str, Any] | None, matrix: dict[str, Any]) -> tuple[str | None, str | None]:
+    if preproduction is None:
+        return None, None
+    if preproduction.get("status") != "PREPRODUCTION_FROZEN":
+        raise CreativeFreezeError("PREPRODUCTION_NOT_FROZEN", "preproduction design gate is not frozen")
+    if preproduction.get("matrix_sha256") != canonical_sha(matrix):
+        raise CreativeFreezeError("PREPRODUCTION_STALE", "preproduction freeze matrix hash is stale/mismatched")
+    art_direction_id = preproduction.get("selected_art_direction_id")
+    if not isinstance(art_direction_id, str) or not art_direction_id.strip():
+        raise CreativeFreezeError("PREPRODUCTION_INVALID", "preproduction freeze selected_art_direction_id is required")
+    representative_sha = preproduction.get("representative_artifact_sha256")
+    if not isinstance(representative_sha, str) or len(representative_sha) != 64:
+        raise CreativeFreezeError("PREPRODUCTION_INVALID", "preproduction freeze representative artifact SHA is required")
+    return canonical_sha(preproduction), art_direction_id
+
+
 def validate_art_direction(contract: dict[str, Any], concept_id: str) -> dict[str, Any]:
     art = contract.get("art_direction")
     if not isinstance(art, dict):
@@ -89,7 +105,14 @@ def validate_art_direction(contract: dict[str, Any], concept_id: str) -> dict[st
     return art
 
 
-def validate_contract(contract: dict[str, Any], concept_id: str, variants: dict[str, set[str]], allowed_reference_ids: set[str] | None) -> None:
+def validate_contract(
+    contract: dict[str, Any],
+    concept_id: str,
+    variants: dict[str, set[str]],
+    allowed_reference_ids: set[str] | None,
+    *,
+    preproduction_art_direction_id: str | None = None,
+) -> None:
     if contract.get("concept_id") != concept_id:
         raise CreativeFreezeError("CREATIVE_CONCEPT_MISMATCH", f"{concept_id}: contract concept_id mismatch")
     if contract.get("status") != "APPROVED":
@@ -99,7 +122,12 @@ def validate_contract(contract: dict[str, Any], concept_id: str, variants: dict[
             raise CreativeFreezeError("CREATIVE_INCOMPLETE", f"{concept_id}: {key} is required")
     if not isinstance(contract.get("scan_path"), list) or len(contract["scan_path"]) < 2:
         raise CreativeFreezeError("CREATIVE_INCOMPLETE", f"{concept_id}: scan_path needs at least two stages")
-    validate_art_direction(contract, concept_id)
+    art = validate_art_direction(contract, concept_id)
+    if preproduction_art_direction_id is not None and art.get("art_direction_id") != preproduction_art_direction_id:
+        raise CreativeFreezeError(
+            "CREATIVE_PREPRODUCTION_MISMATCH",
+            f"{concept_id}: creative art_direction_id differs from preproduction-approved direction",
+        )
     grounding = contract.get("source_grounding")
     if not isinstance(grounding, list) or not grounding:
         raise CreativeFreezeError("CREATIVE_UNGROUNDED", f"{concept_id}: source_grounding cannot be empty")
@@ -142,16 +170,30 @@ def validate_contract(contract: dict[str, Any], concept_id: str, variants: dict[
                 raise CreativeFreezeError("CREATIVE_COPY_ERROR", f"{concept_id}/{variant_id}/{language}: headline and CTA required")
 
 
-def freeze_contracts(matrix: dict[str, Any], contracts_dir: Path, out_path: Path, *, reference_index: dict[str, Any] | None = None) -> dict[str, Any]:
+def freeze_contracts(
+    matrix: dict[str, Any],
+    contracts_dir: Path,
+    out_path: Path,
+    *,
+    reference_index: dict[str, Any] | None = None,
+    preproduction_freeze: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     if out_path.exists():
         raise CreativeFreezeError("CREATIVE_FREEZE_EXISTS", f"refusing to overwrite {out_path}")
     axes = expected_axes(matrix)
     allowed_refs = validated_reference_ids(reference_index)
+    preproduction_sha, approved_art_direction_id = validate_preproduction_freeze(preproduction_freeze, matrix)
     frozen = []
     for concept_id in sorted(axes):
         path = contracts_dir / f"{concept_id}.creative.json"
         contract = load_json(path)
-        validate_contract(contract, concept_id, axes[concept_id], allowed_refs)
+        validate_contract(
+            contract,
+            concept_id,
+            axes[concept_id],
+            allowed_refs,
+            preproduction_art_direction_id=approved_art_direction_id,
+        )
         art = contract["art_direction"]
         frozen.append({
             "concept_id": concept_id,
@@ -172,6 +214,8 @@ def freeze_contracts(matrix: dict[str, Any], contracts_dir: Path, out_path: Path
         "status": "CREATIVE_CONTRACTS_FROZEN",
         "frozen_at": utc_now_iso(),
         "matrix_sha256": canonical_sha(matrix),
+        "preproduction_freeze_id": preproduction_freeze.get("freeze_id") if preproduction_freeze else None,
+        "preproduction_freeze_sha256": preproduction_sha,
         "concept_count": len(frozen),
         "contracts": frozen
     }
@@ -186,10 +230,22 @@ def main() -> int:
     parser.add_argument("--contracts-dir", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--reference-index", type=Path)
+    parser.add_argument(
+        "--preproduction-freeze",
+        type=Path,
+        required=True,
+        help="Required normal-production binding proving competitive research, design brief, written art direction and representative design approval",
+    )
     args = parser.parse_args()
     try:
         reference_index = load_json(args.reference_index) if args.reference_index else None
-        result = freeze_contracts(load_json(args.matrix), args.contracts_dir, args.out, reference_index=reference_index)
+        result = freeze_contracts(
+            load_json(args.matrix),
+            args.contracts_dir,
+            args.out,
+            reference_index=reference_index,
+            preproduction_freeze=load_json(args.preproduction_freeze),
+        )
     except CreativeFreezeError as exc:
         print(json.dumps({"status": exc.code, "error": str(exc)}, ensure_ascii=False))
         return 2
