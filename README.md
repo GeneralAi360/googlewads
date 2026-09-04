@@ -2,116 +2,138 @@
 
 A production-grade AI skill for planning, designing, adapting, rendering, reviewing, validating, and iterating performance advertising banners for Google Ads.
 
-The project is broader than a legacy GDN banner prompt. It separates asset-based Google formats from fully composed Uploaded Display creatives and treats intake, reference analysis, creative strategy, Matreshka-style subagent production, lighting, exact raster rendering, independent visual review, technical validation, and performance learning as one system.
+The project is broader than a legacy GDN banner prompt. It treats business intake, reference analysis, art direction, creative strategy, Matreshka-style subagent production, lighting, exact raster composition, independent visual review, Google technical validation, and later performance learning as one connected production system.
 
 ## Core pipeline
 
-`context -> 52-question intake state -> freeze gate -> reference DNA -> frozen creative contracts -> banner matrix -> one job per output -> banner workers -> deterministic render + Google preflight -> contact sheet + provenance manifest -> independent banner reviews -> pack review -> readiness gate -> delivery -> performance learning`
+`context -> 52-question intake -> run freeze -> reference DNA -> art-direction decision -> frozen creative contracts -> banner matrix -> one job per output -> deterministic render -> Google preflight -> manifest/contact sheet -> thumbnail/grayscale/squint QA views -> independent banner reviews -> pack review -> readiness gate -> delivery -> performance learning`
 
 ## Current development
 
-Branch: `dev/performance-banner-designer-v0.1`
+Branch: `dev/performance-banner-designer-v0.2`
 
-Draft PR: `#1 feat: Performance Banner Designer v0.2 production pipeline`
-
-The PR remains draft and is not merged into `main`.
+`main` remains unchanged. v0.2 must not be merged until final review/reconciliation is complete.
 
 ## What is executable now
 
-### 1. Structured intake
+### Structured intake and freeze
 
-`config/intake-question-pool.json` contains the machine-readable 52-question pool. `scripts/plan_banner_intake.py` reads partial structured context, marks every question as `RESOLVED`, `MISSING`, `CONDITIONAL`, or `NOT_APPLICABLE`, calculates output math, and exposes only unresolved questions appropriate to `quick`, `standard`, or `deep` mode.
+`config/intake-question-pool.json` contains 52 potential questions. `scripts/plan_banner_intake.py` marks them `RESOLVED`, `MISSING`, `CONDITIONAL`, or `NOT_APPLICABLE` and asks only unresolved material questions.
 
-It does not treat `null`, `false`, or an empty list as automatically missing. Those values may represent deliberate answers such as “no proof”, “no disclaimer”, or “no formal brand system”.
+The planner keeps concept count, size count, variant count, language count, and total output count explicit. Ambiguous wording such as “10 banners in 7 sizes” blocks production instead of guessing.
 
-### 2. Production freeze gate
+`scripts/freeze_banner_run.py` creates the immutable production envelope only after intake is ready. It records Google mode/spec snapshot, exact size list, output math, context hash, matrix hash, `run-freeze.json`, and `banner-matrix.json`.
 
-`scripts/freeze_banner_run.py` is the boundary between questioning and production. It refuses to create a matrix while intake is `BRIEF_INCOMPLETE` or `OUTPUT_COUNT_AMBIGUOUS`.
+### Reference analysis
 
-A successful freeze records:
-- Google mode and local spec snapshot;
-- concept/size/variant/language counts;
-- exact output total;
-- input-context SHA-256;
-- matrix SHA-256;
-- immutable `banner-matrix.json`;
-- `run-freeze.json`.
+Reference-driven work uses one narrow read-only `REFERENCE_ANALYST` job per supplied reference. Machine-readable `REFERENCE_DNA` captures composition, hierarchy, typography, color, whitespace, CTA treatment, image/crop behavior, lighting, transferable principles, and literal elements that must not be copied.
 
-The deterministic v0.2 renderer freezes only PNG/JPG uploaded-display production. Unsupported modes/formats fail explicitly instead of silently using the wrong pipeline.
+### Art direction before scale-out
 
-### 3. Matreshka-style job isolation
+`references/art-direction-and-design-craft.md` adds production design craft synthesized from useful patterns found in public design skills while preserving the repository evidence policy.
 
-`references/subagent-orchestration.md` and `assets/banner-task-brief-template.md` define the controller/subagent contract.
+Visual direction is resolved through one of:
+- `ART_DIRECTION_LOCKED` — existing brand/design identity already governs the work;
+- `ART_DIRECTION_PREVIEW_3` — three genuinely different representative visual systems are shown to the user before the full pack;
+- `ART_DIRECTION_AUTOSELECT_3` — three isolated candidates are ranked by an independent art-direction reviewer in unattended workflows.
 
-`scripts/materialize_banner_jobs.py` creates exactly one narrow task brief and one render-spec shell per final matrix row. Existing worker files are not overwritten unless the controller explicitly reconciles the run with `--force`.
+The selected `art_direction_id` becomes part of the frozen creative contract, is propagated into every render spec and output manifest, and is checked again before rendering. A banner worker cannot silently swap the approved visual language.
 
-For `3 concepts × 7 sizes × 2 variants × 1 language`, the system expects **42 final files and 42 traceable banner jobs**.
+The design-craft layer also adds silhouette-first hierarchy, intentional alignment, structural whitespace, anti-template/anti-generic-AI guardrails, aspect-ratio-specific crop recomposition, and thumbnail/grayscale/squint diagnostics. Contextual heuristics such as “CTA always bottom-right” or “20% text maximum” are deliberately not promoted to universal rules.
 
-### 4. Lighting intelligence
+### Frozen creative contracts
 
-The user-supplied 30-lighting-scheme guide is represented as production heuristics in `config/lighting-schemes.json` and `references/lighting-intelligence.md`.
+Concept contracts preserve proposition, proof, CTA, visual idea, primary AOI, scan path, brand, art direction, reference IDs, source grounding, lighting choice, variants, languages, and controlled copy overrides by layout family/dimension.
 
-The skill distinguishes:
+`scripts/freeze_creative_contracts.py`, `scripts/apply_creative_contracts.py`, and `scripts/validate_creative_bindings.py` SHA-bind those decisions to every banner job. Worker mutation of copy, art direction, reference/source provenance, brand, or lighting fails the binding gate.
+
+### Matreshka-style job isolation
+
+`scripts/materialize_banner_jobs.py` creates one narrow task and one render-spec shell per final matrix row. One fresh `BANNER_DESIGNER` context per row is the default when the host supports real isolation.
+
+For `3 concepts × 7 sizes × 2 variants × 1 language`, the system expects exactly **42 final files and 42 traceable jobs**.
+
+### Lighting intelligence
+
+The user-supplied 30-lighting-scheme guide is encoded as production heuristics in `config/lighting-schemes.json` and `references/lighting-intelligence.md`.
+
+The system distinguishes:
 - `SCENE_LIGHTING` — light inside the photographed/generated hero;
 - `COMPOSITION_LIGHTING` — controlled post-composite hierarchy tools.
 
-Implemented composition primitives:
-- `hero_edge_glow`;
-- `spotlight`;
-- `copy_scrim`;
-- `vignette`;
-- `text_plate`.
+Implemented composition primitives include `hero_edge_glow`, `spotlight`, `copy_scrim`, `vignette`, and `text_plate`. Lighting serves material read, separation, hierarchy, and copy-safe regions; it is not treated as a guaranteed CTR/conversion law.
 
-Lighting is not treated as a guaranteed CTR/conversion law.
+### Deterministic renderer
 
-### 5. Deterministic renderer
+`scripts/render_banner.py` uses Pillow for exact PNG/JPG composition and owns critical copy, logo/brand name, fonts, layout, focal crop, composition lighting, output dimensions, and bounded compression.
 
-`scripts/render_banner.py` uses Pillow for exact PNG/JPG composition. It owns critical copy, logo/brand name, fonts, layout, focal crop, lighting overlays, output dimensions, and compression.
+Explicit failure states include:
+- `FAIL_COPY_OVERFLOW`;
+- `FAIL_LAYOUT`;
+- `FAIL_CONTRAST`;
+- `FAIL_LOCAL_CONTRAST`;
+- `FAIL_FILE_SIZE`;
+- `FAIL_ASSET`.
 
-Important failure semantics:
-- `FAIL_COPY_OVERFLOW` — text cannot fit above the allowed minimum size;
-- `FAIL_LAYOUT` — the selected format intentionally has no slot for supplied information;
-- `FAIL_CONTRAST` — flat/CTA contrast gate fails;
-- `FAIL_LOCAL_CONTRAST` — photographic copy-zone contrast is too weak;
-- `FAIL_FILE_SIZE` — byte target cannot be met;
-- `FAIL_ASSET` — an approved required asset is unavailable.
+Photographic copy-zone contrast is measured before text is drawn. Logo clearspace is explicit. Small formats drop approved secondary content through controlled contract overrides rather than silently shrinking everything.
 
-The renderer measures local photographic contrast before drawing text and can use a controlled text plate/scrim rather than relying on visual guesswork. Logo clearspace is explicit and reported.
+### Google technical pack and provenance
 
-### 6. Google technical pack
+`scripts/render_banner_pack.py` verifies matrix identity and frozen creative/art-direction binding, renders every row, invokes `scripts/validate_google_banner.py`, creates a contact sheet, and emits `output-manifest.json` only for a fully technically passing pack.
 
-`scripts/render_banner_pack.py` renders every matrix row, verifies render-spec identity against the immutable matrix, calls `scripts/validate_google_banner.py`, creates a contact sheet, and emits `output-manifest.json` only when every file passes technical preflight.
+The manifest records output/render-spec/matrix SHA-256 values plus Google snapshot, concept, brand, art-direction, reference, source-grounding, hero, and lighting provenance.
 
-The manifest records hashes and provenance, including matrix hash, output hash, render-spec hash, Google snapshot date, concept/brand/reference/lighting/source IDs, and generation timestamp.
+Technical PASS is not design PASS.
 
-A technical manifest does **not** by itself mean final design readiness.
+### Diagnostic visual QA
 
-### 7. Independent review gate
+`scripts/build_design_qa_views.py` creates review-only views for every exact output:
+- actual output reference;
+- exact-size grayscale;
+- exact-size squint/blur;
+- 25% thumbnail/glance board.
 
-`scripts/materialize_review_jobs.py` creates one read-only `DESIGN_REVIEWER` task per output plus one `PACK_REVIEWER` task.
+They are hash-bound to the source output and are never upload/delivery assets. They expose failures that can be hidden when tiny Google banners are enlarged in a design UI: weak hierarchy, color-only hierarchy, decorative light dominating the message, unreadable thumbnail behavior, and noise from secondary detail.
 
-Each banner review is bound to the exact output SHA-256. If the banner changes, the old review is stale and cannot approve the new file.
+### Independent review and readiness
 
-`scripts/assess_pack_readiness.py` requires:
-- every banner review to pass;
-- concept/brand/hierarchy/lighting/type/color/density/crop/CTA/actual-size checks;
-- one pack-level cross-size/contact-sheet review;
-- independent contexts by default.
+`scripts/materialize_review_jobs.py` creates one read-only `DESIGN_REVIEWER` task per final banner plus one `PACK_REVIEWER` task. Diagnostic views are attached only when their source hash and files are valid.
 
-Only then may the controller return `delivery_status=COMPLETE` and allow the final completion claim. If independence is unavailable, delivery/process rigor are reported separately rather than faking full rigor.
+Individual review covers concept/brand fidelity, primary AOI, lighting, typography, actual-size readability, thumbnail behavior, grayscale and squint hierarchy, contrast, density, crop, CTA, and anti-template/generic styling.
 
-### 8. Seven-format end-to-end fixture
+Pack review covers expected files, duplicates, concept/brand consistency, campaign design grammar, cross-size lighting consistency where relevant, layout adaptation, small-format simplification, and contact-sheet quality.
 
-`scripts/demo_end_to_end.py` proves the real local chain using synthetic business facts and synthetic imagery only:
+`scripts/assess_pack_readiness.py` separates:
+- `delivery_status` — whether required outputs/reviews pass;
+- `run_rigor` — whether actual independent contexts were available.
 
-`intake -> freeze -> 7 core matrix rows -> materialize -> deterministic JPG render -> Google validator -> contact sheet -> provenance manifest`
+A changed output invalidates its previous review through SHA binding.
 
-It is a pipeline fixture, not evidence of advertising performance.
+### Visual-review calibration harness
+
+The repo includes six intentionally flawed synthetic visual cases covering:
+- photographic copy glare/contrast;
+- logo dominance;
+- destructive hero crop;
+- overloaded 320x50;
+- decorative lighting stealing focal priority;
+- cross-size campaign drift.
+
+The harness generates real image artifacts, materializes one fresh read-only reviewer task per case without leaking the hidden answer key, defines a machine-readable review-report schema, and scores critical/important recall, false critical findings, and prohibited performance/design myths.
+
+Unit tests prove the harness itself is deterministic. They do **not** prove a model's visual judgment until the six cases are executed through genuinely fresh visual contexts and scored.
+
+### Canonical seven-format E2E fixture
+
+`scripts/demo_end_to_end.py` now exercises:
+
+`intake -> run freeze -> 7 core matrix rows -> job materialization -> approved creative + art-direction freeze -> binding -> deterministic JPG render -> real Google validator -> manifest/contact sheet -> grayscale/squint/thumbnail QA views -> 7 independent review tasks + pack-review task`
+
+The fixture intentionally stops before inventing reviewer reports.
 
 ## Google core pack
 
-The current encoded Uploaded Display core pack is:
-
+Current encoded Uploaded Display core sizes:
 - 300x250
 - 336x280
 - 728x90
@@ -120,35 +142,22 @@ The current encoded Uploaded Display core pack is:
 - 300x600
 - 320x50
 
-The skill never mechanically rescales one canvas into all seven formats. It preserves the creative contract while rebuilding composition by layout family.
+The skill preserves one creative/design grammar while rebuilding composition per layout family. It never treats a representative preview as a master canvas to resize mechanically.
 
 ## Evidence policy
 
 Every reusable rule is classified as:
-
 1. platform requirement;
 2. research evidence;
 3. production heuristic;
 4. test hypothesis.
 
-This prevents unsupported rules such as a universal fill percentage, a universally superior serif/sans category, a universally best CTA color, or a guaranteed-performing lighting scheme.
+This prevents imported design advice or internet conventions from becoming false universal laws.
 
 ## Current verification
 
-GitHub Actions currently passes **65/65 tests** on the draft branch. Coverage includes:
-- Google image preflight;
-- format registry and matrix math;
-- 30 lighting schemes;
-- 52-question intake planner;
-- freeze gate;
-- one-job-per-row materialization;
-- all seven core dimensions;
-- text overflow/layout/file-size/contrast failures;
-- focal crop, clearspace and composition lighting;
-- photographic local contrast;
-- pack builder and provenance manifest;
-- real Google-validator integration;
-- intake-to-seven-format E2E fixture;
-- independent banner review and pack-readiness gate.
+GitHub Actions passes **114/114 tests** on `dev/performance-banner-designer-v0.2` at the current verified milestone.
 
-See `docs/ROADMAP.md` for remaining v0.2 work and later performance/visual-QA layers.
+Coverage includes intake/freeze, Google formats, 30 lighting schemes, reference DNA, art-direction/creative freeze and mutation detection, layout families, exact rendering, crop/clearspace/lighting/local contrast, compression, Google preflight, manifest provenance, design-QA diagnostic views, review materialization/readiness, hidden-key visual-review eval infrastructure, and the canonical seven-format intake-to-review-dispatch E2E.
+
+See `docs/ROADMAP.md` for the remaining external validation step and later v0.3/v0.4 work.
