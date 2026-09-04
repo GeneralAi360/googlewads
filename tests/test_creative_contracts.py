@@ -33,6 +33,21 @@ class CreativeContractTests(unittest.TestCase):
             rows.append({"job_id": f"C01-S{size}-V01-Lru", "concept_id": "C01", "variant_id": "V01", "language": "ru", "width": width, "height": height, "dimension": size, "layout_family": family, "output_path": f"outputs/{size}.png", "output_format": "png"})
         return {"run_id": "demo", "expected_output_files": 2, "banner_matrix": rows}
 
+    def art_direction(self):
+        return {
+            "mode": "ART_DIRECTION_LOCKED",
+            "art_direction_id": "AD-C01-LOCKED",
+            "visual_thesis": "Product-led restrained commercial grid",
+            "selection_provenance": "BRAND_LOCKED",
+            "representative_preview_id": None,
+            "selected_from_candidate_ids": [],
+            "alignment_logic": "copy left, hero right",
+            "graphic_device": "product hero with restrained offer chip",
+            "image_treatment": "clean commercial photography",
+            "whitespace_character": "restrained",
+            "anti_template_exclusions": ["random glass cards", "decorative blobs"],
+        }
+
     def contract(self):
         return {
             "concept_id": "C01",
@@ -45,6 +60,7 @@ class CreativeContractTests(unittest.TestCase):
             "primary_aoi": "product",
             "scan_path": ["product", "headline", "cta"],
             "brand_id": "brand-demo",
+            "art_direction": self.art_direction(),
             "reference_dna_ids": ["REF-A"],
             "lighting": {"lighting_scheme_id": 1, "scene_directive": "soft directional", "composition_directive": "restrained"},
             "source_grounding": [{"source_id": "landing-page", "supports": "primary proposition"}],
@@ -67,6 +83,31 @@ class CreativeContractTests(unittest.TestCase):
             with self.assertRaises(self.freeze.CreativeFreezeError) as ctx:
                 self.freeze.freeze_contracts(self.matrix(), contracts, root / "freeze.json")
             self.assertEqual(ctx.exception.code, "CREATIVE_NOT_APPROVED")
+
+    def test_freeze_requires_art_direction(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            contract = self.contract()
+            contract.pop("art_direction")
+            contracts, _ = self.write_contract(root, contract)
+            with self.assertRaises(self.freeze.CreativeFreezeError) as ctx:
+                self.freeze.freeze_contracts(self.matrix(), contracts, root / "freeze.json")
+            self.assertEqual(ctx.exception.code, "CREATIVE_ART_DIRECTION_ERROR")
+
+    def test_preview_mode_requires_three_candidates_and_selected_preview(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            contract = self.contract()
+            contract["art_direction"].update({
+                "mode": "ART_DIRECTION_PREVIEW_3",
+                "selection_provenance": "USER_APPROVED",
+                "selected_from_candidate_ids": ["A", "B"],
+                "representative_preview_id": None,
+            })
+            contracts, _ = self.write_contract(root, contract)
+            with self.assertRaises(self.freeze.CreativeFreezeError) as ctx:
+                self.freeze.freeze_contracts(self.matrix(), contracts, root / "freeze.json")
+            self.assertEqual(ctx.exception.code, "CREATIVE_ART_DIRECTION_ERROR")
 
     def test_missing_matrix_language_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -94,6 +135,7 @@ class CreativeContractTests(unittest.TestCase):
             contracts, _ = self.write_contract(root)
             reference_index = {"status": "REFERENCE_DNA_READY", "reports": [{"reference_id": "REF-A"}]}
             creative_freeze = self.freeze.freeze_contracts(matrix, contracts, root / "creative-freeze.json", reference_index=reference_index)
+            self.assertEqual(creative_freeze["contracts"][0]["art_direction_id"], "AD-C01-LOCKED")
             jobs = root / "jobs"
             self.materializer.materialize(matrix, jobs)
             result = self.apply.apply(matrix, creative_freeze, contracts, jobs / "render-specs", out_index=root / "bindings.json")
@@ -104,6 +146,7 @@ class CreativeContractTests(unittest.TestCase):
                 self.assertEqual(spec["copy"]["headline"], "Кухни на заказ")
                 self.assertEqual(spec["copy"]["cta"], "Рассчитать")
                 self.assertEqual(spec["provenance"]["creative_contract_id"], "C01")
+                self.assertEqual(spec["provenance"]["art_direction_id"], "AD-C01-LOCKED")
                 self.assertRegex(spec["provenance"]["creative_contract_sha256"], r"^[0-9a-f]{64}$")
                 self.assertEqual(spec["provenance"]["reference_dna_ids"], ["REF-A"])
                 self.assertEqual(spec["provenance"]["source_grounding_ids"], ["landing-page"])
@@ -124,6 +167,23 @@ class CreativeContractTests(unittest.TestCase):
             result = self.validate.validate(matrix, creative_freeze, contracts, jobs / "render-specs")
             self.assertEqual(result["status"], "CREATIVE_BINDING_FAIL")
             self.assertIn("copy differs", result["failures"][0]["reason"])
+
+    def test_binding_validator_detects_worker_art_direction_mutation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            matrix = self.matrix()
+            contracts, _ = self.write_contract(root)
+            creative_freeze = self.freeze.freeze_contracts(matrix, contracts, root / "creative-freeze.json")
+            jobs = root / "jobs"
+            self.materializer.materialize(matrix, jobs)
+            self.apply.apply(matrix, creative_freeze, contracts, jobs / "render-specs")
+            first = jobs / "render-specs" / f"{matrix['banner_matrix'][0]['job_id']}.json"
+            spec = json.loads(first.read_text(encoding="utf-8"))
+            spec["provenance"]["art_direction_id"] = "AD-WORKER-MUTATION"
+            first.write_text(json.dumps(spec, ensure_ascii=False), encoding="utf-8")
+            result = self.validate.validate(matrix, creative_freeze, contracts, jobs / "render-specs")
+            self.assertEqual(result["status"], "CREATIVE_BINDING_FAIL")
+            self.assertIn("art_direction_id mismatch", result["failures"][0]["reason"])
 
     def test_untouched_bindings_pass(self):
         with tempfile.TemporaryDirectory() as tmp:
