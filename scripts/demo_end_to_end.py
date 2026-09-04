@@ -153,7 +153,7 @@ def fill_specs(matrix: dict[str, Any], dispatch_dir: Path, hero_path: Path, font
                 "qa": {"min_cta_contrast": 4.5},
                 "provenance": {
                     "brand_id": "demo-brand",
-                    "creative_contract_id": "demo-C01",
+                    "creative_contract_id": None,
                     "hero_asset_id": "demo-hero-01",
                     "reference_dna_ids": [],
                     "source_grounding_ids": ["synthetic-demo-fixture"],
