@@ -23,21 +23,27 @@ class DemoEndToEndTests(unittest.TestCase):
     def setUpClass(cls):
         cls.module = load_module()
 
-    def test_seven_format_demo_runs_through_real_google_preflight(self):
+    def test_intake_to_seven_format_demo_runs_through_real_google_preflight(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             result = self.module.run_demo(root)
             self.assertEqual(result["status"], "PASS")
+            self.assertEqual(result["intake_status"], "READY_TO_FREEZE")
             self.assertEqual(result["expected_output_files"], 7)
             self.assertEqual(result["passed_output_files"], 7)
             self.assertEqual(result["failed_output_files"], 0)
+            self.assertTrue((root / "freeze" / "run-freeze.json").is_file())
+            self.assertTrue((root / "freeze" / "banner-matrix.json").is_file())
             self.assertTrue((root / "contact-sheet.png").is_file())
             self.assertTrue((root / "output-manifest.json").is_file())
             self.assertTrue((root / "pack-report.json").is_file())
 
-            matrix = json.loads((root / "banner-matrix.json").read_text(encoding="utf-8"))
+            freeze = json.loads((root / "freeze" / "run-freeze.json").read_text(encoding="utf-8"))
+            matrix = json.loads((root / "freeze" / "banner-matrix.json").read_text(encoding="utf-8"))
             manifest = json.loads((root / "output-manifest.json").read_text(encoding="utf-8"))
             dispatch = json.loads((root / "dispatch" / "dispatch-index.json").read_text(encoding="utf-8"))
+            self.assertEqual(freeze["status"], "FROZEN")
+            self.assertEqual(freeze["expected_output_files"], 7)
             self.assertEqual(len(matrix["banner_matrix"]), 7)
             self.assertEqual(len(manifest["files"]), 7)
             self.assertEqual(len(dispatch["jobs"]), 7)

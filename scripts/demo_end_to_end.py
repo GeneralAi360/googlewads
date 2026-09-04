@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Create and verify a synthetic seven-format Google core-pack demo run.
 
-This fixture uses synthetic copy and imagery only. It exists to prove the local
-production pipeline, not to demonstrate campaign performance.
+The demo now starts at the structured intake gate, freezes the run, materializes
+one job per banner, renders every banner, runs real Google technical preflight,
+and emits contact sheet + provenance manifest. All business facts are synthetic.
 """
 from __future__ import annotations
 
@@ -25,6 +26,57 @@ def load_script(name: str):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def complete_demo_context() -> dict[str, Any]:
+    return {
+        "formats": {"mode": "demand_gen_uploaded_display", "pack": "core"},
+        "deliverables": {
+            "concept_count": 1,
+            "variant_count": 1,
+            "languages": ["ru"],
+            "output_format": "jpg",
+        },
+        "business": {"product_service": "Synthetic demo kitchens", "geography": "Minsk"},
+        "campaign": {
+            "objective": "lead",
+            "landing_page": "https://example.invalid/demo",
+            "funnel_stage": "product-aware",
+            "primary_action": "request quote",
+        },
+        "audience": {"primary": "Synthetic homeowners"},
+        "offer": {
+            "primary_value_proposition": "Synthetic custom-kitchen proposition",
+            "price": None,
+            "proof_points": [],
+            "cta": "Рассчитать",
+        },
+        "constraints": {"legal_disclaimers": [], "prohibited_claims": []},
+        "brand": {
+            "brand_id": "demo-brand",
+            "no_formal_system": True,
+            "no_logo_asset": True,
+            "allow_font_fallback": True,
+            "allow_run_local_palette": True,
+            "real_photos": [],
+            "ai_hero_allowed": True,
+            "people_faces_policy": "not required",
+            "additional_rules": [],
+            "prohibited_elements": [],
+        },
+        "visual": {
+            "hero_subject": "product",
+            "mood": "clean premium",
+            "material_lighting": None,
+            "lighting_style": None,
+            "copy_safe_zone": "layout-family dependent",
+            "effect_policy": "restrained",
+        },
+        "production": {
+            "approval_step": False,
+            "confidentiality_restrictions": None,
+        },
+    }
 
 
 def create_demo_hero(path: Path) -> Path:
@@ -53,7 +105,6 @@ def fill_specs(matrix: dict[str, Any], dispatch_dir: Path, hero_path: Path, font
             "cta": "Рассчитать",
         }
         if family == "micro_horizontal":
-            copy["headline"] = "Кухни на заказ"
             copy["support"] = None
             copy["offer"] = None
         spec.update(
@@ -122,28 +173,18 @@ def fill_specs(matrix: dict[str, Any], dispatch_dir: Path, hero_path: Path, font
 
 def run_demo(out_dir: Path) -> dict[str, Any]:
     out_dir.mkdir(parents=True, exist_ok=True)
-    matrix_module = load_script("build_banner_matrix")
+    freeze_module = load_script("freeze_banner_run")
     materializer = load_script("materialize_banner_jobs")
     renderer = load_script("render_banner")
     pack_runner = load_script("render_banner_pack")
 
-    config = matrix_module.load_formats()
-    sizes = matrix_module.resolve_sizes(config, "core", None)
-    matrix = matrix_module.build_matrix(
+    freeze_result = freeze_module.freeze_context(
+        complete_demo_context(),
         run_id="demo-core",
-        concepts=1,
-        sizes=sizes,
-        variants=1,
-        languages=["ru"],
-        output_format="jpg",
+        out_dir=out_dir / "freeze",
         output_root=(out_dir / "outputs").as_posix(),
-        config=config,
     )
-    matrix["brand_id"] = "demo-brand"
-    matrix["spec_snapshot_date"] = config.get("snapshot_date")
-    matrix_path = out_dir / "banner-matrix.json"
-    matrix_path.write_text(json.dumps(matrix, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
+    matrix = freeze_result["matrix"]
     dispatch_dir = out_dir / "dispatch"
     materializer.materialize(matrix, dispatch_dir)
     hero_path = create_demo_hero(out_dir / "assets" / "demo-hero.jpg")
@@ -152,18 +193,20 @@ def run_demo(out_dir: Path) -> dict[str, Any]:
     result = pack_runner.render_pack(
         matrix,
         dispatch_dir / "render-specs",
-        mode="demand_gen_uploaded_display",
+        mode=freeze_result["freeze"]["google_mode"],
         pack="core",
         contact_sheet=out_dir / "contact-sheet.png",
         manifest_path=out_dir / "output-manifest.json",
     )
+    result["freeze_path"] = freeze_result["freeze_path"]
+    result["intake_status"] = freeze_result["intake"]["status"]
     report_path = out_dir / "pack-report.json"
     report_path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return result
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run the synthetic seven-format banner production demo")
+    parser = argparse.ArgumentParser(description="Run the synthetic intake-to-seven-format banner production demo")
     parser.add_argument("--out-dir", type=Path, default=Path("demo-output"))
     args = parser.parse_args()
     result = run_demo(args.out_dir)
