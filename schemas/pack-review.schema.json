@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/pack-review.schema.json",
+  "title": "Independent Banner Pack Review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reviewer_role",
+    "independent_context",
+    "manifest_sha256",
+    "status",
+    "checks",
+    "findings"
+  ],
+  "properties": {
+    "reviewer_role": {"const": "PACK_REVIEWER"},
+    "reviewer_thread_id": {"type": ["string", "null"]},
+    "independent_context": {"type": "boolean"},
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "contact_sheet_path": {"type": ["string", "null"]},
+    "status": {"enum": ["PASS", "FAIL", "BLOCKED"]},
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "all_expected_files_present",
+        "no_unintended_duplicates",
+        "cross_size_concept_consistency",
+        "brand_consistency",
+        "intentional_layout_adaptation",
+        "small_format_simplification",
+        "contact_sheet_review"
+      ],
+      "properties": {
+        "all_expected_files_present": {"$ref": "#/$defs/check"},
+        "no_unintended_duplicates": {"$ref": "#/$defs/check"},
+        "cross_size_concept_consistency": {"$ref": "#/$defs/check"},
+        "brand_consistency": {"$ref": "#/$defs/check"},
+        "intentional_layout_adaptation": {"$ref": "#/$defs/check"},
+        "small_format_simplification": {"$ref": "#/$defs/check"},
+        "contact_sheet_review": {"$ref": "#/$defs/check"}
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["severity", "message", "blocking"],
+        "properties": {
+          "severity": {"enum": ["CRITICAL", "IMPORTANT", "MINOR", "NOTE"]},
+          "message": {"type": "string"},
+          "blocking": {"type": "boolean"}
+        }
+      }
+    },
+    "summary": {"type": ["string", "null"]}
+  },
+  "$defs": {
+    "check": {"enum": ["PASS", "FAIL", "NOT_APPLICABLE", "UNCHECKABLE"]}
+  }
+}
