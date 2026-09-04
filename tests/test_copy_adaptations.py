@@ -72,6 +72,19 @@ class CopyAdaptationTests(unittest.TestCase):
             "primary_aoi": "product",
             "scan_path": ["product", "headline", "cta"],
             "brand_id": "brand-demo",
+            "art_direction": {
+                "mode": "ART_DIRECTION_LOCKED",
+                "art_direction_id": "AD-C01-LOCKED",
+                "visual_thesis": "Product-led restrained grid",
+                "selection_provenance": "BRAND_LOCKED",
+                "representative_preview_id": None,
+                "selected_from_candidate_ids": [],
+                "alignment_logic": "copy left, hero right",
+                "graphic_device": "product hero",
+                "image_treatment": "clean commercial",
+                "whitespace_character": "restrained",
+                "anti_template_exclusions": [],
+            },
             "reference_dna_ids": [],
             "lighting": {"lighting_scheme_id": None, "scene_directive": None, "composition_directive": None},
             "source_grounding": [{"source_id": "landing-page", "supports": "proposition"}],
@@ -167,6 +180,8 @@ class CopyAdaptationTests(unittest.TestCase):
             self.assertTrue(result["creative_binding_required"])
             manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
             self.assertTrue(all("creative_binding" in item["checks"] for item in manifest["files"]))
+            self.assertTrue(all("art_direction_binding" in item["checks"] for item in manifest["files"]))
+            self.assertTrue(all(item["art_direction_id"] == "AD-C01-LOCKED" for item in manifest["files"]))
             self.assertTrue(all(item["creative_contract_path"] for item in manifest["files"]))
             self.assertTrue(all(len(item["creative_contract_sha256"]) == 64 for item in manifest["files"]))
 
