@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/preproduction-freeze.schema.json",
+  "title": "Preproduction Design Freeze",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "freeze_id", "matrix_sha256", "competitive_research", "category_design_map", "design_brief", "art_direction_approval", "representative_design_approval", "selected_art_direction_id", "representative_artifact_sha256"],
+  "properties": {
+    "status": {"const": "PREPRODUCTION_FROZEN"},
+    "freeze_id": {"type": "string", "minLength": 1},
+    "frozen_at": {"type": ["string", "null"]},
+    "matrix_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "research_rigor": {"enum": ["FULL", "DEGRADED_ACCEPTED"]},
+    "competitive_research": {"$ref": "#/$defs/binding"},
+    "category_design_map": {"$ref": "#/$defs/binding"},
+    "design_brief": {"$ref": "#/$defs/binding"},
+    "art_direction_approval": {"$ref": "#/$defs/binding"},
+    "representative_design_approval": {"$ref": "#/$defs/binding"},
+    "selected_art_direction_id": {"type": "string", "minLength": 1},
+    "representative_artifact_path": {"type": "string", "minLength": 1},
+    "representative_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "sha256"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}
