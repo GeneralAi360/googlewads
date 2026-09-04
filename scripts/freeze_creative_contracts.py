@@ -57,6 +57,38 @@ def validated_reference_ids(reference_index: dict[str, Any] | None) -> set[str] 
     return {item["reference_id"] for item in reference_index.get("reports") or []}
 
 
+def validate_art_direction(contract: dict[str, Any], concept_id: str) -> dict[str, Any]:
+    art = contract.get("art_direction")
+    if not isinstance(art, dict):
+        raise CreativeFreezeError(
+            "CREATIVE_ART_DIRECTION_ERROR",
+            f"{concept_id}: art_direction must be frozen before production",
+        )
+    mode = art.get("mode")
+    if mode not in {"ART_DIRECTION_LOCKED", "ART_DIRECTION_PREVIEW_3", "ART_DIRECTION_AUTOSELECT_3"}:
+        raise CreativeFreezeError("CREATIVE_ART_DIRECTION_ERROR", f"{concept_id}: invalid art_direction mode")
+    for key in ("art_direction_id", "visual_thesis", "selection_provenance"):
+        if not isinstance(art.get(key), str) or not art[key].strip():
+            raise CreativeFreezeError("CREATIVE_ART_DIRECTION_ERROR", f"{concept_id}: art_direction.{key} is required")
+    if art["selection_provenance"] not in {"BRAND_LOCKED", "USER_APPROVED", "ART_DIRECTOR_REVIEWER"}:
+        raise CreativeFreezeError("CREATIVE_ART_DIRECTION_ERROR", f"{concept_id}: invalid art-direction selection provenance")
+    candidates = art.get("selected_from_candidate_ids") or []
+    if len(candidates) != len(set(candidates)):
+        raise CreativeFreezeError("CREATIVE_ART_DIRECTION_ERROR", f"{concept_id}: duplicate art-direction candidate IDs")
+    if mode in {"ART_DIRECTION_PREVIEW_3", "ART_DIRECTION_AUTOSELECT_3"}:
+        if len(candidates) < 3:
+            raise CreativeFreezeError(
+                "CREATIVE_ART_DIRECTION_ERROR",
+                f"{concept_id}: {mode} requires at least three candidate IDs",
+            )
+        if not isinstance(art.get("representative_preview_id"), str) or not art["representative_preview_id"].strip():
+            raise CreativeFreezeError(
+                "CREATIVE_ART_DIRECTION_ERROR",
+                f"{concept_id}: selected representative_preview_id is required",
+            )
+    return art
+
+
 def validate_contract(contract: dict[str, Any], concept_id: str, variants: dict[str, set[str]], allowed_reference_ids: set[str] | None) -> None:
     if contract.get("concept_id") != concept_id:
         raise CreativeFreezeError("CREATIVE_CONCEPT_MISMATCH", f"{concept_id}: contract concept_id mismatch")
@@ -67,14 +99,13 @@ def validate_contract(contract: dict[str, Any], concept_id: str, variants: dict[
             raise CreativeFreezeError("CREATIVE_INCOMPLETE", f"{concept_id}: {key} is required")
     if not isinstance(contract.get("scan_path"), list) or len(contract["scan_path"]) < 2:
         raise CreativeFreezeError("CREATIVE_INCOMPLETE", f"{concept_id}: scan_path needs at least two stages")
+    validate_art_direction(contract, concept_id)
     grounding = contract.get("source_grounding")
     if not isinstance(grounding, list) or not grounding:
         raise CreativeFreezeError("CREATIVE_UNGROUNDED", f"{concept_id}: source_grounding cannot be empty")
-    source_ids = []
     for item in grounding:
         if not isinstance(item, dict) or not item.get("source_id") or not item.get("supports"):
             raise CreativeFreezeError("CREATIVE_UNGROUNDED", f"{concept_id}: malformed source_grounding entry")
-        source_ids.append(item["source_id"])
     refs = contract.get("reference_dna_ids") or []
     if len(refs) != len(set(refs)):
         raise CreativeFreezeError("CREATIVE_REFERENCE_ERROR", f"{concept_id}: duplicate reference_dna_ids")
@@ -121,6 +152,7 @@ def freeze_contracts(matrix: dict[str, Any], contracts_dir: Path, out_path: Path
         path = contracts_dir / f"{concept_id}.creative.json"
         contract = load_json(path)
         validate_contract(contract, concept_id, axes[concept_id], allowed_refs)
+        art = contract["art_direction"]
         frozen.append({
             "concept_id": concept_id,
             "path": path.as_posix(),
@@ -128,6 +160,7 @@ def freeze_contracts(matrix: dict[str, Any], contracts_dir: Path, out_path: Path
             "variant_ids": sorted(axes[concept_id]),
             "languages": sorted({language for languages in axes[concept_id].values() for language in languages}),
             "brand_id": contract.get("brand_id"),
+            "art_direction_id": art["art_direction_id"],
             "reference_dna_ids": contract.get("reference_dna_ids") or [],
             "source_grounding_ids": [item["source_id"] for item in contract["source_grounding"]],
             "lighting_scheme_id": (contract.get("lighting") or {}).get("lighting_scheme_id")
