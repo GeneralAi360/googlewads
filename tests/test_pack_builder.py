@@ -21,13 +21,19 @@ class PackBuilderTests(unittest.TestCase):
             def validator(path,mode,pack):
                 with Image.open(path) as im: size=im.size
                 return {"status":"PASS","errors":[],"dimension":f"{size[0]}x{size[1]}"}
-            result=self.m.render_pack(matrix,specs,contact_sheet=root/"sheet.png",technical_validator=validator)
-            self.assertEqual(result["status"],"PASS"); self.assertEqual(result["passed_output_files"],2); self.assertTrue((root/"sheet.png").is_file())
+            result=self.m.render_pack(matrix,specs,contact_sheet=root/"sheet.png",manifest_path=root/"manifest.json",technical_validator=validator)
+            self.assertEqual(result["status"],"PASS"); self.assertEqual(result["passed_output_files"],2); self.assertTrue((root/"sheet.png").is_file()); self.assertTrue((root/"manifest.json").is_file())
+            manifest=json.loads((root/"manifest.json").read_text(encoding="utf-8")); self.assertEqual(len(manifest["files"]),2); self.assertTrue(all(item["status"]=="PASS" for item in manifest["files"]))
     def test_missing_spec_blocks_full_pack(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); specs=root/"specs"; specs.mkdir(); matrix={"run_id":"demo","expected_output_files":1,"banner_matrix":[{"job_id":"missing","width":300,"height":250,"layout_family":"rectangle","output_path":str(root/"missing.png"),"output_format":"png"}]}
             result=self.m.render_pack(matrix,specs,technical_validator=lambda *args:{"status":"PASS","errors":[]})
             self.assertEqual(result["status"],"FAIL"); self.assertEqual(result["failed_output_files"],1); self.assertEqual(result["failures"][0]["job_id"],"missing")
+    def test_failed_pack_does_not_emit_manifest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp); specs=root/"specs"; specs.mkdir(); manifest=root/"manifest.json"; matrix={"run_id":"demo","expected_output_files":1,"banner_matrix":[{"job_id":"missing","width":300,"height":250,"layout_family":"rectangle","output_path":str(root/"missing.png"),"output_format":"png"}]}
+            result=self.m.render_pack(matrix,specs,manifest_path=manifest,technical_validator=lambda *args:{"status":"PASS","errors":[]})
+            self.assertEqual(result["status"],"FAIL"); self.assertFalse(manifest.exists())
     def test_spec_matrix_mismatch_fails_job(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); specs=root/"specs"; specs.mkdir(); job="j"; row={"job_id":job,"width":300,"height":250,"layout_family":"rectangle","output_path":str(root/"j.png"),"output_format":"png"}; bad=self.base_spec(job,336,280,"rectangle",root/"x.png"); (specs/"j.json").write_text(json.dumps(bad),encoding="utf-8"); result=self.m.render_pack({"expected_output_files":1,"banner_matrix":[row]},specs,technical_validator=lambda *args:{"status":"PASS","errors":[]}); self.assertEqual(result["failures"][0]["code"],"FAIL_SPEC_MATRIX_MISMATCH")
