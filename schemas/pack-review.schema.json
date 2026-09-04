@@ -27,6 +27,8 @@
         "no_unintended_duplicates",
         "cross_size_concept_consistency",
         "brand_consistency",
+        "professional_category_consistency",
+        "asset_quality_consistency",
         "intentional_layout_adaptation",
         "small_format_simplification",
         "contact_sheet_review"
@@ -36,12 +38,15 @@
         "no_unintended_duplicates": {"$ref": "#/$defs/check"},
         "cross_size_concept_consistency": {"$ref": "#/$defs/check"},
         "brand_consistency": {"$ref": "#/$defs/check"},
+        "professional_category_consistency": {"$ref": "#/$defs/check"},
+        "asset_quality_consistency": {"$ref": "#/$defs/check"},
         "intentional_layout_adaptation": {"$ref": "#/$defs/check"},
         "small_format_simplification": {"$ref": "#/$defs/check"},
         "contact_sheet_review": {"$ref": "#/$defs/check"},
         "campaign_design_grammar": {"$ref": "#/$defs/check"},
         "cross_size_lighting_consistency": {"$ref": "#/$defs/check"},
-        "anti_template_generic_style": {"$ref": "#/$defs/check"}
+        "anti_template_generic_style": {"$ref": "#/$defs/check"},
+        "anti_generic_ai_consistency": {"$ref": "#/$defs/check"}
       }
     },
     "findings": {
