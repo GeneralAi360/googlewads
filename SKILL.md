@@ -1,8 +1,8 @@
 ---
 name: performance-banner-designer
-description: "Design, orchestrate, adapt, validate, and prepare performance advertising banners for Google Ads. Use for Google Display, Demand Gen image assets, Responsive Display assets, Uploaded Display creatives, exact-size banner packs, reference-driven banner production, multi-banner batches, or creative iteration from ad performance data. The skill combines structured intake, subagent orchestration, platform requirements, evidence-grounded creative strategy, lighting intelligence, visual-attention research, typography, color/contrast, layout-family adaptation, deterministic text/logo composition, and technical preflight."
+description: "Design, orchestrate, adapt, render, validate, and prepare performance advertising banners for Google Ads. Use for Google Display, Demand Gen image assets, Responsive Display assets, Uploaded Display creatives, exact-size banner packs, reference-driven banner production, multi-banner batches, or creative iteration from ad performance data. The skill combines structured intake, subagent orchestration, platform requirements, evidence-grounded creative strategy, lighting intelligence, visual-attention research, typography, color/contrast, layout-family adaptation, deterministic text/logo composition, and technical preflight."
 metadata:
-  version: "0.1.1"
+  version: "0.2.0-dev"
   status: "development"
   primary_platform: "Google Ads"
 ---
@@ -142,7 +142,7 @@ Do not resize one master canvas mechanically. Adapt the idea through layout fami
 
 ## Mode D — HTML5 / animated display
 
-Treat motion, duration, frame rate, final state, click behavior, package structure, and file size as additional constraints. v0.1 provides planning guidance only; do not claim production validation without the corresponding validator.
+Treat motion, duration, frame rate, final state, click behavior, package structure, and file size as additional constraints. Current production tooling validates static PNG/JPG uploaded-display packs; do not claim HTML5 production validation without the corresponding validator.
 
 # Phase 3 — Ground the creative
 
@@ -196,7 +196,7 @@ Treat these schemes as **production heuristics**, not scientific performance law
 Use lighting in two layers:
 
 1. **SCENE_LIGHTING** — lighting inside the generated or photographed hero image.
-2. **COMPOSITION_LIGHTING** — restrained post-composite gradients, vignettes, glows, or local tonal shaping that help the banner hierarchy.
+2. **COMPOSITION_LIGHTING** — restrained post-composite gradients, vignettes, spotlights, text plates, or local tonal shaping that help the banner hierarchy.
 
 Lighting must serve hierarchy. Use it to:
 - separate product from background;
@@ -234,6 +234,8 @@ Defaults are heuristics:
 
 Create the full output matrix before dispatching banner workers.
 
+Use `scripts/build_banner_matrix.py` for deterministic output math and `schemas/banner-matrix.schema.json` for the lightweight final-job matrix. Keep that matrix distinct from `schemas/banner-run.schema.json`, which represents the fuller controller-owned run and creative contracts.
+
 Each matrix row must have:
 
 - `job_id`;
@@ -242,8 +244,8 @@ Each matrix row must have:
 - language;
 - exact width/height;
 - layout family;
-- approved copy slots;
-- hero/reference/lighting IDs;
+- approved copy slots when already resolved;
+- hero/reference/lighting IDs when resolved;
 - output path;
 - technical constraints;
 - review status;
@@ -251,13 +253,22 @@ Each matrix row must have:
 
 Every expected file must have exactly one row. The matrix is the completion checklist.
 
-Use `schemas/banner-run.schema.json` when structured state is useful.
+# Phase 8 — Materialize and dispatch subagent jobs
 
-# Phase 8 — Subagent dispatch
+Before dispatching banner workers, materialize one narrow task brief and one render-spec shell per matrix row:
+
+```bash
+python scripts/materialize_banner_jobs.py --matrix run/banner-matrix.json --out-dir run/jobs
+```
+
+This creates:
+- `run/jobs/task-briefs/{job_id}.md`;
+- `run/jobs/render-specs/{job_id}.json`;
+- `run/jobs/dispatch-index.json`.
+
+The materializer is fact-preserving: unresolved copy/brand/hero/lighting fields remain null/empty. It must not invent business facts merely to make a render spec complete. Existing job files are not overwritten unless the controller explicitly reconciles the run and chooses `--force`.
 
 For every row in the banner matrix, create a separate narrow `BANNER_DESIGNER` job by default. This gives each final banner a fresh task context instead of making one agent hold the entire pack in memory.
-
-Use `assets/banner-task-brief-template.md`.
 
 Each banner worker receives only:
 
@@ -268,6 +279,7 @@ Each banner worker receives only:
 - selected lighting scheme/directive;
 - exact dimension and layout family;
 - exact approved copy;
+- its own materialized render-spec path;
 - exact output path;
 - exact Google technical limits;
 - task-local QA checklist.
@@ -295,15 +307,28 @@ If fresh subagent contexts are unavailable, use a degraded mode and group work o
 
 # Phase 9 — Deterministic composition
 
+Load `references/rendering-and-validation.md`.
+
 When image generation is used, prefer generating the hero/background without critical typography or recreated logos.
 
-Compose deterministically:
-- exact logo;
+Compose final Uploaded Display banners through the deterministic render layer:
+- exact logo or brand name;
 - exact approved copy;
-- exact fonts;
-- exact coordinates/safe insets;
+- exact font paths/selection;
+- exact layout family / optional approved slot overrides;
+- exact focal crop;
 - exact output dimensions;
+- deterministic composition lighting;
 - deterministic export/compression.
+
+Use `scripts/render_banner.py` for a single job or `scripts/render_banner_pack.py` for the full matrix-driven pack.
+
+The renderer must fail rather than silently change the creative:
+- `FAIL_COPY_OVERFLOW` if copy cannot fit above the minimum configured text size;
+- `FAIL_LAYOUT` if a format intentionally has no usable slot for supplied content;
+- `FAIL_CONTRAST` when an explicitly configured readability gate fails;
+- `FAIL_FILE_SIZE` when export cannot satisfy the configured byte target;
+- `FAIL_ASSET` when an approved required asset is unavailable.
 
 Do not trust image generation to spell brand names, prices, CTA text, or legal copy correctly.
 
@@ -340,19 +365,34 @@ For each exported file verify:
 - no corrupted file;
 - filename maps to matrix job ID.
 
-Run `scripts/validate_google_banner.py` for supported static uploaded-display files.
+Run `scripts/validate_google_banner.py` for supported static uploaded-display files. The full pack runner calls that validator after deterministic rendering.
 
 A visually strong banner that fails technical requirements is not complete.
 
 # Phase 12 — Pack assembly
 
+Run the matrix-driven pack pipeline when supported:
+
+```bash
+python scripts/render_banner_pack.py \
+  --matrix run/banner-matrix.json \
+  --spec-dir run/jobs/render-specs \
+  --mode demand_gen_uploaded_display \
+  --pack core \
+  --contact-sheet run/contact-sheet.png \
+  --manifest run/output-manifest.json \
+  --report run/pack-report.json
+```
+
 Do not claim completion until every required banner-matrix row is `PASS` or explicitly marked blocked with a reason.
+
+`output-manifest.json` is a readiness artifact and must be emitted only for a fully passing pack. A failed run may still produce a diagnostic report and partial review contact sheet, but those do not imply campaign readiness.
 
 Deliver:
 
 - all individual creatives;
 - contact sheet / overview;
-- output manifest;
+- output manifest for a fully passing pack;
 - concept map;
 - source-grounding summary;
 - reference DNA summary where applicable;
@@ -394,6 +434,7 @@ Stop and return to the controller instead of guessing when:
 - Analyze references before using them.
 - Keep concept count, size count, variant count, language count, and total file count explicit.
 - One banner job per fresh banner-worker context by default.
+- Materialize job-local briefs/specs from the frozen matrix; never invent unresolved facts in that step.
 - Never let a subagent redefine the frozen brief/creative contract.
 - Never use one resized composition for every aspect ratio.
 - Never invent platform requirements or business claims.
@@ -401,8 +442,10 @@ Stop and return to the controller instead of guessing when:
 - Never claim sans-serif universally outperforms serif or vice versa.
 - Never claim one CTA color universally converts best.
 - Never let decorative lighting or saliency outrank the commercial message accidentally.
+- Never silently shrink copy below the configured minimum to make a banner fit.
 - Never approve a banner without viewing/validating it at actual output size.
 - Never claim the full pack is complete while required matrix rows remain unreviewed or unvalidated.
+- Never emit a final readiness manifest for a partially failing pack.
 
 # Reference loading map
 
@@ -415,5 +458,5 @@ Load only what the task needs:
 - eye tracking/gaze/complexity/AOIs -> `references/visual-attention.md`
 - fonts/type hierarchy/contrast/color -> `references/typography-color-contrast.md`
 - density and format adaptation -> `references/layout-families-and-density.md`
-- rendering and QA model -> `references/rendering-and-validation.md`
+- rendering, render specs, failure semantics, pack builder -> `references/rendering-and-validation.md`
 - citations/evidence provenance -> `references/research-sources.md`
