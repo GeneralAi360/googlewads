@@ -1,6 +1,6 @@
 ---
 name: performance-banner-designer
-description: "Design, orchestrate, adapt, render, review, validate, and prepare performance advertising banners for Google Ads. Use for Google Display, Demand Gen image assets, Responsive Display assets, Uploaded Display creatives, exact-size banner packs, reference-driven production, multi-banner batches, or creative iteration from ad performance data. The skill combines structured intake, Matreshka-style subagent orchestration, platform requirements, evidence-grounded creative strategy, art direction, lighting intelligence, visual-attention research, typography, color/contrast, layout-family adaptation, deterministic composition, diagnostic visual QA, independent review, and technical preflight."
+description: "Design, research, orchestrate, adapt, render, review, validate, and prepare performance advertising banners for Google Ads. Use for Google Display, Demand Gen image assets, Responsive Display assets, Uploaded Display creatives, exact-size banner packs, reference-driven production, multi-banner batches, or creative iteration from ad performance data. The skill combines structured intake, competitor/category creative intelligence, detailed design briefs, written art-direction approval, high-fidelity representative approval, Matreshka-style subagent orchestration, platform requirements, evidence-grounded creative strategy, lighting intelligence, visual-attention research, typography, color/contrast, layout-family adaptation, deterministic composition, diagnostic visual QA, independent review, and technical preflight."
 metadata:
   version: "0.2.0-dev"
   status: "development"
@@ -9,11 +9,13 @@ metadata:
 
 # Performance Banner Designer
 
-You are the controller for a production advertising-design system. Combine the responsibilities of performance creative director, art director, visual-attention specialist, typography specialist, lighting director, production coordinator, and Google Ads creative QA engineer.
+You are the controller for a production advertising-design system. Combine the responsibilities of performance creative director, advertising researcher, art director, visual-attention specialist, typography specialist, lighting director, production coordinator, and Google Ads creative QA engineer.
 
-Your job is not to make one attractive picture. Turn a business brief into a coherent, traceable, independently reviewed, technically valid **banner run** and deliver the complete requested pack.
+Your job is not to make one attractive picture. Turn a business brief into a coherent, traceable, independently reviewed, technically valid banner run and deliver the complete requested pack.
 
 A run can contain multiple concepts, sizes, variants, and languages. Keep those axes explicit from intake through manifest so no banner can silently disappear from the pack.
+
+A technically valid banner can still look childish, generic, template-like, or category-inappropriate. Therefore unresolved visual direction must not go directly from intake to image generation. Competitive/category research, detailed design specification, written art-direction approval, and one high-fidelity representative approval are production gates.
 
 ## Governing evidence model
 
@@ -26,6 +28,18 @@ Classify every reusable design rule as one of:
 
 Never present a heuristic as a scientific law. Never turn a responsive-image rule into a rule for finished uploaded banners. Public GitHub design skills may inspire production heuristics, but they are not scientific authorities.
 
+## Competitive performance-evidence model
+
+Observed competitor ads also need a separate performance-evidence tier:
+
+- `A_VERIFIED_OWN_METRICS` — first-party metrics available to the user/system;
+- `B_PUBLISHED_CASE_METRICS` — attributable case with actual metrics;
+- `C_PLATFORM_PERFORMANCE_SIGNAL` — the platform itself marks/surfaces the creative as high/top performing;
+- `D_MARKET_PROXY` — longevity, many variants, broad placement, or another market proxy;
+- `E_DESIGN_REFERENCE_ONLY` — visual/copy reference only.
+
+Never call a competitor/reference ad **high-converting** unless tier A or B evidence contains an actual conversion-related metric. Tier C is only a platform performance signal. Tiers D/E do not prove performance.
+
 ## Source-of-truth order
 
 When sources conflict, use:
@@ -34,27 +48,28 @@ When sources conflict, use:
 2. local `references/google-platform-specs.md` / `config/google-formats.json` snapshot;
 3. user-provided business facts and approved assets;
 4. `BRAND.md`, `ДИЗАЙН.md`, or `DESIGN.md`;
-5. accepted intake/run freeze and frozen creative contracts;
-6. research references;
-7. production heuristics.
+5. accepted intake/run freeze;
+6. competitive/category research and approved design brief;
+7. written art-direction + representative-design approvals;
+8. frozen creative contracts;
+9. research references;
+10. production heuristics.
 
 Do not invent platform limits, business facts, claims, prices, reviews, certifications, guarantees, fonts, colors, legal statements, or performance outcomes.
 
 # Controller model
 
-Use Matreshka Agent orchestration principles. The controller owns scope, accepted business facts, intake state, freeze, brand/design identity, creative contracts, art-direction decision, matrix, dispatches, review adjudication, technical validation, and completion claims.
+Use Matreshka Agent orchestration principles. The controller owns scope, accepted business facts, intake state, run freeze, competitor/category research synthesis, brand/design identity, design brief, approval gates, creative contracts, matrix, dispatches, review adjudication, technical validation, and completion claims.
 
-Subagents receive narrow task-local context. They may not create child agents, expand scope, redefine the frozen offer/CTA/brand/concept, or claim whole-run completion.
+Subagents receive narrow task-local context. They may not create child agents, expand scope, redefine the frozen offer/CTA/brand/concept/design identity, or claim whole-run completion.
 
-Load `references/subagent-orchestration.md` whenever more than one banner, reference, concept, art-direction candidate, or review role is involved.
+Load `references/subagent-orchestration.md` whenever more than one banner, reference, competitor target, concept, art-direction candidate, or review role is involved.
 
 # Phase 0 — Structured intake
 
-Before concepts, images, or banner jobs, inspect all supplied conversation context, files, brand docs, campaign material, references, and previous decisions.
+Before concepts, images, or banner jobs, inspect all supplied conversation context, files, brand docs, campaign material, references, previous decisions, and available site/product context.
 
-Use `references/intake-and-run-contract.md` and the machine-readable `config/intake-question-pool.json`. Build/maintain a structured intake context without inventing answers.
-
-Run the executable planner when local tooling is available:
+Use `references/intake-and-run-contract.md` and `config/intake-question-pool.json`.
 
 ```bash
 python scripts/plan_banner_intake.py \
@@ -63,19 +78,17 @@ python scripts/plan_banner_intake.py \
   --out run/intake-plan.json
 ```
 
-Question states are:
+Question states:
 - `RESOLVED`;
 - `MISSING`;
 - `CONDITIONAL`;
 - `NOT_APPLICABLE`.
 
-Explicit `null`, `false`, or empty collections may be valid resolved answers such as “no proof”, “no disclaimer”, “no formal brand system”. Do not re-ask them merely because they are empty.
+Explicit `null`, `false`, or empty collections may be valid resolved answers. Do not re-ask facts already present in supplied material.
 
-Ask only unresolved material questions. `quick` mode may show a bounded next batch; `standard` resolves all production blockers; `deep` additionally asks advisory questions.
+At minimum resolve campaign purpose, product/service, audience/geography, landing page, primary proposition, CTA/proof/legal constraints, brand/assets, Google mode, concept count, target sizes/pack, variants, languages, final format, and whether visual direction is already locked.
 
-At minimum resolve campaign purpose, product/service, audience/geography, landing page, primary proposition, CTA/proof/legal constraints, brand/assets, Google mode, concept count, target sizes/pack, variants, languages, final format, and whether the visual direction is already locked or requires exploration.
-
-Keep these quantities separate:
+Keep separate:
 - `concept_count`;
 - `size_count`;
 - `variant_count`;
@@ -84,11 +97,11 @@ Keep these quantities separate:
 
 `total_output_files = concept_count × size_count × variant_count × language_count`
 
-If “N banners in M sizes” is ambiguous, return `OUTPUT_COUNT_AMBIGUOUS`; do not guess whether N means final files or concepts.
+If “N banners in M sizes” is ambiguous, return `OUTPUT_COUNT_AMBIGUOUS`.
 
 # Phase 1 — Freeze the production envelope
 
-For deterministic Uploaded Display PNG/JPG production, do not create a final banner matrix directly from conversational assumptions. Pass the resolved intake through the freeze gate:
+For deterministic Uploaded Display PNG/JPG production, pass resolved intake through the run freeze:
 
 ```bash
 python scripts/freeze_banner_run.py \
@@ -98,48 +111,38 @@ python scripts/freeze_banner_run.py \
   --output-root outputs
 ```
 
-The freeze gate must return `FROZEN` before banner-matrix production can proceed. It blocks on:
-- `BRIEF_INCOMPLETE`;
-- `OUTPUT_COUNT_AMBIGUOUS`;
-- unsupported static-render mode/format;
-- an existing freeze that would otherwise be overwritten.
+A successful run freeze records Google mode/spec snapshot, counts, exact sizes, input-context hash, matrix hash, `run-freeze.json`, and immutable `banner-matrix.json`.
 
-A successful freeze records the Google mode/spec snapshot, counts, exact sizes, input-context hash, matrix hash, `run-freeze.json`, and immutable `banner-matrix.json`.
+The matrix may exist as a planning/completion artifact at this point. **Do not dispatch full `BANNER_DESIGNER` production jobs yet.** Scale-out remains blocked by the preproduction design freeze.
 
-The low-level `scripts/build_banner_matrix.py` remains available for tests/tools, but normal end-to-end runs should go through the freeze gate.
+# Phase 2 — Supplied reference analysis
 
-# Phase 2 — Reference analysis
+If the user supplies visual references, analyze them before design finalization.
 
-If references are supplied, analyze them before creative-contract finalization.
-
-For multiple references, prefer one fresh read-only `REFERENCE_ANALYST` context per source, then synthesize `REFERENCE_DNA` containing:
+Prefer one fresh read-only `REFERENCE_ANALYST` per source. Synthesize `REFERENCE_DNA` containing:
 - composition/grid;
 - focal object and scan path;
 - typography behavior;
-- color and contrast;
+- color/contrast;
 - whitespace/density;
 - CTA treatment;
 - product/person scale;
-- lighting direction, softness/hardness, temperature, reflections and shadow behavior;
+- lighting/reflection/shadow behavior;
 - photographic angle/crop;
 - mood/brand signals;
 - what the user likes/dislikes;
 - transferable principles;
 - literal elements not to copy.
 
-Do not copy another brand's logo, copy, proprietary identity, or unsupported claims merely because they appear in a reference.
-
-If no reference is supplied and the user did not request reference-driven work, keep the block `NOT_APPLICABLE` rather than inventing references.
+Do not copy another brand's identity, copy, unsupported claims, or proprietary visual system literally.
 
 # Phase 3 — Resolve Google platform mode
 
 ## Demand Gen / Responsive asset modes
-
-Create images/logos/text as separate assets when the Google product expects combinable assets. Do not bake logo/headline/CTA into a hero merely to imitate a static display ad.
+Create images/logos/text as separate assets when Google expects combinable assets. Do not bake finished display-ad typography into a hero asset merely to imitate Uploaded Display.
 
 ## Uploaded Display static
-
-The current core pack encoded locally is:
+Current encoded core pack:
 - 300x250;
 - 336x280;
 - 728x90;
@@ -148,78 +151,194 @@ The current core pack encoded locally is:
 - 300x600;
 - 320x50.
 
-Do not mechanically resize one master canvas. Preserve one creative idea while rebuilding composition by layout family.
+Never mechanically resize one composition across all aspect ratios.
 
 ## HTML5 / animated
+Current deterministic v0.2 production tooling validates static PNG/JPG. Do not claim HTML5/GIF production validation without the dedicated future motion/HTML5 pipeline.
 
-Treat motion, duration, frame rate, final state, click behavior, package structure, and file size as additional constraints. Current deterministic production tooling validates static PNG/JPG packs; do not claim HTML5 production validation without a dedicated validator.
+# Phase 4 — Competitive Creative Intelligence
 
-# Phase 4 — Ground concepts and resolve art direction
+Load `references/competitive-creative-intelligence.md`.
+
+For unresolved or newly created advertising design, research the category **before rendering art-direction previews**.
+
+When live web access exists, prefer real ads from current official ad libraries/transparency tools. For B2B categories, adjacent professional ad libraries may provide useful category language. Specialist intelligence/swipe services may be secondary sources. Resolve current capabilities live rather than hard-coding a service as a permanent dependency.
+
+Typical sources may include current Google Ads transparency/ad-library surfaces, LinkedIn Ad Library for B2B context, TikTok Top Ads for future video work, first-party performance data, published cases, and optional specialist intelligence services such as Foreplay, AdPlexity, Motion, or current equivalents.
+
+Create a research plan and, when isolated contexts exist, materialize one read-only task per target/query:
+
+```bash
+python scripts/materialize_competitive_research_jobs.py \
+  --plan run/research/competitive-research-plan.json \
+  --out-dir run/research/dispatch
+```
+
+Each `COMPETITOR_RESEARCHER` captures only observable evidence and assigns one performance-evidence tier. It does not design banners.
+
+The controller synthesizes `competitive-creative-research.json` matching `schemas/competitive-creative-research.schema.json`.
+
+`FULL` research currently requires >=3 relevant creatives across >=2 advertisers/independent targets. This is a coverage heuristic, not a conversion law. If evidence is unavailable, use `DEGRADED` with a reason and require explicit degraded acceptance.
+
+# Phase 5 — Category Design Map and detailed design brief
+
+Synthesize `category-design-map.json` before art direction. It must identify:
+- mature category signals;
+- dominant commercial/visual patterns;
+- common hero strategies;
+- trust signals;
+- category clichés;
+- generic-AI risks;
+- differentiated design opportunities;
+- a careful interpretation of any performance evidence.
+
+Then create `design-brief.json` matching `schemas/design-brief.schema.json`.
+
+The design brief is the detailed design specification, not merely a few style adjectives. It must include:
+- campaign, audience, and commercial message;
+- exact research/category-map hashes;
+- brand context;
+- art-direction strategy;
+- primary AOI, primary message, intended scan path, brand priority;
+- hero/image strategy and copy-safe behavior;
+- asset-quality policy;
+- typography strategy;
+- color/contrast strategy;
+- layout/alignment/whitespace strategy;
+- scene/composition lighting strategy;
+- information-density policy;
+- small-format removal policy;
+- exact sizes/output count;
+- review requirements.
+
+## Mandatory asset-quality policy
+
+The brief must reject by default:
+- visibly low-resolution/stretched raster assets;
+- generic AI clipart;
+- toy/clay 3D iconography unless explicitly approved as the art direction;
+- inconsistent illustration/render styles;
+- fake/placeholder logos in final work;
+- weak generic stock that damages category credibility.
+
+Require professional category fit. A small final Google size does not justify a low-quality source asset.
+
+# Phase 6 — Written art-direction approval before rendering
+
+Load `references/art-direction-and-design-craft.md`.
+
+Use one mode:
+- `ART_DIRECTION_LOCKED`;
+- `ART_DIRECTION_PREVIEW_3`;
+- `ART_DIRECTION_AUTOSELECT_3`.
+
+For preview/autoselect modes, create **three written art-direction specifications before generating preview images**. They must differ materially in:
+- visual thesis;
+- composition system;
+- hero strategy;
+- typography;
+- palette relationship;
+- lighting/image treatment;
+- graphic device;
+- trust signals;
+- whitespace character;
+- explicit anti-patterns.
+
+Changing only color or swapping one illustration is not a different art direction.
+
+Present the written specifications to the user. Do not render the representative previews until the user approves one direction or a genuinely independent `ART_DIRECTOR_REVIEWER` selects one in unattended mode.
+
+Write `art-direction-approval.json` matching `schemas/art-direction-approval.schema.json`. The approval is bound to the exact design-brief SHA.
+
+# Phase 7 — One high-fidelity representative design, then approval
+
+After written art-direction approval, create exactly one high-fidelity representative format for the selected direction, normally 300x250 unless another format is more representative.
+
+This representative artifact is not a rough sketch. It should be close to production quality and use final/approved brand/product assets whenever possible.
+
+Before approval inspect:
+- asset quality/resolution;
+- professional category fit;
+- hierarchy;
+- typography;
+- brand fidelity;
+- commercial-message fidelity;
+- hero/crop quality;
+- lighting/contrast;
+- CTA clarity;
+- anti-generic-AI quality.
+
+If the user rejects the representative design, do not produce 20 more files. Return to written art direction or design brief as appropriate.
+
+On approval write `representative-design-approval.json` matching `schemas/representative-design-approval.schema.json`. Approval must be SHA-256-bound to the exact representative file.
+
+Then freeze the entire preproduction chain:
+
+```bash
+python scripts/freeze_preproduction_design.py \
+  --matrix run/freeze/banner-matrix.json \
+  --competitive-research run/research/competitive-creative-research.json \
+  --category-map run/research/category-design-map.json \
+  --design-brief run/design/design-brief.json \
+  --art-direction-approval run/design/art-direction-approval.json \
+  --representative-approval run/design/representative-design-approval.json \
+  --out run/preproduction-freeze.json
+```
+
+The freeze must return `PREPRODUCTION_FROZEN` before full-pack banner jobs are dispatched.
+
+It fails on stale hashes, weak/empty market coverage, unsupported performance claims, design-brief/matrix mismatch, missing asset-quality policy, missing written approval, stale representative approval, failed representative quality checks, or a changed representative artifact.
+
+# Phase 8 — Ground and freeze creative concepts
 
 Prefer real evidence:
-- landing-page promise/product facts;
-- winning ads and performance data when supplied;
-- real reviews/comments/objections;
-- verified pricing/promotion;
-- real product imagery;
-- approved brand assets;
-- accepted `REFERENCE_DNA`.
+- landing-page facts;
+- verified offer/pricing;
+- real reviews/objections;
+- own winning ads/performance data when supplied;
+- approved brand/product assets;
+- accepted `REFERENCE_DNA`;
+- competitive/category design evidence;
+- approved preproduction design identity.
 
 Every strong claim must trace to a source. Never fabricate testimonials, statistics, awards, urgency/scarcity, medical/financial outcomes, or comparative claims.
 
 Create exactly the requested number of materially different concepts. A wording tweak is not a new concept.
 
-Load `references/art-direction-and-design-craft.md` before multiplying an unresolved visual direction into a full pack.
+Every controller-owned `CREATIVE_CONTRACT` contains concept/audience/angle/proposition/proof/CTA, visual idea, primary AOI, scan path, approved art direction, references, lighting, brand, source grounding, variants and format-specific copy adaptations.
 
-Use one of these art-direction modes:
+Normal production creative freeze must consume the preproduction freeze:
 
-- `ART_DIRECTION_LOCKED` — an approved brand/design system or explicit user direction already controls the look;
-- `ART_DIRECTION_PREVIEW_3` — create three genuinely different representative previews using the same approved message/assets and ask the user to choose A/B/C or a deliberate mix;
-- `ART_DIRECTION_AUTOSELECT_3` — for unattended production, create three isolated art-direction candidates and use a fresh read-only `ART_DIRECTOR_REVIEWER` to rank them against the frozen concept and brand constraints.
+```bash
+python scripts/freeze_creative_contracts.py \
+  --matrix run/freeze/banner-matrix.json \
+  --contracts-dir run/creative-contracts \
+  --preproduction-freeze run/preproduction-freeze.json \
+  --out run/creative-freeze.json
+```
 
-The three directions must differ in actual visual system — typography, composition, whitespace, image treatment, palette relationship, and graphic device — not merely color. The representative preview chooses visual language only; it is never treated as a master canvas to resize across formats.
+The selected `art_direction_id` in creative contracts must match the preproduction-approved direction. The creative freeze records the preproduction freeze hash.
 
-Favor a clear visual thesis over generic generated styling. Reject decoration that becomes the design by default: random glass cards, unrelated blobs, excessive glows, interchangeable gradients, card-UI composition, or centered-everything layouts without a concept reason.
-
-For each approved concept create a controller-owned `CREATIVE_CONTRACT` containing:
-- concept ID;
-- audience state;
-- hook;
-- primary proposition;
-- supporting proof;
-- CTA;
-- visual idea and primary AOI;
-- intended scan path;
-- copy hierarchy;
-- approved art-direction identity;
-- reference DNA IDs;
-- lighting plan;
-- brand identity;
-- source grounding;
-- test hypothesis.
-
-Banner workers may adapt layout but may not redefine the frozen offer, claim, CTA, brand, concept, or approved design identity.
-
-# Phase 5 — Lighting intelligence
+# Phase 9 — Lighting intelligence
 
 Load `references/lighting-intelligence.md` whenever hero lighting is generated/changed or a reference depends on lighting.
 
-The user-provided library contains 30 practical schemes encoded in `config/lighting-schemes.json`. Treat them as **PRODUCTION HEURISTICS**, not conversion laws.
+The 30 practical schemes in `config/lighting-schemes.json` are **PRODUCTION HEURISTICS**, not conversion laws.
 
 Distinguish:
-1. `SCENE_LIGHTING` — lighting inside the photo/generated hero;
+1. `SCENE_LIGHTING` — light inside the photo/generated hero;
 2. `COMPOSITION_LIGHTING` — restrained hierarchy tools applied during composition.
 
-Implemented composition primitives include:
+Implemented composition primitives:
 - `hero_edge_glow`;
 - `spotlight`;
 - `copy_scrim`;
 - `vignette`;
 - `text_plate`.
 
-Use light to separate product from background, create controlled hierarchy, preserve copy-safe zones, respect material behavior, and avoid noisy glare behind text. Decorative light must not become the primary AOI accidentally. If a glow or hotspot wins the squint/blur view instead of the commercial focal point, revise it.
+Lighting must support material read, focal hierarchy and copy-safe regions. Decorative light must not become the accidental primary AOI.
 
-# Phase 6 — Hierarchy, typography, color, density
+# Phase 10 — Hierarchy, typography, color, density
 
 Load:
 - `references/art-direction-and-design-craft.md`;
@@ -228,23 +347,19 @@ Load:
 - `references/layout-families-and-density.md`.
 
 For each banner define:
-1. primary attention object;
+1. primary AOI;
 2. primary message;
-3. optional proof/support if space permits;
+3. optional support/proof;
 4. CTA;
 5. brand anchor.
 
-Build the large visual masses before decoration: hero mass, headline silhouette, action mass, brand anchor, then support/proof. Use one dominant alignment logic and break it only deliberately.
+Build large visual masses before decoration. Use whitespace as structure. Use actual-size legibility rather than universal fill percentages or universal CTA positions/colors.
 
-Use one type family/two useful weights as a default heuristic, not a scientific law. Prioritize actual-size legibility. Use contrast instead of myths about one universally converting color. Do not use a fixed fill percentage as a quality score.
+Small formats may support only the glance layer. Remove approved secondary content rather than shrinking detail copy until it technically fits.
 
-Use whitespace as structure, not as leftover area or a numeric target. Small formats may only support the glance layer: subject + proposition + action + brand. Do not shrink large-format detail copy until it technically fits.
+# Phase 11 — Materialize one job per final output
 
-# Phase 7 — Materialize one job per final output
-
-Use the frozen `banner-matrix.json` as the completion checklist. Every expected final file must have exactly one row.
-
-Materialize narrow worker artifacts:
+Only after `PREPRODUCTION_FROZEN` and creative freeze are valid, use the frozen banner matrix as completion checklist.
 
 ```bash
 python scripts/materialize_banner_jobs.py \
@@ -252,44 +367,27 @@ python scripts/materialize_banner_jobs.py \
   --out-dir run/jobs
 ```
 
-This creates one task brief and one render-spec shell per matrix row plus `dispatch-index.json`. It is fact-preserving: unresolved fields remain empty/null. Existing worker files are not overwritten unless the controller deliberately uses `--force` after reconciliation.
+Every row = one final banner job. Each `BANNER_DESIGNER` gets only job-local frozen context and may not redefine offer, price, CTA, legal copy, brand, concept, art direction, or output dimensions.
 
-For every row dispatch a separate `BANNER_DESIGNER` context by default. Each worker receives only the frozen concept, approved design identity, relevant brand/reference/lighting context, exact dimension/layout family, exact approved copy, its own render-spec, technical limits, and one output path.
+Read-only roles may run in parallel. Writers run concurrently only with real isolated contexts and disjoint output paths. Otherwise use sequential execution and report degraded rigor honestly.
 
-Each banner worker:
-- produces one job only;
-- creates no child agents;
-- does not alter offer/price/CTA/legal/brand/concept/design identity;
-- does not inspect unrelated concepts/output folders;
-- returns blockers instead of guessing.
-
-### Parallelism
-
-Read-only analysts/reviewers may run in parallel. Banner writers may run concurrently only with real fresh/isolated contexts and disjoint output paths. Otherwise run sequentially. If independence is unavailable, declare degraded rigor instead of pretending isolation exists.
-
-# Phase 8 — Deterministic composition
+# Phase 12 — Deterministic composition
 
 Load `references/rendering-and-validation.md`.
 
-Generate hero/background without critical typography or recreated logos when generative image tools are used. Then compose deterministically with exact logo/brand name, copy, fonts, layout, focal crop, output dimensions, composition lighting, and compression.
-
-Use `scripts/render_banner.py` for one job or the pack runner for the matrix.
+Generate hero/background without critical typography or recreated logos when generative tools are used. Compose exact logo/brand name, approved copy, fonts, layout, focal crop, lighting, dimensions and compression deterministically.
 
 Fail explicitly:
-- `FAIL_COPY_OVERFLOW` — copy cannot fit above configured minimum;
-- `FAIL_LAYOUT` — selected family intentionally lacks a supplied content slot;
-- `FAIL_CONTRAST` — configured flat/CTA contrast gate fails;
-- `FAIL_LOCAL_CONTRAST` — photographic text zone is too low-contrast;
-- `FAIL_FILE_SIZE` — export cannot meet byte target;
-- `FAIL_ASSET` — required approved asset is missing.
+- `FAIL_COPY_OVERFLOW`;
+- `FAIL_LAYOUT`;
+- `FAIL_CONTRAST`;
+- `FAIL_LOCAL_CONTRAST`;
+- `FAIL_FILE_SIZE`;
+- `FAIL_ASSET`.
 
-Local photographic contrast must be measured on the background before text is drawn. A text plate/scrim may be used deliberately to create a readable zone; do not rely on a visually guessed average color.
+Recompose by layout family. Do not preserve one crop/layout blindly across aspect ratios.
 
-Recompose hero crop by layout family. Do not preserve a normalized focal crop blindly when a different aspect ratio destroys product geometry, face integrity, or the intended focal relationship.
-
-# Phase 9 — Render and technically validate the pack
-
-Run:
+# Phase 13 — Render and technically validate the pack
 
 ```bash
 python scripts/render_banner_pack.py \
@@ -302,20 +400,13 @@ python scripts/render_banner_pack.py \
   --report run/pack-report.json
 ```
 
-The pack runner:
-- verifies render spec ↔ matrix identity;
-- verifies frozen creative binding when production mode requires it;
-- renders every row;
-- invokes `validate_google_banner.py`;
-- checks exact dimensions/type/size/static state;
-- emits contact sheet;
-- emits provenance manifest only when every file passes.
+The pack runner validates render-spec ↔ matrix identity, frozen creative/art-direction binding, exact dimensions/type/size/static state, real Google preflight, and only emits a provenance manifest for a technically passing pack.
 
-The manifest contains hashes and provenance and is a **technical pack artifact**, not by itself a final design approval.
+Technical PASS is not design PASS.
 
-# Phase 10 — Build diagnostic visual QA views
+# Phase 14 — Diagnostic visual QA
 
-After a technically passing manifest exists, create review-only diagnostic views:
+After technical PASS:
 
 ```bash
 python scripts/build_design_qa_views.py \
@@ -323,19 +414,17 @@ python scripts/build_design_qa_views.py \
   --out-dir run/design-qa
 ```
 
-For every final banner this produces:
-- the immutable actual output reference;
-- exact-size grayscale view;
-- exact-size squint/blur view;
-- a 25% thumbnail/glance board.
+For every final banner produce review-only:
+- actual output reference;
+- exact-size grayscale;
+- exact-size squint/blur;
+- 25% thumbnail/glance board.
 
-These views are **not delivery assets** and never replace actual-size inspection. They help diagnose whether the primary AOI, headline silhouette, CTA distinction, and luminance hierarchy survive reduced or simplified viewing conditions. Do not infer CTR from them.
+These are diagnostic views, not upload assets or CTR predictors. Regenerate them after any output change.
 
-The diagnostic index is SHA-256-bound to each source output. If a banner changes, regenerate the diagnostics before review.
+# Phase 15 — Independent banner review
 
-# Phase 11 — Independent banner review
-
-Materialize review tasks with the diagnostic index:
+Materialize one fresh read-only `DESIGN_REVIEWER` task per final banner when isolation is available:
 
 ```bash
 python scripts/materialize_review_jobs.py \
@@ -346,42 +435,30 @@ python scripts/materialize_review_jobs.py \
   --out-dir run/review
 ```
 
-Dispatch one fresh read-only `DESIGN_REVIEWER` per final banner when the host supports it. The reviewer sees the exact artifact plus only relevant frozen creative/brand/reference/lighting/design context and writes `schemas/banner-review.schema.json`.
-
-The review is SHA-256-bound to the exact output. Any changed banner invalidates its previous review and requires targeted re-review.
-
-Mandatory review areas:
+Review mandatory areas:
 - concept fidelity;
 - brand fidelity;
-- primary AOI and intended scan path;
+- professional category fit and asset quality;
+- primary AOI / intended scan path;
 - reference use without literal copying;
 - lighting/focal guidance;
 - typography/actual-size legibility;
-- 25% glance/thumbnail behavior;
+- thumbnail behavior;
 - grayscale hierarchy;
-- squint/blur hierarchy;
+- squint hierarchy;
 - color/contrast;
-- information density;
+- density;
 - crop/safe zones;
 - CTA clarity;
-- anti-template / anti-generic-AI styling;
-- actual-size appearance.
+- anti-template / anti-generic-AI styling.
 
-Reviewers never fix files. The controller adjudicates findings. Confirmed material findings return as one consolidated fix wave to the original banner-worker context, then targeted re-review and regenerated QA diagnostics.
+Reviewer never fixes the artifact. Controller adjudicates findings, returns confirmed issues as one consolidated fix wave, then regenerates diagnostics and requests targeted re-review.
 
-# Phase 12 — Pack review and readiness gate
+# Phase 16 — Pack review and readiness
 
-After individual reviews pass, run one independent `PACK_REVIEWER` on the contact sheet/manifest to check:
-- missing/duplicate outputs;
-- cross-size concept consistency;
-- brand consistency;
-- campaign-level design grammar;
-- lighting consistency where applicable;
-- intentional layout adaptation;
-- small-format simplification;
-- anti-template/generic drift across the set.
+After individual reviews pass, one `PACK_REVIEWER` checks missing/duplicate outputs, cross-size concept/brand consistency, campaign design grammar, lighting consistency where applicable, intentional layout adaptation, small-format simplification, and generic/template drift.
 
-Then run:
+Then:
 
 ```bash
 python scripts/assess_pack_readiness.py \
@@ -394,50 +471,51 @@ python scripts/assess_pack_readiness.py \
 
 Do not claim completion unless `completion_claim_allowed=true`.
 
-Keep delivery and rigor separate:
-- `delivery_status=COMPLETE` means exact outputs and applicable reviews pass;
-- `run_rigor=FULL` requires the configured independence guarantees;
-- if independent contexts are unavailable, report `DEGRADED` honestly. The default gate blocks full-rigor completion; degraded acceptance requires explicit controller policy.
+Keep separate:
+- `delivery_status=COMPLETE` — all exact outputs/applicable reviews pass;
+- `run_rigor=FULL` — required independent contexts were actually available.
 
-# Phase 13 — Deliver the complete pack
+# Phase 17 — Deliver complete pack
 
-Only after readiness passes, deliver:
-- every individual creative;
-- contact sheet;
-- output manifest;
-- readiness report;
-- concept map;
-- source-grounding summary;
-- reference DNA summary where applicable;
-- lighting choices;
-- art-direction/design identity summary;
-- visual review summary;
-- technical QA summary;
-- intentional cross-size differences.
+Only after readiness passes deliver every creative, contact sheet, manifest, readiness report, source/category/design-brief summary, concept map, reference DNA summary, lighting choices, art-direction identity, visual review summary, technical QA summary, and intentional cross-size differences.
 
-A partial pack may be shared for diagnosis/review, but it must never be described as complete.
+A partial pack may be shared for diagnosis but must never be called complete.
 
-# Phase 14 — Performance learning
+# Phase 18 — Performance learning
 
-When campaign data exists, analyze impressions, clicks/CTR, conversions/CVR, CPA/CPL, value/ROAS, and audience/placement context.
+When campaign data exists, analyze impressions, CTR, conversions/CVR, CPA/CPL, value/ROAS and placement/audience context.
 
-Do not infer a design law from one metric or a small sample. Update `CREATIVE_MEMORY.md` with the tested change, sample/metric, what can actually be inferred, and the next controlled test.
+Do not infer a universal design law from one metric or small sample. Update `CREATIVE_MEMORY.md` with exact tested change, sample/metric, warranted inference and next controlled test.
 
-# Visual reviewer calibration
+# Visual reviewer calibration and real-world regression
 
-The repository contains a hidden-key visual-eval harness under `evals/` and `scripts/materialize_visual_review_evals.py` / `scripts/score_visual_review_evals.py`.
+The repo contains:
+- hidden-key synthetic visual evals under `evals/visual-review-evals.json`;
+- real production failures under `evals/real-world-failures.json`.
 
-Use it to calibrate a fresh visual reviewer against intentionally flawed synthetic artifacts. The reviewer task must never receive the hidden expected-finding key. Passing deterministic unit tests proves the harness works; it does **not** prove a model has visual judgment until a genuinely fresh reviewer context is run and scored.
+Passing unit tests proves infrastructure, not model visual judgment. Real failures discovered during user acceptance become regression requirements.
+
+`REAL-01` records the first Work failure: premature rendering without market research, three superficially different directions, generic/childish cloud visuals and insufficient B2B category professionalism.
 
 # Stop conditions
 
-Return to the controller rather than guessing:
+Return to controller rather than guessing:
 - `BRIEF_INCOMPLETE`;
 - `OUTPUT_COUNT_AMBIGUOUS`;
 - `REFERENCE_INTENT_UNCLEAR`;
+- `COMPETITIVE_RESEARCH_INCOMPLETE`;
+- `COMPETITIVE_RESEARCH_DEGRADED` unless explicitly accepted;
+- `PERFORMANCE_CLAIM_UNSUPPORTED`;
+- `CATEGORY_MAP_INCOMPLETE`;
+- `DESIGN_BRIEF_INCOMPLETE`;
+- `ART_DIRECTION_UNRESOLVED`;
+- `ART_DIRECTION_NOT_APPROVED`;
+- `REPRESENTATIVE_DESIGN_NOT_APPROVED`;
+- `REPRESENTATIVE_DESIGN_FAILED`;
+- `ASSET_QUALITY_BELOW_PRODUCTION`;
+- `PREPRODUCTION_NOT_FROZEN`;
 - `BRAND_CONFLICT`;
 - `CLAIM_UNVERIFIED`;
-- `ART_DIRECTION_UNRESOLVED` when style materially affects production and no locked/preview/autoselect decision exists;
 - `UNSUPPORTED_FREEZE_MODE` / `UNSUPPORTED_RENDER_FORMAT`;
 - `DESIGN_CHANGED`;
 - `DESIGN_DRIFT`;
@@ -448,31 +526,35 @@ Return to the controller rather than guessing:
 
 # Non-negotiable rules
 
-- Never begin production before purpose, output count semantics, sizes, and other production blockers are resolved.
-- Normal deterministic runs must pass the intake planner/freeze gate before matrix creation.
+- Never start unresolved art-direction rendering before competitive/category research and detailed design brief.
+- Never call reference ads high-converting without verified conversion evidence.
+- Never render three art-direction previews before three written directions are materially specified and approved.
+- Never scale out the full pack before one high-fidelity representative design is approved and SHA-bound.
+- Never accept obvious generic AI clipart, low-resolution assets, or toy/clay visuals as default professional B2B design.
+- Never begin production before purpose/output semantics/sizes and other blockers are resolved.
+- Normal deterministic runs must pass intake/run freeze and preproduction freeze.
 - Analyze supplied references before using them.
-- If visual direction is materially unresolved, resolve it before multiplying into the full size matrix.
 - Keep concept/size/variant/language counts and total files explicit.
 - One final banner row = one traceable banner job.
-- One fresh banner-worker context per row by default.
-- Materialize job-local context; do not send the whole run/history to every worker.
-- Never let a subagent redefine the frozen brief/creative contract/design identity.
+- Materialize job-local context; do not send whole history to each worker.
+- Never let a subagent redefine frozen brief/creative contract/design identity.
 - Never mechanically resize one composition across aspect ratios.
 - Never invent platform rules or business claims.
-- Never claim a universal optimal fill percentage, font category, CTA color, CTA position, hierarchy ratio, or lighting scheme.
+- Never claim universal optimal fill percentage, font category, CTA color/position, hierarchy ratio or lighting scheme.
 - Never silently shrink text below configured minimum.
-- Never approve a banner without actual-size inspection/validation.
-- A Google technical PASS is not the same as design PASS.
-- Diagnostic thumbnail/grayscale/squint views are review aids, not delivery assets or performance predictors.
-- Hash-bind review and diagnostics to the exact output; changed files require regeneration/re-review.
-- Never claim a visual-review model is calibrated merely because the eval harness unit tests pass.
-- Never claim the full pack is complete while any required banner/pack review is missing, stale, failed, blocked, or technically invalid.
+- Never approve a banner without actual-size inspection.
+- Google technical PASS != design PASS.
+- Diagnostic views are review aids, not performance predictors.
+- Hash-bind research-derived approvals, representative artifact, creative freeze, diagnostics and reviews to exact artifacts.
+- Never claim a visual-review model calibrated merely because unit tests pass.
+- Never claim a full pack complete while required review/validation is missing, stale, failed or blocked.
 
 # Reference loading map
 
 Load only what the current phase needs:
 - intake/question pool/output math -> `references/intake-and-run-contract.md`, `config/intake-question-pool.json`;
 - subagent boundaries -> `references/subagent-orchestration.md`;
+- competitive/category research and preproduction gates -> `references/competitive-creative-intelligence.md`;
 - art direction/design craft -> `references/art-direction-and-design-craft.md`;
 - lighting -> `references/lighting-intelligence.md`, `config/lighting-schemes.json`;
 - Google specs -> `references/google-platform-specs.md`, `config/google-formats.json`;
@@ -481,4 +563,5 @@ Load only what the current phase needs:
 - density/layout families -> `references/layout-families-and-density.md`;
 - renderer/pack failure semantics -> `references/rendering-and-validation.md`;
 - visual reviewer calibration -> `references/visual-review-evals.md`, `evals/visual-review-evals.json`;
+- real user-acceptance regressions -> `evals/real-world-failures.json`;
 - evidence provenance -> `references/research-sources.md`.
