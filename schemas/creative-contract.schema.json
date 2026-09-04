@@ -28,6 +28,32 @@
     "primary_aoi": {"type": "string", "minLength": 1},
     "scan_path": {"type": "array", "minItems": 2, "items": {"type": "string"}},
     "brand_id": {"type": ["string", "null"]},
+    "art_direction": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["mode", "art_direction_id", "visual_thesis", "selection_provenance"],
+      "properties": {
+        "mode": {"enum": ["ART_DIRECTION_LOCKED", "ART_DIRECTION_PREVIEW_3", "ART_DIRECTION_AUTOSELECT_3"]},
+        "art_direction_id": {"type": "string", "minLength": 1},
+        "visual_thesis": {"type": "string", "minLength": 1},
+        "selection_provenance": {"enum": ["BRAND_LOCKED", "USER_APPROVED", "ART_DIRECTOR_REVIEWER"]},
+        "representative_preview_id": {"type": ["string", "null"]},
+        "selected_from_candidate_ids": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "alignment_logic": {"type": ["string", "null"]},
+        "graphic_device": {"type": ["string", "null"]},
+        "image_treatment": {"type": ["string", "null"]},
+        "whitespace_character": {"type": ["string", "null"]},
+        "anti_template_exclusions": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      }
+    },
     "reference_dna_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
     "lighting": {
       "type": "object",
