@@ -26,9 +26,10 @@ The foundation can specify, count, split and technically validate a banner run w
 Status: in development; baseline runtime implemented.
 
 Implemented:
-- main `SKILL.md` now routes production through the materializer, render spec, renderer, pack runner and readiness-manifest gates;
+- main `SKILL.md` routes production through the materializer, render spec, renderer, pack runner and readiness-manifest gates;
 - Python + Pillow renderer decision (`docs/ADR-001-renderer.md`);
-- `requirements.txt` and `schemas/banner-render-spec.schema.json`;
+- `requirements.txt`;
+- `schemas/banner-render-spec.schema.json`;
 - separate `schemas/banner-matrix.schema.json` so the lightweight job matrix is not confused with the full controller-owned `banner-run` contract;
 - `config/layout-presets.json` covering every Google layout family in the registry;
 - exact PNG/JPG rendering;
@@ -48,7 +49,7 @@ Implemented:
 - pack report with per-job failures;
 - output manifest emitted only for a fully passing pack;
 - exact-size regression coverage for all seven core formats;
-- 41-test green CI baseline before the latest skill-contract wiring.
+- 41-test green CI baseline before the latest documentation/skill wiring.
 
 Remaining before v0.2 completion:
 - photographic local contrast sampling behind text;
