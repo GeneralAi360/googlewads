@@ -113,6 +113,8 @@ This prevents common mistakes such as treating a responsive-image blank-space re
 
 GitHub Actions installs renderer dependencies and runs the full regression suite for matrix logic/schema alignment, lighting configuration, job materialization, contact sheets, deterministic rendering, pack assembly, real Google preflight integration, and the original dependency-free image validator.
 
+Current verified baseline: **41/41 tests PASS** on the development branch.
+
 ## Roadmap
 
 See `docs/ROADMAP.md`.
