@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Performance Banner Business Brief",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["business", "campaign", "audience", "offer", "formats"],
+  "properties": {
+    "brief_id": {"type": "string"},
+    "business": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "website": {"type": ["string", "null"]},
+        "category": {"type": ["string", "null"]},
+        "geography": {"type": ["string", "null"]}
+      }
+    },
+    "campaign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective"],
+      "properties": {
+        "objective": {"type": "string"},
+        "funnel_stage": {"type": ["string", "null"]},
+        "primary_action": {"type": ["string", "null"]},
+        "landing_page": {"type": ["string", "null"]}
+      }
+    },
+    "audience": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary"],
+      "properties": {
+        "primary": {"type": "string"},
+        "awareness_state": {"type": ["string", "null"]},
+        "pain_points": {"type": "array", "items": {"type": "string"}},
+        "desired_outcomes": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "offer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_value_proposition"],
+      "properties": {
+        "primary_value_proposition": {"type": "string"},
+        "price": {"type": ["string", "null"]},
+        "promotion": {"type": ["string", "null"]},
+        "proof_points": {"type": "array", "items": {"type": "string"}},
+        "cta": {"type": ["string", "null"]}
+      }
+    },
+    "brand": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "brand_file": {"type": ["string", "null"]},
+        "design_file": {"type": ["string", "null"]},
+        "logo_assets": {"type": "array", "items": {"type": "string"}},
+        "mandatory_elements": {"type": "array", "items": {"type": "string"}},
+        "prohibited_elements": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "formats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {"enum": ["demand_gen_uploaded_display", "uploaded_display_general", "responsive_display", "demand_gen_assets", "html5"]},
+        "pack": {"type": ["string", "null"]},
+        "dimensions": {"type": "array", "items": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"}}
+      }
+    },
+    "grounding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "winning_ads": {"type": "array", "items": {"type": "string"}},
+        "reviews": {"type": "array", "items": {"type": "string"}},
+        "comments": {"type": "array", "items": {"type": "string"}},
+        "verified_claim_sources": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "performance_data": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    }
+  }
+}

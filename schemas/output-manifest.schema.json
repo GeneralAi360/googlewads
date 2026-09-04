@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Banner Output Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["campaign_id", "platform_mode", "files"],
+  "properties": {
+    "campaign_id": {"type": "string"},
+    "generated_at": {"type": ["string", "null"], "format": "date-time"},
+    "platform_mode": {"type": "string"},
+    "spec_snapshot_date": {"type": ["string", "null"]},
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variant_id", "path", "width", "height", "status"],
+        "properties": {
+          "concept_id": {"type": ["string", "null"]},
+          "variant_id": {"type": "string"},
+          "path": {"type": "string"},
+          "width": {"type": "integer", "minimum": 1},
+          "height": {"type": "integer", "minimum": 1},
+          "bytes": {"type": ["integer", "null"], "minimum": 0},
+          "format": {"type": ["string", "null"]},
+          "layout_family": {"type": ["string", "null"]},
+          "status": {"enum": ["PASS", "FAIL_PLATFORM_SPEC", "FAIL_FILE_SIZE", "FAIL_DIMENSIONS", "FAIL_COPY_OVERFLOW", "FAIL_CONTRAST", "FAIL_BRAND_CONSISTENCY", "FAIL_UNSUPPORTED_CLAIM", "REVIEW_VISUAL_HIERARCHY", "REVIEW_POLICY"]},
+          "checks": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}
