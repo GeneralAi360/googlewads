@@ -51,6 +51,8 @@ class ReviewReadinessTests(unittest.TestCase):
             "checks": {
                 "concept_fidelity": value,
                 "brand_fidelity": value,
+                "asset_quality": value,
+                "professional_category_fit": value,
                 "visual_hierarchy": value,
                 "lighting_focal_guidance": value,
                 "typography_legibility": value,
@@ -58,6 +60,7 @@ class ReviewReadinessTests(unittest.TestCase):
                 "information_density": value,
                 "crop_safe_zones": value,
                 "cta_clarity": value,
+                "anti_generic_ai": value,
                 "actual_size_check": value,
             },
             "findings": [],
@@ -75,6 +78,8 @@ class ReviewReadinessTests(unittest.TestCase):
                 "no_unintended_duplicates": value,
                 "cross_size_concept_consistency": value,
                 "brand_consistency": value,
+                "professional_category_consistency": value,
+                "asset_quality_consistency": value,
                 "intentional_layout_adaptation": value,
                 "small_format_simplification": value,
                 "contact_sheet_review": value,
@@ -102,6 +107,10 @@ class ReviewReadinessTests(unittest.TestCase):
             self.assertFalse((root / "review-run" / "pack-review.json").exists())
             self.assertTrue(all(Path(item["task_path"]).is_file() for item in result["banner_reviews"]))
             self.assertFalse(result["design_qa_attached"])
+            task = Path(result["banner_reviews"][0]["task_path"]).read_text(encoding="utf-8")
+            self.assertIn("asset quality", task)
+            self.assertIn("professional category fit", task)
+            self.assertIn("anti-generic-AI", task)
 
     def test_materializer_attaches_hash_bound_design_qa_views(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -203,6 +212,20 @@ class ReviewReadinessTests(unittest.TestCase):
             self.assertEqual(result["delivery_status"], "COMPLETE")
             self.assertEqual(result["run_rigor"], "FULL")
             self.assertTrue(result["completion_claim_allowed"])
+
+    def test_asset_quality_failure_blocks_completion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            matrix, manifest, manifest_path = self.fixture(root, count=1)
+            review_dir, pack_path = self.write_passing_reviews(root, manifest, manifest_path)
+            review_path = next(review_dir.glob("*.review.json"))
+            review = json.loads(review_path.read_text())
+            review["checks"]["asset_quality"] = "FAIL"
+            review["status"] = "FAIL"
+            review_path.write_text(json.dumps(review), encoding="utf-8")
+            result = self.assessor.assess_readiness(matrix, manifest, review_dir, pack_path, manifest_path=manifest_path)
+            self.assertEqual(result["status"], "REVIEW_FAILED")
+            self.assertFalse(result["completion_claim_allowed"])
 
     def test_stale_banner_hash_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
