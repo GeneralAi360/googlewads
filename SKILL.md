@@ -1,6 +1,6 @@
 ---
 name: performance-banner-designer
-description: "Design, research, orchestrate, adapt, render, review, validate, and prepare performance advertising banners for Google Ads. Use for Google Display, Demand Gen image assets, Responsive Display assets, Uploaded Display creatives, exact-size banner packs, reference-driven production, multi-banner batches, or creative iteration from ad performance data. The skill combines structured intake, competitor/category creative intelligence, detailed design briefs, written art-direction approval, high-fidelity representative approval, Matreshka-style subagent orchestration, platform requirements, evidence-grounded creative strategy, lighting intelligence, visual-attention research, typography, color/contrast, layout-family adaptation, deterministic composition, diagnostic visual QA, independent review, and technical preflight."
+description: "Design, research, orchestrate, adapt, render, review, validate, and prepare performance advertising banners for Google Ads. Use for Google Display, Demand Gen image assets, Responsive Display assets, Uploaded Display creatives, exact-size banner packs, reference-driven production, multi-banner batches, or creative iteration from ad performance data. The skill combines structured intake, competitor/category creative intelligence, detailed design briefs, commercial/brand locks, real-asset readiness, written art-direction approval, high-fidelity representative approval, Matreshka-style subagent orchestration, platform requirements, evidence-grounded creative strategy, lighting intelligence, visual-attention research, typography, color/contrast, layout-family adaptation, deterministic composition, diagnostic visual QA, independent review, and technical preflight."
 metadata:
   version: "0.2.0-dev"
   status: "development"
@@ -15,7 +15,7 @@ Your job is not to make one attractive picture. Turn a business brief into a coh
 
 A run can contain multiple concepts, sizes, variants, and languages. Keep those axes explicit from intake through manifest so no banner can silently disappear from the pack.
 
-A technically valid banner can still look childish, generic, template-like, or category-inappropriate. Therefore unresolved visual direction must not go directly from intake to image generation. Competitive/category research, detailed design specification, written art-direction approval, and one high-fidelity representative approval are production gates.
+A technically valid banner can still look childish, generic, template-like, or category-inappropriate. Therefore unresolved visual direction must not go directly from intake to image generation. Competitive/category research, detailed design specification, written art-direction approval, real-asset readiness, and one high-fidelity representative approval are production gates.
 
 ## Governing evidence model
 
@@ -50,16 +50,17 @@ When sources conflict, use:
 4. `BRAND.md`, `ДИЗАЙН.md`, or `DESIGN.md`;
 5. accepted intake/run freeze;
 6. competitive/category research and approved design brief;
-7. written art-direction + representative-design approvals;
-8. frozen creative contracts;
-9. research references;
-10. production heuristics.
+7. commercial-message and brand-identity locks;
+8. written art-direction + representative-design approvals;
+9. frozen creative contracts;
+10. research references;
+11. production heuristics.
 
-Do not invent platform limits, business facts, claims, prices, reviews, certifications, guarantees, fonts, colors, legal statements, or performance outcomes.
+Do not invent platform limits, business facts, claims, prices, reviews, certifications, guarantees, fonts, colors, legal statements, brand aliases, CTA wording, or performance outcomes.
 
 # Controller model
 
-Use Matreshka Agent orchestration principles. The controller owns scope, accepted business facts, intake state, run freeze, competitor/category research synthesis, brand/design identity, design brief, approval gates, creative contracts, matrix, dispatches, review adjudication, technical validation, and completion claims.
+Use Matreshka Agent orchestration principles. The controller owns scope, accepted business facts, intake state, run freeze, competitor/category research synthesis, brand/design identity, design brief, commercial/brand locks, asset readiness, approval gates, creative contracts, matrix, dispatches, review adjudication, technical validation, and completion claims.
 
 Subagents receive narrow task-local context. They may not create child agents, expand scope, redefine the frozen offer/CTA/brand/concept/design identity, or claim whole-run completion.
 
@@ -86,7 +87,7 @@ Question states:
 
 Explicit `null`, `false`, or empty collections may be valid resolved answers. Do not re-ask facts already present in supplied material.
 
-At minimum resolve campaign purpose, product/service, audience/geography, landing page, primary proposition, CTA/proof/legal constraints, brand/assets, Google mode, concept count, target sizes/pack, variants, languages, final format, and whether visual direction is already locked.
+At minimum resolve campaign purpose, product/service, audience/geography, landing page, primary proposition, CTA/proof/legal constraints, exact brand identity/assets, Google mode, concept count, target sizes/pack, variants, languages, final format, and whether visual direction is already locked.
 
 Keep separate:
 - `concept_count`;
@@ -178,7 +179,11 @@ Each `COMPETITOR_RESEARCHER` captures only observable evidence and assigns one p
 
 The controller synthesizes `competitive-creative-research.json` matching `schemas/competitive-creative-research.schema.json`.
 
-`FULL` research currently requires >=3 relevant creatives across >=2 advertisers/independent targets. This is a coverage heuristic, not a conversion law. If evidence is unavailable, use `DEGRADED` with a reason and require explicit degraded acceptance.
+`coverage_status` is the canonical research-rigor signal:
+- `FULL` -> report `RESEARCH_RIGOR = FULL`;
+- `DEGRADED` -> report `RESEARCH_RIGOR = DEGRADED` plus the exact degradation reason.
+
+`FULL` research currently requires >=3 relevant creatives across >=2 advertisers/independent targets. This is a coverage heuristic, not a conversion law. If evidence is unavailable, use `DEGRADED` with a reason and require explicit degraded acceptance before preproduction freeze. Product pages/newsroom material can inform category language but cannot be misrepresented as observed paid creatives or performance evidence.
 
 # Phase 5 — Category Design Map and detailed design brief
 
@@ -197,10 +202,12 @@ Then create `design-brief.json` matching `schemas/design-brief.schema.json`.
 The design brief is the detailed design specification, not merely a few style adjectives. It must include:
 - campaign, audience, and commercial message;
 - exact research/category-map hashes;
-- brand context;
+- `commercial_lock`;
+- brand context and `brand_identity_lock`;
 - art-direction strategy;
 - primary AOI, primary message, intended scan path, brand priority;
 - hero/image strategy and copy-safe behavior;
+- `required_assets`;
 - asset-quality policy;
 - typography strategy;
 - color/contrast strategy;
@@ -210,6 +217,42 @@ The design brief is the detailed design specification, not merely a few style ad
 - small-format removal policy;
 - exact sizes/output count;
 - review requirements.
+
+## Commercial-message lock
+
+`commercial_lock` freezes what design is allowed to communicate before art direction begins:
+- exact primary proposition;
+- one or more controller-approved CTA strings;
+- exact product/version when material;
+- verified supporting proof where applicable;
+- mandatory qualifiers/legal wording;
+- `copy_change_requires_controller_reapproval=true`.
+
+Art direction may change CTA **treatment, position, hierarchy, scale, rail/button form, and visual relationship**. It may not invent a new CTA string, remove a mandatory qualifier, switch product version, or rewrite the proposition. A desired copy change returns to the controller/design brief; it is not a design-side decision.
+
+## Brand-identity lock
+
+`brand_identity_lock` freezes:
+- one canonical `brand_id`;
+- one canonical display name;
+- whether a real logo asset is mandatory;
+- explicitly permitted alternate display names, if any.
+
+Do not leave choices such as `BRAND A / BRAND B` to a banner worker. If identity is ambiguous, return `BRAND_IDENTITY_UNRESOLVED`.
+
+## Required-assets contract
+
+For every identity/product-specific visual needed by the selected strategy, declare a `required_assets` item with:
+- stable asset ID;
+- role (`PRODUCT_UI`, `LOGO`, `PRODUCT_PHOTO`, etc.);
+- whether it is required;
+- accepted source types;
+- whether a generated substitute is allowed;
+- minimum source dimensions when relevant;
+- privacy-review requirement;
+- rights-approval requirement.
+
+If the visual claim is “real product UI”, the real UI asset must be required and generated substitution must be `false`.
 
 ## Mandatory asset-quality policy
 
@@ -246,15 +289,32 @@ For preview/autoselect modes, create **three written art-direction specification
 
 Changing only color or swapping one illustration is not a different art direction.
 
-Present the written specifications to the user. Do not render the representative previews until the user approves one direction or a genuinely independent `ART_DIRECTOR_REVIEWER` selects one in unattended mode.
+Every written direction inherits `commercial_lock` and `brand_identity_lock`. If a direction proposes unapproved CTA wording, a different brand/display name, a different offer, or a different product version, mark it `DESIGN_CHANGED` / `COMMERCIAL_LOCK_MISMATCH` / `BRAND_IDENTITY_UNRESOLVED` and return to the controller rather than approving it.
+
+Present the written specifications to the user. Do not render the representative preview until the user approves one direction or a genuinely independent `ART_DIRECTOR_REVIEWER` selects one in unattended mode.
 
 Write `art-direction-approval.json` matching `schemas/art-direction-approval.schema.json`. The approval is bound to the exact design-brief SHA.
 
-# Phase 7 — One high-fidelity representative design, then approval
+# Phase 7 — Representative asset readiness, then one high-fidelity design
 
-After written art-direction approval, create exactly one high-fidelity representative format for the selected direction, normally 300x250 unless another format is more representative.
+After written art-direction approval, resolve the exact assets required by the selected direction **before** representative rendering.
 
-This representative artifact is not a rough sketch. It should be close to production quality and use final/approved brand/product assets whenever possible.
+Create `representative-asset-manifest.json` matching `schemas/representative-asset-manifest.schema.json`, then run:
+
+```bash
+python scripts/validate_representative_assets.py \
+  --design-brief run/design/design-brief.json \
+  --asset-manifest run/design/representative-asset-manifest.json \
+  --out run/design/representative-asset-readiness.json
+```
+
+The validator checks exact design-brief binding, required files, hashes, approved source types, generated-substitute policy, actual raster dimensions, privacy review, usage-rights approval, and real-logo requirements.
+
+If status is not `ASSETS_READY`, stop with `NEEDS_ASSET`. Do not generate a substitute for real product UI, a real logo, an identity-critical product photo, or any other requirement whose `generated_substitute_allowed=false`.
+
+Only after asset readiness passes, create exactly one high-fidelity representative format for the selected direction, normally 300x250 unless another format is more representative.
+
+This representative artifact is not a rough sketch. It should be close to production quality and use final approved brand/product assets.
 
 Before approval inspect:
 - asset quality/resolution;
@@ -287,7 +347,7 @@ python scripts/freeze_preproduction_design.py \
 
 The freeze must return `PREPRODUCTION_FROZEN` before full-pack banner jobs are dispatched.
 
-It fails on stale hashes, weak/empty market coverage, unsupported performance claims, design-brief/matrix mismatch, missing asset-quality policy, missing written approval, stale representative approval, failed representative quality checks, or a changed representative artifact.
+It fails on stale hashes, weak/empty market coverage, unaccepted degraded research, unsupported performance claims, commercial-lock mismatch, unresolved brand identity, design-brief/matrix mismatch, missing asset-quality policy, missing written approval, stale representative approval, failed representative quality checks, or a changed representative artifact.
 
 # Phase 8 — Ground and freeze creative concepts
 
@@ -317,7 +377,7 @@ python scripts/freeze_creative_contracts.py \
   --out run/creative-freeze.json
 ```
 
-The selected `art_direction_id` in creative contracts must match the preproduction-approved direction. The creative freeze records the preproduction freeze hash.
+The selected `art_direction_id` must match the preproduction-approved direction. The creative contract primary proposition must match `commercial_lock`; every base CTA and CTA override must come from `approved_ctas`; `brand_id` must match `brand_identity_lock`. A worker cannot turn “Получить консультацию” into “Оставить заявку” merely as a design choice.
 
 # Phase 9 — Lighting intelligence
 
@@ -355,7 +415,7 @@ For each banner define:
 
 Build large visual masses before decoration. Use whitespace as structure. Use actual-size legibility rather than universal fill percentages or universal CTA positions/colors.
 
-Small formats may support only the glance layer. Remove approved secondary content rather than shrinking detail copy until it technically fits.
+Small formats may support only the glance layer. Remove approved secondary content rather than shrinking detail copy until it technically fits. Never remove mandatory qualifiers merely to make a small format look cleaner; return a layout/copy constraint to the controller.
 
 # Phase 11 — Materialize one job per final output
 
@@ -508,8 +568,11 @@ Return to controller rather than guessing:
 - `PERFORMANCE_CLAIM_UNSUPPORTED`;
 - `CATEGORY_MAP_INCOMPLETE`;
 - `DESIGN_BRIEF_INCOMPLETE`;
+- `COMMERCIAL_LOCK_MISMATCH`;
+- `BRAND_IDENTITY_UNRESOLVED`;
 - `ART_DIRECTION_UNRESOLVED`;
 - `ART_DIRECTION_NOT_APPROVED`;
+- `NEEDS_ASSET`;
 - `REPRESENTATIVE_DESIGN_NOT_APPROVED`;
 - `REPRESENTATIVE_DESIGN_FAILED`;
 - `ASSET_QUALITY_BELOW_PRODUCTION`;
@@ -527,8 +590,12 @@ Return to controller rather than guessing:
 # Non-negotiable rules
 
 - Never start unresolved art-direction rendering before competitive/category research and detailed design brief.
+- Always report research rigor explicitly as FULL or DEGRADED; never disguise product-page research as observed paid creative.
 - Never call reference ads high-converting without verified conversion evidence.
+- Never let art direction invent CTA wording, proposition, product version, mandatory qualifier, brand ID or display name.
 - Never render three art-direction previews before three written directions are materially specified and approved.
+- Never render the representative design until required real assets pass `validate_representative_assets.py`.
+- Never synthesize a fake UI/logo/product asset when `generated_substitute_allowed=false`; return `NEEDS_ASSET`.
 - Never scale out the full pack before one high-fidelity representative design is approved and SHA-bound.
 - Never accept obvious generic AI clipart, low-resolution assets, or toy/clay visuals as default professional B2B design.
 - Never begin production before purpose/output semantics/sizes and other blockers are resolved.
@@ -555,6 +622,7 @@ Load only what the current phase needs:
 - intake/question pool/output math -> `references/intake-and-run-contract.md`, `config/intake-question-pool.json`;
 - subagent boundaries -> `references/subagent-orchestration.md`;
 - competitive/category research and preproduction gates -> `references/competitive-creative-intelligence.md`;
+- representative asset readiness -> `schemas/representative-asset-manifest.schema.json`, `scripts/validate_representative_assets.py`;
 - art direction/design craft -> `references/art-direction-and-design-craft.md`;
 - lighting -> `references/lighting-intelligence.md`, `config/lighting-schemes.json`;
 - Google specs -> `references/google-platform-specs.md`, `config/google-formats.json`;
