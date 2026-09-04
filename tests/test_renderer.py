@@ -34,7 +34,12 @@ class RendererTests(unittest.TestCase):
             "background": {"color": "#F3F0E8"},
             "hero": ({"path": str(hero), "focal_point": [0.5, 0.5]} if hero else None),
             "logo": {"brand_name": "BRAND"},
-            "copy": {"headline": "Кухни на заказ", "support": "Бесплатный замер", "offer": "от 2990 BYN", "cta": "Рассчитать"},
+            "copy": {
+                "headline": "Кухни на заказ",
+                "support": "Бесплатный замер",
+                "offer": "от 2990 BYN",
+                "cta": "Рассчитать",
+            },
             "brand": {
                 "font_regular": self.font,
                 "font_bold": self.font,
@@ -42,10 +47,10 @@ class RendererTests(unittest.TestCase):
                 "muted_text_color": "#444444",
                 "accent_color": "#E8C77A",
                 "cta_fill": "#111111",
-                "cta_text": "#FFFFFF"
+                "cta_text": "#FFFFFF",
             },
             "lighting": {},
-            "output": {"path": str(out), "format": "png"}
+            "output": {"path": str(out), "format": "png"},
         }
 
     def test_core_layout_families_render_exact_dimensions(self):
@@ -98,17 +103,48 @@ class RendererTests(unittest.TestCase):
             spec = self.make_spec(out, 970, 250, "billboard", hero_path)
             spec["hero"]["focal_point"] = [0.8, 0.5]
             spec["lighting"] = {
-                "spotlight": {"enabled": True, "center": [0.25, 0.4], "radius": [0.20, 0.25], "color": "#FFFFFF", "opacity": 80, "blur": 20},
-                "copy_scrim": {"enabled": True, "side": "right", "color": "#000000", "max_opacity": 70, "extent": 0.55},
-                "vignette": {"enabled": True, "opacity": 40, "softness": 0.35}
+                "hero_edge_glow": {
+                    "enabled": True,
+                    "target_slot": "hero",
+                    "color": "#FFFFFF",
+                    "opacity": 70,
+                    "expand_px": 10,
+                    "blur": 8,
+                },
+                "spotlight": {
+                    "enabled": True,
+                    "center": [0.25, 0.4],
+                    "radius": [0.20, 0.25],
+                    "color": "#FFFFFF",
+                    "opacity": 80,
+                    "blur": 20,
+                },
+                "copy_scrim": {
+                    "enabled": True,
+                    "side": "right",
+                    "color": "#000000",
+                    "max_opacity": 70,
+                    "extent": 0.55,
+                },
+                "vignette": {"enabled": True, "opacity": 40, "softness": 0.35},
+                "text_plate": {
+                    "enabled": True,
+                    "target_slots": ["headline", "support"],
+                    "color": "#FFFFFF",
+                    "opacity": 40,
+                    "radius_px": 8,
+                },
             }
             spec["output"] = {"path": str(out), "format": "jpg", "jpeg_quality": 92, "min_jpeg_quality": 70}
             report = self.module.render_banner(spec)
-            self.assertEqual(set(report["lighting_applied"]), {"spotlight", "copy_scrim", "vignette"})
+            self.assertEqual(
+                set(report["lighting_applied"]),
+                {"hero_edge_glow", "spotlight", "copy_scrim", "vignette", "text_plate"},
+            )
             with Image.open(out) as image:
                 self.assertEqual(image.size, (970, 250))
 
-    def test_png_target_overflow_is_explicit_failure(self):
+    def test_png_target_overflow_is_explicit_failure_and_removes_invalid_file(self):
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "tiny-limit.png"
             spec = self.make_spec(out, 300, 250, "rectangle")
@@ -116,6 +152,7 @@ class RendererTests(unittest.TestCase):
             with self.assertRaises(self.module.RenderError) as ctx:
                 self.module.render_banner(spec)
             self.assertEqual(ctx.exception.code, "FAIL_FILE_SIZE")
+            self.assertFalse(out.exists())
 
     def test_layout_presets_cover_all_google_registry_families(self):
         formats = json.loads((ROOT / "config" / "google-formats.json").read_text(encoding="utf-8"))
@@ -150,6 +187,66 @@ class RendererTests(unittest.TestCase):
             with self.assertRaises(self.module.RenderError) as ctx:
                 self.module.render_banner(spec)
             self.assertEqual(ctx.exception.code, "FAIL_LAYOUT")
+
+    def test_local_photo_contrast_fails_without_plate_and_passes_with_plate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            hero = Image.new("RGB", (640, 100), "#F7F7F7")
+            hero_path = root / "bright.jpg"
+            hero.save(hero_path, quality=95)
+
+            failing = self.make_spec(root / "fail.png", 320, 50, "micro_horizontal", hero_path)
+            failing["hero"]["mode"] = "full_bleed"
+            failing["logo"] = None
+            failing["copy"] = {"headline": "Кухни на заказ", "support": None, "offer": None, "cta": None}
+            failing["brand"]["text_color"] = "#FFFFFF"
+            failing["qa"] = {"min_local_text_contrast": 4.5}
+            with self.assertRaises(self.module.RenderError) as ctx:
+                self.module.render_banner(failing)
+            self.assertEqual(ctx.exception.code, "FAIL_LOCAL_CONTRAST")
+            self.assertFalse((root / "fail.png").exists())
+
+            passing = self.make_spec(root / "pass.png", 320, 50, "micro_horizontal", hero_path)
+            passing["hero"]["mode"] = "full_bleed"
+            passing["logo"] = None
+            passing["copy"] = {"headline": "Кухни на заказ", "support": None, "offer": None, "cta": None}
+            passing["brand"]["text_color"] = "#FFFFFF"
+            passing["lighting"] = {
+                "text_plate": {
+                    "enabled": True,
+                    "target_slots": ["headline"],
+                    "color": "#000000",
+                    "opacity": 255,
+                    "padding_px": 0,
+                    "radius_px": 0,
+                }
+            }
+            passing["qa"] = {"min_local_text_contrast": 4.5}
+            report = self.module.render_banner(passing)
+            self.assertGreaterEqual(report["contrast"]["local_text"]["headline"]["p10"], 4.5)
+            self.assertTrue((root / "pass.png").is_file())
+
+    def test_logo_clearspace_is_explicit_and_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "logo-space.png"
+            spec = self.make_spec(out, 300, 250, "rectangle")
+            spec["logo"] = {"brand_name": "BRAND", "clearspace_ratio": 0.15, "clearspace_px": 2}
+            report = self.module.render_banner(spec)
+            element = report["elements"]["brand_name"]
+            self.assertGreater(element["clearspace_px"], 0)
+            self.assertGreater(element["box"][0], element["slot_box"][0])
+            self.assertGreater(element["box"][1], element["slot_box"][1])
+
+    def test_local_contrast_report_exposes_luminance_variation(self):
+        canvas = Image.new("RGB", (100, 20), "#FFFFFF")
+        draw = canvas.load()
+        for x in range(50):
+            for y in range(20):
+                draw[x, y] = (0, 0, 0)
+        metrics = self.module.sample_local_contrast(canvas, (0, 0, 100, 20), "#FFFFFF", grid=10)
+        self.assertGreater(metrics["luminance_range"], 0.9)
+        self.assertLess(metrics["min"], 1.1)
+        self.assertGreater(metrics["max"], 20)
 
 
 if __name__ == "__main__":
