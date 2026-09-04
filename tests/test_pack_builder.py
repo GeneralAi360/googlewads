@@ -47,7 +47,7 @@ class PackBuilderTests(unittest.TestCase):
             },
             "provenance": {
                 "brand_id": "brand-demo",
-                "creative_contract_id": "creative-C01",
+                "creative_contract_id": None,
                 "hero_asset_id": None,
                 "reference_dna_ids": ["ref-01"],
                 "source_grounding_ids": ["source-01"],
@@ -123,7 +123,7 @@ class PackBuilderTests(unittest.TestCase):
             self.assertRegex(first["sha256"], r"^[0-9a-f]{64}$")
             self.assertRegex(first["render_spec_sha256"], r"^[0-9a-f]{64}$")
             self.assertEqual(first["brand_id"], "brand-demo")
-            self.assertEqual(first["creative_contract_id"], "creative-C01")
+            self.assertIsNone(first["creative_contract_id"])
             self.assertEqual(first["lighting_scheme_id"], 1)
             self.assertEqual(first["reference_dna_ids"], ["ref-01", "ref-row"])
             self.assertEqual(first["source_grounding_ids"], ["source-01"])
