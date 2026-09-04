@@ -57,11 +57,15 @@ Implemented:
 - exact-output hash binding for reviews;
 - one independent `PACK_REVIEWER` task;
 - final readiness gate that separates `DELIVERY_STATUS` from `RUN_RIGOR` and blocks full-rigor completion when review independence is missing;
-- **84/84 green GitHub Actions tests** at the current milestone.
+- six visual-judgment eval cases covering photographic copy contrast, logo dominance, destructive crop, micro-format overload, lighting hierarchy and cross-size design drift;
+- deterministic generator for intentionally flawed visual eval artifacts;
+- hidden-key-safe materializer that creates one fresh read-only reviewer task per visual eval case without leaking expected finding codes;
+- machine-readable visual-review report schema;
+- hidden-key scorer with critical/important recall, false-critical and prohibited-myth gates;
+- **102/102 green GitHub Actions tests** at the current milestone.
 
 Remaining before v0.2 completion:
-- add visual-judgment eval fixtures that exercise actual rendered hierarchy/crop/contrast/density/brand-drift findings, not only deterministic report contracts;
-- run those evals through a genuinely fresh visual reviewer when the host provides independent visual context;
+- execute the six visual eval cases through a genuinely fresh visual reviewer context and score the returned reports;
 - perform a final independent repository review of v0.2 and reconcile important findings;
 - decide whether to keep the historical development branch name or cut a clean `dev/performance-banner-designer-v0.2` branch/release before merge.
 
