@@ -93,6 +93,12 @@ def apply(matrix: dict[str, Any], freeze: dict[str, Any], contracts_dir: Path, s
         contract = load_json(contract_path)
         if meta.get("path") != contract_path.as_posix() or meta.get("sha256") is None:
             raise CreativeBindingError(f"creative freeze path mismatch for {concept_id}")
+        art = contract.get("art_direction") or {}
+        art_direction_id = art.get("art_direction_id")
+        if not isinstance(art_direction_id, str) or not art_direction_id:
+            raise CreativeBindingError(f"{concept_id}: frozen art_direction_id missing")
+        if meta.get("art_direction_id") != art_direction_id:
+            raise CreativeBindingError(f"{concept_id}: creative freeze art_direction_id mismatch")
         spec_path = spec_dir / f"{row['job_id']}.json"
         spec = load_json(spec_path)
         if spec.get("job_id") != row["job_id"]:
@@ -103,6 +109,7 @@ def apply(matrix: dict[str, Any], freeze: dict[str, Any], contracts_dir: Path, s
         spec["provenance"] = {
             **(spec.get("provenance") or {}),
             "brand_id": contract.get("brand_id"),
+            "art_direction_id": art_direction_id,
             "creative_contract_id": concept_id,
             "creative_contract_path": contract_path.as_posix(),
             "creative_contract_sha256": meta["sha256"],
@@ -119,6 +126,7 @@ def apply(matrix: dict[str, Any], freeze: dict[str, Any], contracts_dir: Path, s
             "language": language,
             "layout_family": row.get("layout_family"),
             "dimension": row.get("dimension"),
+            "art_direction_id": art_direction_id,
             "render_spec_path": spec_path.as_posix(),
             "creative_contract_path": contract_path.as_posix(),
             "creative_contract_sha256": meta["sha256"],
