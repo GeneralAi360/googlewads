@@ -51,8 +51,8 @@ def materialize(plan: dict[str, Any], out_dir: Path, *, force: bool = False) -> 
         report_path = reports_dir / f"{target_id}.research.json"
         if not force and (task_path.exists() or report_path.exists()):
             raise CompetitiveResearchMaterializeError(f"refusing to overwrite research files for {target_id}")
-        task_path.write_text(
-            f"""# Competitive creative research — {target_id}\n\n"
+        task = (
+            f"# Competitive creative research — {target_id}\n\n"
             f"Research ID: `{research_id}`\n"
             f"Category: `{category}`\n"
             f"Target/query: `{query}`\n"
@@ -65,9 +65,9 @@ def materialize(plan: dict[str, Any], out_dir: Path, *, force: bool = False) -> 
             "For every relevant creative capture commercial angle, hero type, composition, typography, palette/contrast, CTA treatment, whitespace/density, trust signals, image/UI/illustration treatment, lighting when meaningful, transferable principles and literal elements not to copy.\n\n"
             "## Performance evidence\n"
             "Assign exactly one tier: A_VERIFIED_OWN_METRICS, B_PUBLISHED_CASE_METRICS, C_PLATFORM_PERFORMANCE_SIGNAL, D_MARKET_PROXY, or E_DESIGN_REFERENCE_ONLY. Never call D/E evidence high-converting. Tier C is only a platform performance signal. A/B may support conversion claims only when the cited metric is actually conversion-related.\n\n"
-            "Return structured JSON facts to the controller; do not synthesize final art direction.\n",
-            encoding="utf-8",
+            "Return structured JSON facts to the controller; do not synthesize final art direction.\n"
         )
+        task_path.write_text(task, encoding="utf-8")
         jobs.append({"target_id": target_id, "task_path": task_path.as_posix(), "report_path": report_path.as_posix(), "advertiser_or_query": query})
 
     index = {"research_id": research_id, "category": category, "expected_reports": len(jobs), "jobs": jobs}
