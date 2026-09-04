@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/banner-matrix.schema.json",
+  "title": "Banner Matrix Document",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["run_id","concept_count","size_count","variant_count","language_count","sizes","languages","output_format","output_math","expected_output_files","banner_matrix"],
+  "properties": {
+    "run_id": {"type":"string","minLength":1},
+    "concept_count": {"type":"integer","minimum":1},
+    "size_count": {"type":"integer","minimum":1},
+    "variant_count": {"type":"integer","minimum":1},
+    "language_count": {"type":"integer","minimum":1},
+    "sizes": {"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string","pattern":"^[0-9]+x[0-9]+$"}},
+    "languages": {"type":"array","minItems":1,"items":{"type":"string","minLength":1}},
+    "output_format": {"enum":["png","jpg","gif"]},
+    "output_math": {
+      "type":"object","additionalProperties":false,"required":["formula","total"],
+      "properties": {
+        "formula":{"const":"concept_count * size_count * variant_count * language_count"},
+        "total":{"type":"integer","minimum":1}
+      }
+    },
+    "expected_output_files": {"type":"integer","minimum":1},
+    "banner_matrix": {
+      "type":"array","minItems":1,
+      "items": {
+        "type":"object","additionalProperties":false,
+        "required":["job_id","concept_id","variant_id","language","width","height","dimension","layout_family","google_name","output_format","output_path","review_status","validation_status","status"],
+        "properties": {
+          "job_id":{"type":"string","minLength":1},
+          "concept_id":{"type":"string","pattern":"^C[0-9]{2,}$"},
+          "variant_id":{"type":"string","pattern":"^V[0-9]{2,}$"},
+          "language":{"type":"string","minLength":1},
+          "width":{"type":"integer","minimum":1},
+          "height":{"type":"integer","minimum":1},
+          "dimension":{"type":"string","pattern":"^[0-9]+x[0-9]+$"},
+          "layout_family":{"type":"string","minLength":1},
+          "google_name":{"type":"string","minLength":1},
+          "output_format":{"enum":["png","jpg","gif"]},
+          "output_path":{"type":"string","minLength":1},
+          "headline":{"type":["string","null"]},
+          "support":{"type":["string","null"]},
+          "offer":{"type":["string","null"]},
+          "cta":{"type":["string","null"]},
+          "hero_asset_id":{"type":["string","null"]},
+          "reference_dna_ids":{"type":"array","items":{"type":"string"}},
+          "lighting_scheme_id":{"type":["integer","null"],"minimum":1,"maximum":30},
+          "worker_thread_id":{"type":["string","null"]},
+          "review_status":{"enum":["NOT_STARTED","IN_REVIEW","PASS","FAIL","BLOCKED"]},
+          "validation_status":{"enum":["NOT_STARTED","PASS","FAIL","BLOCKED"]},
+          "status":{"enum":["PLANNED","DISPATCHED","GENERATED","FIX_REQUIRED","PASS","BLOCKED"]},
+          "blocker":{"type":["string","null"]}
+        }
+      }
+    }
+  }
+}
