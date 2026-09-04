@@ -2,74 +2,81 @@
 
 ## v0.1 — Foundation, orchestration, lighting, Google preflight
 
-Status: foundation implemented in draft PR.
+Status: **implemented in draft PR**.
 
 Implemented:
-- skill operating contract and Google mode separation;
-- current Google core/full packs;
+- core skill/controller contract and Google mode separation;
+- evidence hierarchy: platform requirement / research evidence / production heuristic / test hypothesis;
+- current Google core/full uploaded-display registry;
 - visual-attention, typography, color, contrast and density references;
 - persistent brand and creative-memory contracts;
-- structured brief/concept/run/output schemas;
-- structured intake and explicit output math;
-- deterministic banner matrix;
-- Matreshka-compatible subagent orchestration;
-- one fresh `BANNER_DESIGNER` context per final banner job by default;
-- independent reference-analysis and review roles;
-- 30-scheme lighting intelligence;
-- scene-lighting vs composition-lighting distinction;
-- dependency-free Google static image validator and regression tests.
+- 30-scheme lighting intelligence from the user-provided guide;
+- Matreshka-compatible controller/subagent roles;
+- dependency-free Google static-image validator.
 
-The foundation can specify, count, split and technically validate a banner run without inventing universal design laws.
+## v0.2 — Intake-to-reviewed-pack production pipeline
 
-## v0.2 — Deterministic renderer and pack builder
-
-Status: in development; baseline runtime implemented.
+Status: **feature-rich development candidate; not merged**.
 
 Implemented:
-- main `SKILL.md` routes production through the materializer, render spec, renderer, pack runner and readiness-manifest gates;
-- Python + Pillow renderer decision (`docs/ADR-001-renderer.md`);
-- `requirements.txt`;
-- `schemas/banner-render-spec.schema.json`;
-- separate `schemas/banner-matrix.schema.json` so the lightweight job matrix is not confused with the full controller-owned `banner-run` contract;
-- `config/layout-presets.json` covering every Google layout family in the registry;
+- machine-readable 52-question intake pool;
+- `quick / standard / deep` intake planner;
+- `RESOLVED / MISSING / CONDITIONAL / NOT_APPLICABLE` state model;
+- explicit output math `concepts × sizes × variants × languages`;
+- ambiguity detection for requests such as “10 banners in 7 sizes”;
+- freeze gate that prevents matrix creation while production questions remain unresolved;
+- freeze hashes, Google mode/spec snapshot and overwrite protection;
+- deterministic banner matrix and separate matrix schema;
+- one task brief/render-spec shell per final banner row;
+- fresh `BANNER_DESIGNER` context per row by default;
+- Pillow renderer ADR and runtime dependency;
+- layout presets for every Google registry family;
 - exact PNG/JPG rendering;
-- real font measurement and line wrapping;
-- fail-closed `FAIL_COPY_OVERFLOW` instead of silent text shrink below minimum;
-- fail-closed `FAIL_LAYOUT` when a small format cannot carry a content slot;
-- logo contain-fit and hero focal-point cover crop;
-- composition-lighting primitives: spotlight, protected copy gradient/scrim and vignette;
-- flat-color contrast calculation and optional contrast gates;
-- explicit PNG byte failure and bounded JPEG quality reduction;
+- real font measurement and wrapping;
+- fail-closed text overflow and unsupported-layout semantics;
+- focal-point hero crop;
+- explicit logo clearspace;
+- scene-lighting vs composition-lighting separation;
+- composition primitives: hero edge glow, spotlight, copy scrim, vignette, text plate;
+- CTA/flat contrast checks;
+- photographic copy-zone local contrast sampling and gate;
+- bounded JPEG compression / explicit PNG oversize failure;
 - contact-sheet generator;
 - matrix-driven pack runner;
-- render-spec to matrix identity checks;
-- one-job-per-row materializer producing narrow task briefs and render-spec shells without inventing missing facts;
-- overwrite protection for worker files unless controller explicitly uses `--force`;
-- real pack-runner handoff to `validate_google_banner.py`;
-- pack report with per-job failures;
-- output manifest emitted only for a fully passing pack;
-- exact-size regression coverage for all seven core formats;
-- 41-test green CI baseline before the latest documentation/skill wiring.
+- render-spec ↔ matrix identity validation;
+- real handoff to `validate_google_banner.py`;
+- provenance manifest only for fully technically passing packs;
+- per-file + render-spec + matrix SHA-256 provenance;
+- Google spec snapshot propagation;
+- synthetic intake-to-seven-format E2E fixture;
+- one independent `DESIGN_REVIEWER` task per final banner;
+- exact-output hash binding for reviews;
+- one independent `PACK_REVIEWER` task;
+- final readiness gate that separates `DELIVERY_STATUS` from `RUN_RIGOR` and blocks full-rigor completion when review independence is missing;
+- **65/65 green GitHub Actions tests** at the current milestone.
 
 Remaining before v0.2 completion:
-- photographic local contrast sampling behind text;
-- local hero edge glow;
-- tonal text plate primitive;
-- explicit logo clearspace tokens beyond baseline slots;
-- richer manifest timestamps/spec snapshot provenance;
-- reusable example run fixture with hero/logo assets;
-- visual review fixture/contact-sheet acceptance baseline;
-- end-to-end eval of interview → matrix → materialized subagent jobs → rendered/validated pack.
+- replace Pillow `getdata()` use before its future removal;
+- add machine-readable `REFERENCE_DNA` analyst-output/materialization contract;
+- add creative-contract validation/freeze before banner-worker dispatch;
+- add visual-judgment eval fixtures that test real review quality, not only deterministic report contracts;
+- perform a final independent repository review of v0.2 and reconcile any important findings;
+- decide whether to keep the development branch name or cut a clean v0.2 branch/release before merge.
 
 ## v0.3 — Visual QA intelligence
 
 Planned:
-- AOI inventory and advisory saliency preflight;
-- photographic glyph-region contrast map;
-- clutter/complexity heuristics;
-- brand consistency and lighting-hotspot checks;
+- AOI inventory;
+- advisory saliency preflight;
+- richer photographic glyph-region contrast maps;
+- clutter/visual-complexity heuristics;
+- automatic brand-consistency signals;
+- lighting hotspot/noise checks;
 - cross-size design-drift detection;
-- independent performance/art/typography/lighting/platform review roles.
+- multi-agent visual-quality council for high-stakes packs;
+- representative visual fixtures with expected reviewer findings.
+
+Saliency and complexity scoring remain advisory; they must not be presented as CTR prediction.
 
 ## v0.4 — Performance feedback loop
 
@@ -79,8 +86,9 @@ Planned:
 - impressions/clicks/conversions/cost/value retrieval;
 - controlled winner/loser analysis;
 - evidence-based updates to `CREATIVE_MEMORY.md`;
-- next-test proposals without over-attributing causality.
+- next-test proposals without over-attributing causality;
+- compare lighting/visual treatments only when the experiment isolates those variables.
 
 ## Future adapters
 
-The core may later support other static/display platforms, but v0.x must preserve Google correctness rather than chase fake universality.
+The architecture may later support Meta, LinkedIn, and other display/static systems, but v0.x must preserve Google correctness rather than chase fake universality.
