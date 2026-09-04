@@ -168,10 +168,14 @@ def render_banner(spec: dict[str,Any]):
     copy=spec.get("copy") or {}
     for name,font,fill in [("headline",bold,tc),("support",regular,muted)]:
         if copy.get(name):
-            if name not in rules: raise RenderError("FAIL_LAYOUT",f"no {name} rules")
+            if name not in rules or not b(name): raise RenderError("FAIL_LAYOUT",f"layout family has no usable {name} slot/rules")
             elements[name]=text_in_box(canvas,copy[name],b(name),font,rules[name],fill)
-    if copy.get("offer"): elements["offer"]=pill(canvas,copy["offer"],b("offer"),bold,rules["offer"],brand.get("offer_fill",brand.get("accent_color","#F0EAE2")),brand.get("offer_text",tc),int(brand.get("offer_radius_px",max(2,(b("offer")[3]-b("offer")[1])//4))))
-    if copy.get("cta"): elements["cta"]=pill(canvas,copy["cta"],b("cta"),bold,rules["cta"],brand.get("cta_fill",brand.get("accent_color","#111111")),brand.get("cta_text","#FFFFFF"),int(brand.get("cta_radius_px",max(2,(b("cta")[3]-b("cta")[1])//5))))
+    for name in ("offer","cta"):
+        if copy.get(name) and (name not in rules or not b(name)): raise RenderError("FAIL_LAYOUT",f"layout family has no usable {name} slot/rules")
+    if copy.get("offer"):
+        ob=b("offer"); elements["offer"]=pill(canvas,copy["offer"],ob,bold,rules["offer"],brand.get("offer_fill",brand.get("accent_color","#F0EAE2")),brand.get("offer_text",tc),int(brand.get("offer_radius_px",max(2,(ob[3]-ob[1])//4))))
+    if copy.get("cta"):
+        cb=b("cta"); elements["cta"]=pill(canvas,copy["cta"],cb,bold,rules["cta"],brand.get("cta_fill",brand.get("accent_color","#111111")),brand.get("cta_text","#FFFFFF"),int(brand.get("cta_radius_px",max(2,(cb[3]-cb[1])//5))))
     ratios={"cta_text_vs_fill":round(contrast_ratio(brand.get("cta_text","#FFFFFF"),brand.get("cta_fill",brand.get("accent_color","#111111"))),3) if copy.get("cta") else None,"flat_text_vs_background":None}
     full=bool(hero_path and hero.get("mode",layout.get("hero_mode","slot")) in {"full_bleed","full_bleed_optional"})
     if not full: ratios["flat_text_vs_background"]=round(contrast_ratio(tc,bg),3)
