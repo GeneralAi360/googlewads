@@ -24,6 +24,13 @@ class PackBuilderTests(unittest.TestCase):
             result=self.m.render_pack(matrix,specs,contact_sheet=root/"sheet.png",manifest_path=root/"manifest.json",technical_validator=validator)
             self.assertEqual(result["status"],"PASS"); self.assertEqual(result["passed_output_files"],2); self.assertTrue((root/"sheet.png").is_file()); self.assertTrue((root/"manifest.json").is_file())
             manifest=json.loads((root/"manifest.json").read_text(encoding="utf-8")); self.assertEqual(len(manifest["files"]),2); self.assertTrue(all(item["status"]=="PASS" for item in manifest["files"]))
+    def test_real_google_validator_integrates_with_pack_runner(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp); specs=root/"specs"; specs.mkdir(); job="C01-S300x250-V01-Lru"; out=root/"out"/f"{job}.png"
+            row={"job_id":job,"concept_id":"C01","variant_id":"V01","width":300,"height":250,"layout_family":"rectangle","output_path":str(out),"output_format":"png"}
+            (specs/f"{job}.json").write_text(json.dumps(self.base_spec(job,300,250,"rectangle",out),ensure_ascii=False),encoding="utf-8")
+            result=self.m.render_pack({"run_id":"integration","expected_output_files":1,"banner_matrix":[row]},specs,mode="demand_gen_uploaded_display",pack="core")
+            self.assertEqual(result["status"],"PASS"); self.assertEqual(result["jobs"][0]["validation"]["status"],"PASS")
     def test_missing_spec_blocks_full_pack(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); specs=root/"specs"; specs.mkdir(); matrix={"run_id":"demo","expected_output_files":1,"banner_matrix":[{"job_id":"missing","width":300,"height":250,"layout_family":"rectangle","output_path":str(root/"missing.png"),"output_format":"png"}]}
