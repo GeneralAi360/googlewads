@@ -141,6 +141,16 @@ class RendererTests(unittest.TestCase):
                 self.module.render_banner(spec)
             self.assertEqual(ctx.exception.code, "FAIL_CONTRAST")
 
+    def test_unsupported_copy_slot_fails_cleanly(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "micro-offer.png"
+            spec = self.make_spec(out, 320, 50, "micro_horizontal")
+            spec["copy"]["support"] = None
+            spec["copy"]["offer"] = "Скидка"
+            with self.assertRaises(self.module.RenderError) as ctx:
+                self.module.render_banner(spec)
+            self.assertEqual(ctx.exception.code, "FAIL_LAYOUT")
+
 
 if __name__ == "__main__":
     unittest.main()
