@@ -149,6 +149,11 @@ def assert_frozen_creative_binding(
         raise PackError("FAIL_CREATIVE_BINDING", "render-spec source grounding differs from creative contract")
     if provenance.get("brand_id") != contract.get("brand_id"):
         raise PackError("FAIL_CREATIVE_BINDING", "render-spec brand_id differs from creative contract")
+    expected_art_direction = (contract.get("art_direction") or {}).get("art_direction_id")
+    if not expected_art_direction:
+        raise PackError("FAIL_CREATIVE_BINDING", "approved creative contract has no frozen art_direction_id")
+    if provenance.get("art_direction_id") != expected_art_direction:
+        raise PackError("FAIL_CREATIVE_BINDING", "render-spec art_direction_id differs from creative contract")
     expected_lighting = (contract.get("lighting") or {}).get("lighting_scheme_id")
     if provenance.get("lighting_scheme_id") != expected_lighting:
         raise PackError("FAIL_CREATIVE_BINDING", "render-spec lighting scheme differs from creative contract")
@@ -190,6 +195,7 @@ def build_manifest(
                 "format": saved.get("format"),
                 "layout_family": row.get("layout_family"),
                 "brand_id": provenance.get("brand_id") or matrix.get("brand_id"),
+                "art_direction_id": provenance.get("art_direction_id"),
                 "creative_contract_id": provenance.get("creative_contract_id"),
                 "creative_contract_path": provenance.get("creative_contract_path"),
                 "creative_contract_sha256": provenance.get("creative_contract_sha256"),
@@ -199,7 +205,7 @@ def build_manifest(
                 "lighting_scheme_id": provenance.get("lighting_scheme_id") or row.get("lighting_scheme_id"),
                 "status": "PASS",
                 "checks": (
-                    ["creative_binding", "deterministic_render", "google_technical_preflight"]
+                    ["creative_binding", "art_direction_binding", "deterministic_render", "google_technical_preflight"]
                     if provenance.get("creative_contract_sha256")
                     else ["deterministic_render", "google_technical_preflight"]
                 ),
