@@ -7,95 +7,132 @@ Status: **implemented**.
 Implemented:
 - core controller and Google mode separation;
 - evidence hierarchy: platform requirement / research evidence / production heuristic / test hypothesis;
-- current Google core/full uploaded-display registry;
+- Google core/full uploaded-display registry;
 - visual-attention, typography, color, contrast and density references;
 - persistent brand and creative-memory contracts;
-- 30-scheme lighting intelligence from the user-provided guide;
+- 30-scheme lighting intelligence;
 - Matreshka-compatible controller/subagent roles;
 - dependency-free Google static-image validator.
 
-## v0.2 — Intake-to-reviewed-pack production pipeline
+## v0.2 — Research-to-reviewed-pack production pipeline
 
-Status: **release candidate in `dev/performance-banner-designer-v0.2`; not merged**.
+Status: **active release-candidate hardening in `dev/performance-banner-designer-v0.2`; not merged**.
 
-Implemented:
-- machine-readable 52-question intake pool;
-- `quick / standard / deep` intake planner;
-- `RESOLVED / MISSING / CONDITIONAL / NOT_APPLICABLE` state model;
-- explicit output math `concepts × sizes × variants × languages`;
-- ambiguity detection for requests such as “10 banners in 7 sizes”;
-- run freeze gate, hashes, Google spec snapshot and overwrite protection;
-- deterministic banner matrix and separate matrix schema;
-- one task brief/render-spec shell per final banner row;
-- fresh `BANNER_DESIGNER` context per row by default;
-- independent `REFERENCE_ANALYST` jobs and machine-readable `REFERENCE_DNA` readiness contract;
-- three-mode art-direction resolution: locked / three user previews / three independent candidates with reviewer selection;
-- design-craft reference with silhouette-first hierarchy, structural whitespace, intentional alignment, aspect-ratio crop recomposition and anti-template/anti-generic-AI guardrails;
-- concept-level approved creative contracts with exact per-language/per-format copy adaptation;
-- required frozen `art_direction_id` and visual thesis inside every approved creative contract;
-- creative/art-direction freeze, SHA-256 binding, provenance propagation and worker-mutation detection;
-- Pillow renderer ADR/runtime and layout presets for every Google registry family;
-- exact PNG/JPG rendering with real font measurement/wrapping;
-- fail-closed text overflow and unsupported-layout semantics;
-- focal-point hero crop and explicit logo clearspace;
-- scene-lighting vs composition-lighting separation;
-- composition primitives: hero edge glow, spotlight, copy scrim, vignette, text plate;
-- CTA/flat contrast and photographic copy-zone local contrast gates;
-- bounded JPEG compression / explicit PNG oversize failure;
-- contact-sheet generator and matrix-driven pack runner;
-- render-spec ↔ matrix identity validation;
-- frozen creative + art-direction validation inside pack runner;
-- real handoff to `validate_google_banner.py`;
-- provenance manifest only for fully technically passing packs;
-- per-file + render-spec + matrix SHA-256 provenance including art-direction/source/reference/lighting identity;
-- Google spec snapshot propagation;
-- review-only design-QA generator producing exact-size grayscale, exact-size squint/blur and 25% thumbnail/glance views;
-- hash-bound QA diagnostic index; stale/missing diagnostic files fail before reviewer dispatch;
-- one independent `DESIGN_REVIEWER` task per final banner with actual-size + diagnostic-view checks;
-- one independent `PACK_REVIEWER` task with campaign-design-grammar checks;
-- final readiness gate separating `DELIVERY_STATUS` from `RUN_RIGOR`;
-- six hidden-key visual-judgment eval cases covering photo contrast, logo dominance, destructive crop, micro-format overload, lighting hierarchy and cross-size drift;
-- deterministic flawed-artifact generator, hidden-key-safe reviewer materializer, review-report schema and scorer;
-- canonical seven-format synthetic E2E now reaches creative/art-direction freeze, real Google preflight, manifest, design-QA generation and independent review-task dispatch without fabricating review reports;
-- clean v0.2 development branch created;
-- **114/114 GitHub Actions tests PASS** at the current verified milestone.
+The first real Work acceptance test exposed a preproduction design failure: three superficially different 300x250 directions were rendered before category/competitor creative research, reused almost the same layout grammar, and relied on generic/toy-like cloud imagery that did not reach a professional B2B standard. This is recorded as `REAL-01` in `evals/real-world-failures.json`.
 
-### Remaining before v0.2 can be called fully validated
+### Existing implemented foundation
 
-Only validation that requires genuinely independent model contexts remains:
+- machine-readable 52-question intake pool and quick/standard/deep planner;
+- explicit output math and ambiguity detection;
+- immutable run freeze and deterministic banner matrix;
+- independent supplied-reference analysis / REFERENCE_DNA;
+- Google mode separation;
+- art-direction identity and design-craft rules;
+- creative-contract freeze, SHA binding and mutation detection;
+- one banner job per final output;
+- Pillow exact-size renderer;
+- layout-family recomposition, crop, type fitting, clearspace, lighting and contrast gates;
+- real Google preflight and provenance manifest;
+- design-QA grayscale/squint/thumbnail views;
+- hash-bound DESIGN_REVIEWER and PACK_REVIEWER task materialization;
+- readiness gate separating delivery completeness from review rigor;
+- hidden-key visual-review eval harness;
+- synthetic seven-format E2E and real user-acceptance regression corpus.
 
-1. Execute all six hidden-key visual eval cases through fresh visual `DESIGN_REVIEWER` contexts and score returned reports. Passing unit tests prove the harness, not the model's visual judgment.
-2. Perform a genuinely independent final repository review of v0.2 and reconcile any important findings.
-3. After those two checks, open/finalize the v0.2 PR and merge only with explicit approval.
+### New mandatory preproduction design gates
 
-If the current host cannot provide fresh independent visual/repository reviewer contexts, report this as an external rigor blocker rather than generating fake reviewer reports or claiming `RUN_RIGOR=FULL`.
+Implemented after `REAL-01`:
 
-## v0.3 — Visual QA intelligence
+1. **Competitive Creative Intelligence**
+   - `references/competitive-creative-intelligence.md`;
+   - `schemas/competitive-creative-research.schema.json`;
+   - performance-evidence tiers A–E;
+   - prohibition on calling reference ads high-converting without conversion evidence;
+   - one narrow `COMPETITOR_RESEARCHER` task per target/query via `scripts/materialize_competitive_research_jobs.py`.
 
-Planned beyond the v0.2 human/model-review gate:
-- automated AOI inventory;
+2. **Category Design Map**
+   - `schemas/category-design-map.schema.json`;
+   - mature category signals, hero strategies, trust signals, category clichés, generic-AI risks and differentiated opportunities.
+
+3. **Detailed Design Brief**
+   - `schemas/design-brief.schema.json`;
+   - exact research/category hashes, AOI/scan path, hero strategy, typography/color/layout/lighting/density, output math and mandatory asset-quality policy.
+
+4. **Written Art Direction Approval**
+   - `schemas/art-direction-approval.schema.json`;
+   - three written materially different directions before preview rendering for preview/autoselect mode;
+   - approval bound to exact design-brief SHA.
+
+5. **Representative High-Fidelity Approval**
+   - `schemas/representative-design-approval.schema.json`;
+   - one representative artifact before full-pack scale-out;
+   - asset quality, professional category fit, hierarchy, typography, brand/message fidelity, crop, lighting, CTA and anti-generic-AI checks must all PASS;
+   - approval bound to exact representative artifact SHA.
+
+6. **Preproduction Freeze**
+   - `schemas/preproduction-freeze.schema.json`;
+   - `scripts/freeze_preproduction_design.py`;
+   - binds competitive research → category map → design brief → written approval → representative approval → exact banner matrix;
+   - detects stale hashes, degraded/unaccepted research, weak coverage, unsupported performance claims, output mismatch and changed representative artifact.
+
+7. **Creative freeze linkage**
+   - normal `freeze_creative_contracts.py` CLI now requires `--preproduction-freeze`;
+   - creative `art_direction_id` must equal the preproduction-approved direction;
+   - preproduction freeze SHA is propagated into per-banner render-spec provenance.
+
+8. **Canonical E2E update**
+   - synthetic E2E now includes the whole preproduction approval chain before creative freeze and full render scale-out;
+   - reviewer reports are still never fabricated.
+
+### Current v0.2 validation work
+
+Before v0.2 can be called fully validated:
+
+1. Keep deterministic CI green after the new preproduction gates and reconcile any regressions.
+2. Repeat the same real Work task that produced `REAL-01` and verify behavior changes: research first, written directions before images, one high-fidelity representative approval before pack scale-out.
+3. Execute all six hidden-key visual eval cases through genuinely fresh visual DESIGN_REVIEWER contexts and score returned reports.
+4. Perform a genuinely independent final repository/PR review and reconcile important findings.
+5. Merge only with explicit user approval.
+
+If fresh independent reviewer contexts are unavailable, report this as an external rigor blocker rather than manufacturing reports.
+
+## v0.3 — Motion creative: GIF / video / HTML5 architecture
+
+Planned after static v0.2 is proven on the real Work task:
+- shared advertising brief/brand/claim/art-direction contracts;
+- `MotionIntent` bridge inspired by Matreshka Content Factory;
+- Remotion deterministic motion renderer for appropriate code-motion ads;
+- GIF-specific duration/FPS/size validation and optimization;
+- video creative matrix across aspect/duration/language/variant;
+- bridge to Content Factory for live footage, generated media, asset resolution and rendered-evidence QA;
+- HTML5 display path kept separate from GIF/video where appropriate.
+
+## v0.4 — Automated visual QA intelligence
+
+Planned:
+- AOI inventory;
 - advisory saliency preflight;
 - richer photographic glyph-region contrast maps;
 - clutter/visual-complexity heuristics;
-- automatic brand-consistency signals;
+- automated brand-consistency signals;
 - lighting hotspot/noise checks;
 - automated cross-size design-drift signals;
-- multi-agent visual-quality council for high-stakes packs;
-- larger representative visual-eval corpus.
+- multi-agent visual-quality council;
+- larger representative eval corpus.
 
-Saliency and complexity scoring remain advisory and must never be presented as CTR prediction.
+Saliency/complexity remain advisory and must not be presented as CTR prediction.
 
-## v0.4 — Performance feedback loop
+## v0.5 — Performance feedback loop
 
 Planned:
 - Google Ads API integration;
 - creative/asset ID ↔ local variant mapping;
 - impressions/clicks/conversions/cost/value retrieval;
 - controlled winner/loser analysis;
-- evidence-based updates to `CREATIVE_MEMORY.md`;
+- evidence-based `CREATIVE_MEMORY.md` updates;
 - next-test proposals without over-attributing causality;
-- compare lighting/visual treatments only when the experiment isolates those variables.
+- optional integration with creative-analytics tools when available.
 
 ## Future adapters
 
-The architecture may later support Meta, LinkedIn, and other display/static systems, but v0.x must preserve Google correctness rather than chase fake universality.
+The architecture may later support Meta, LinkedIn and other creative systems, but Google correctness and explicit evidence boundaries remain primary.
