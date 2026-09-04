@@ -4,7 +4,32 @@
   "title": "Preproduction Design Brief",
   "type": "object",
   "additionalProperties": false,
-  "required": ["design_brief_id", "competitive_research_id", "competitive_research_sha256", "category_map_id", "category_map_sha256", "campaign", "commercial_message", "audience", "brand_context", "art_direction_strategy", "visual_hierarchy", "image_strategy", "asset_quality_policy", "typography", "color", "layout", "lighting", "information_density", "small_format_policy", "outputs", "review_requirements"],
+  "required": [
+    "design_brief_id",
+    "competitive_research_id",
+    "competitive_research_sha256",
+    "category_map_id",
+    "category_map_sha256",
+    "campaign",
+    "commercial_message",
+    "commercial_lock",
+    "audience",
+    "brand_context",
+    "brand_identity_lock",
+    "art_direction_strategy",
+    "visual_hierarchy",
+    "image_strategy",
+    "required_assets",
+    "asset_quality_policy",
+    "typography",
+    "color",
+    "layout",
+    "lighting",
+    "information_density",
+    "small_format_policy",
+    "outputs",
+    "review_requirements"
+  ],
   "properties": {
     "design_brief_id": {"type": "string", "minLength": 1},
     "competitive_research_id": {"type": "string", "minLength": 1},
@@ -13,8 +38,32 @@
     "category_map_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "campaign": {"type": "object", "minProperties": 1},
     "commercial_message": {"type": "object", "minProperties": 1},
+    "commercial_lock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_proposition", "cta", "product_variant", "mandatory_qualifiers"],
+      "properties": {
+        "primary_proposition": {"type": "string", "minLength": 1},
+        "cta": {"type": "string", "minLength": 1},
+        "product_variant": {"type": ["string", "null"]},
+        "supporting_proof": {"type": ["string", "null"]},
+        "mandatory_qualifiers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "copy_change_requires_controller_reapproval": {"const": true}
+      }
+    },
     "audience": {"type": "object", "minProperties": 1},
     "brand_context": {"type": "object", "minProperties": 1},
+    "brand_identity_lock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["brand_id", "display_name", "logo_asset_required", "alternate_names_allowed"],
+      "properties": {
+        "brand_id": {"type": ["string", "null"]},
+        "display_name": {"type": "string", "minLength": 1},
+        "logo_asset_required": {"type": "boolean"},
+        "alternate_names_allowed": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
     "references": {"type": "object"},
     "art_direction_strategy": {
       "type": "object",
@@ -46,6 +95,26 @@
         "hero_type": {"type": "string", "minLength": 1},
         "product_scale": {"type": "string", "minLength": 1},
         "copy_safe_area_required": {"type": "boolean"}
+      }
+    },
+    "required_assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset_id", "role", "required", "generated_substitute_allowed", "accepted_source_types"],
+        "properties": {
+          "asset_id": {"type": "string", "minLength": 1},
+          "role": {"enum": ["PRODUCT_UI", "LOGO", "PRODUCT_PHOTO", "PEOPLE_PHOTO", "ILLUSTRATION", "BACKGROUND", "FONT", "OTHER"]},
+          "required": {"type": "boolean"},
+          "generated_substitute_allowed": {"type": "boolean"},
+          "accepted_source_types": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["USER_PROVIDED", "BRAND_OWNED", "OFFICIAL_PRODUCT", "LICENSED_STOCK", "GENERATED", "OTHER"]}},
+          "min_width": {"type": ["integer", "null"], "minimum": 1},
+          "min_height": {"type": ["integer", "null"], "minimum": 1},
+          "privacy_review_required": {"type": "boolean"},
+          "rights_approval_required": {"type": "boolean"},
+          "notes": {"type": ["string", "null"]}
+        }
       }
     },
     "asset_quality_policy": {
