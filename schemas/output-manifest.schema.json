@@ -19,6 +19,7 @@
     "google_pack": {"type": "string"},
     "spec_snapshot_date": {"type": ["string", "null"]},
     "matrix_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "preproduction_freeze_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
     "render_engine": {"type": "string"},
     "files": {
       "type": "array",
@@ -56,6 +57,7 @@
           "layout_family": {"type": ["string", "null"]},
           "brand_id": {"type": ["string", "null"]},
           "art_direction_id": {"type": ["string", "null"]},
+          "preproduction_freeze_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
           "creative_contract_id": {"type": ["string", "null"]},
           "creative_contract_path": {"type": ["string", "null"]},
           "creative_contract_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
