@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/design-brief.schema.json",
+  "title": "Preproduction Design Brief",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["design_brief_id", "competitive_research_id", "competitive_research_sha256", "category_map_id", "category_map_sha256", "campaign", "commercial_message", "audience", "brand_context", "art_direction_strategy", "visual_hierarchy", "image_strategy", "asset_quality_policy", "typography", "color", "layout", "lighting", "information_density", "small_format_policy", "outputs", "review_requirements"],
+  "properties": {
+    "design_brief_id": {"type": "string", "minLength": 1},
+    "competitive_research_id": {"type": "string", "minLength": 1},
+    "competitive_research_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "category_map_id": {"type": "string", "minLength": 1},
+    "category_map_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "campaign": {"type": "object", "minProperties": 1},
+    "commercial_message": {"type": "object", "minProperties": 1},
+    "audience": {"type": "object", "minProperties": 1},
+    "brand_context": {"type": "object", "minProperties": 1},
+    "references": {"type": "object"},
+    "art_direction_strategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "candidate_count"],
+      "properties": {
+        "mode": {"enum": ["ART_DIRECTION_LOCKED", "ART_DIRECTION_PREVIEW_3", "ART_DIRECTION_AUTOSELECT_3"]},
+        "candidate_count": {"type": "integer", "minimum": 1},
+        "representative_format": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"}
+      }
+    },
+    "visual_hierarchy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_aoi", "primary_message", "intended_scan_path", "brand_priority"],
+      "properties": {
+        "primary_aoi": {"type": "string", "minLength": 1},
+        "primary_message": {"type": "string", "minLength": 1},
+        "secondary_aoi": {"type": ["string", "null"]},
+        "intended_scan_path": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1}},
+        "brand_priority": {"type": "integer", "minimum": 1}
+      }
+    },
+    "image_strategy": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["hero_type", "product_scale", "copy_safe_area_required"],
+      "properties": {
+        "hero_type": {"type": "string", "minLength": 1},
+        "product_scale": {"type": "string", "minLength": 1},
+        "copy_safe_area_required": {"type": "boolean"}
+      }
+    },
+    "asset_quality_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reject_low_resolution_assets", "reject_generic_ai_clipart", "reject_unapproved_toy_clay_style", "reject_style_mismatch", "require_professional_category_fit"],
+      "properties": {
+        "reject_low_resolution_assets": {"const": true},
+        "reject_generic_ai_clipart": {"const": true},
+        "reject_unapproved_toy_clay_style": {"const": true},
+        "reject_style_mismatch": {"const": true},
+        "require_professional_category_fit": {"const": true},
+        "notes": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "typography": {"type": "object", "minProperties": 1},
+    "color": {"type": "object", "minProperties": 1},
+    "layout": {"type": "object", "minProperties": 1},
+    "lighting": {"type": "object", "minProperties": 1},
+    "information_density": {"type": "object", "minProperties": 1},
+    "small_format_policy": {"type": "object", "minProperties": 1},
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["concept_count", "variant_count", "languages", "sizes", "expected_files"],
+      "properties": {
+        "concept_count": {"type": "integer", "minimum": 1},
+        "variant_count": {"type": "integer", "minimum": 1},
+        "languages": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "sizes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"}},
+        "expected_files": {"type": "integer", "minimum": 1}
+      }
+    },
+    "review_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actual_size", "asset_quality", "professional_category_fit", "thumbnail", "grayscale", "squint"],
+      "properties": {
+        "actual_size": {"const": true},
+        "asset_quality": {"const": true},
+        "professional_category_fit": {"const": true},
+        "thumbnail": {"const": true},
+        "grayscale": {"const": true},
+        "squint": {"const": true}
+      }
+    }
+  }
+}
