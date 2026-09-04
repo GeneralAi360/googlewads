@@ -84,6 +84,7 @@ def apply(matrix: dict[str, Any], freeze: dict[str, Any], contracts_dir: Path, s
         raise CreativeBindingError("banner_matrix must be non-empty")
     frozen = frozen_map(freeze)
     bindings = []
+    preproduction_sha = freeze.get("preproduction_freeze_sha256")
     for row in rows:
         concept_id, variant_id, language = row.get("concept_id"), row.get("variant_id"), row.get("language")
         meta = frozen.get(concept_id)
@@ -110,6 +111,7 @@ def apply(matrix: dict[str, Any], freeze: dict[str, Any], contracts_dir: Path, s
             **(spec.get("provenance") or {}),
             "brand_id": contract.get("brand_id"),
             "art_direction_id": art_direction_id,
+            "preproduction_freeze_sha256": preproduction_sha,
             "creative_contract_id": concept_id,
             "creative_contract_path": contract_path.as_posix(),
             "creative_contract_sha256": meta["sha256"],
@@ -127,6 +129,7 @@ def apply(matrix: dict[str, Any], freeze: dict[str, Any], contracts_dir: Path, s
             "layout_family": row.get("layout_family"),
             "dimension": row.get("dimension"),
             "art_direction_id": art_direction_id,
+            "preproduction_freeze_sha256": preproduction_sha,
             "render_spec_path": spec_path.as_posix(),
             "creative_contract_path": contract_path.as_posix(),
             "creative_contract_sha256": meta["sha256"],
