@@ -56,6 +56,8 @@
           "layout_family": {"type": ["string", "null"]},
           "brand_id": {"type": ["string", "null"]},
           "creative_contract_id": {"type": ["string", "null"]},
+          "creative_contract_path": {"type": ["string", "null"]},
+          "creative_contract_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
           "hero_asset_id": {"type": ["string", "null"]},
           "reference_dna_ids": {"type": "array", "items": {"type": "string"}},
           "source_grounding_ids": {"type": "array", "items": {"type": "string"}},
