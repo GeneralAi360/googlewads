@@ -29,6 +29,9 @@ class DemoEndToEndTests(unittest.TestCase):
             result = self.module.run_demo(root)
             self.assertEqual(result["status"], "PASS")
             self.assertEqual(result["intake_status"], "READY_TO_FREEZE")
+            self.assertEqual(result["preproduction_status"], "PREPRODUCTION_FROZEN")
+            self.assertEqual(result["preproduction_research_rigor"], "FULL")
+            self.assertRegex(result["creative_preproduction_sha256"], r"^[0-9a-f]{64}$")
             self.assertEqual(result["creative_binding_status"], "CREATIVE_BINDING_PASS")
             self.assertEqual(result["expected_output_files"], 7)
             self.assertEqual(result["passed_output_files"], 7)
@@ -39,6 +42,13 @@ class DemoEndToEndTests(unittest.TestCase):
             required = [
                 root / "freeze" / "run-freeze.json",
                 root / "freeze" / "banner-matrix.json",
+                root / "preproduction" / "competitive-creative-research.json",
+                root / "preproduction" / "category-design-map.json",
+                root / "preproduction" / "design-brief.json",
+                root / "preproduction" / "art-direction-approval.json",
+                root / "preproduction" / "representative-design-approval.json",
+                root / "preproduction" / "representative-300x250.png",
+                root / "preproduction-freeze.json",
                 root / "creative-freeze.json",
                 root / "creative-bindings.json",
                 root / "contact-sheet.png",
@@ -53,6 +63,7 @@ class DemoEndToEndTests(unittest.TestCase):
 
             freeze = json.loads((root / "freeze" / "run-freeze.json").read_text(encoding="utf-8"))
             matrix = json.loads((root / "freeze" / "banner-matrix.json").read_text(encoding="utf-8"))
+            preproduction = json.loads((root / "preproduction-freeze.json").read_text(encoding="utf-8"))
             creative_freeze = json.loads((root / "creative-freeze.json").read_text(encoding="utf-8"))
             manifest = json.loads((root / "output-manifest.json").read_text(encoding="utf-8"))
             dispatch = json.loads((root / "dispatch" / "dispatch-index.json").read_text(encoding="utf-8"))
@@ -61,14 +72,22 @@ class DemoEndToEndTests(unittest.TestCase):
 
             self.assertEqual(freeze["status"], "FROZEN")
             self.assertEqual(freeze["expected_output_files"], 7)
+            self.assertEqual(preproduction["status"], "PREPRODUCTION_FROZEN")
+            self.assertEqual(preproduction["research_rigor"], "FULL")
+            self.assertEqual(preproduction["selected_art_direction_id"], "AD-DEMO-CLEAN-PREMIUM")
             self.assertEqual(creative_freeze["status"], "CREATIVE_CONTRACTS_FROZEN")
             self.assertEqual(creative_freeze["contracts"][0]["art_direction_id"], "AD-DEMO-CLEAN-PREMIUM")
+            self.assertEqual(creative_freeze["preproduction_freeze_id"], preproduction["freeze_id"])
+            self.assertRegex(creative_freeze["preproduction_freeze_sha256"], r"^[0-9a-f]{64}$")
             self.assertEqual(len(matrix["banner_matrix"]), 7)
             self.assertEqual(len(manifest["files"]), 7)
             self.assertEqual(len(dispatch["jobs"]), 7)
             self.assertEqual(qa_index["expected_jobs"], 7)
             self.assertEqual(review_index["expected_banner_reviews"], 7)
             self.assertTrue(review_index["design_qa_attached"])
+
+            first_spec = json.loads((root / "dispatch" / "render-specs" / f"{matrix['banner_matrix'][0]['job_id']}.json").read_text(encoding="utf-8"))
+            self.assertEqual(first_spec["provenance"]["preproduction_freeze_sha256"], creative_freeze["preproduction_freeze_sha256"])
 
             expected_sizes = {(row["width"], row["height"]) for row in matrix["banner_matrix"]}
             actual_sizes = set()
