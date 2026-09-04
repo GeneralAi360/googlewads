@@ -1,35 +1,57 @@
 # Google Ads Performance Banner Designer
 
-A production-grade AI skill for planning, designing, adapting, validating, and iterating performance advertising banners for Google Ads.
+A production-grade AI skill for planning, designing, adapting, rendering, validating, and iterating performance advertising banners for Google Ads.
 
-The project is broader than a legacy GDN banner prompt. It separates current Google asset-based formats from fully composed Uploaded Display creatives and treats visual design, platform compliance, exact dimensions, and performance learning as one system.
+The project is broader than a legacy GDN banner prompt. It separates asset-based Google formats from fully composed Uploaded Display creatives and treats intake, reference analysis, creative strategy, subagent production, lighting, exact raster rendering, technical validation, and performance learning as one system.
 
 ## Core pipeline
 
-`Business context -> grounding -> creative angles -> hierarchy -> layout family -> deterministic composition -> visual QA -> Google preflight -> export -> performance learning`
+`Business context -> unresolved-question intake -> reference DNA -> frozen creative contracts -> banner matrix -> one narrow banner job per row -> deterministic render -> independent review -> Google preflight -> pack assembly -> performance learning`
 
 ## Current development branch
 
 `dev/performance-banner-designer-v0.1`
 
-## v0.1 contents
+Draft PR: `#1 feat: Performance Banner Designer v0.1 foundation`
 
-- `SKILL.md` — execution contract for the skill;
-- `references/google-platform-specs.md` — current Google modes, dimensions, limits, and dynamic-refresh rule;
+## Current implementation
+
+### Controller and design intelligence
+- `SKILL.md` — complete skill execution contract;
+- `references/intake-and-run-contract.md` — 52-question internal intake pool with resolved/missing states;
+- `references/subagent-orchestration.md` — Matreshka-compatible narrow subagent model;
+- `assets/banner-task-brief-template.md` — one-banner task contract;
+- `references/lighting-intelligence.md` + `config/lighting-schemes.json` — 30 lighting schemes treated as production heuristics;
 - `references/visual-attention.md` — eye tracking, banner blindness, gaze direction, AOIs, complexity;
-- `references/typography-color-contrast.md` — serif/sans evidence, type hierarchy, size heuristics, contrast and color;
-- `references/layout-families-and-density.md` — multi-format adaptation and information budgets;
-- `references/rendering-and-validation.md` — deterministic composition and QA model;
-- `references/research-sources.md` — evidence/source registry;
-- `config/google-formats.json` — machine-readable Google format registry;
-- `schemas/` — structured brief, concept, and output manifest contracts;
-- `templates/BRAND.template.md` — persistent brand/design system for each business;
-- `templates/CREATIVE_MEMORY.template.md` — learnings from real campaign performance;
-- `scripts/validate_google_banner.py` — dependency-free static image preflight for dimensions, file type, file size, and animation state.
+- `references/typography-color-contrast.md` — type hierarchy, font evidence, contrast and color;
+- `references/layout-families-and-density.md` — multi-format adaptation and information budgets.
+
+### Google platform layer
+- `references/google-platform-specs.md` — Google modes, dimensions, limits, and dynamic-refresh rule;
+- `config/google-formats.json` — machine-readable format registry;
+- `scripts/validate_google_banner.py` — static image technical preflight.
+
+### Banner-run contracts
+- `schemas/business-brief.schema.json`;
+- `schemas/banner-concept.schema.json`;
+- `schemas/banner-run.schema.json`;
+- `schemas/banner-render-spec.schema.json`;
+- `schemas/output-manifest.schema.json`;
+- `scripts/build_banner_matrix.py` — deterministic `concepts × sizes × variants × languages` job matrix.
+
+### Deterministic renderer / pack builder
+- `requirements.txt` — Pillow raster dependency;
+- `docs/ADR-001-renderer.md` — renderer decision record;
+- `config/layout-presets.json` — normalized layout-family baselines;
+- `scripts/render_banner.py` — exact-size PNG/JPG renderer with real text measurement, focal crop, logo placement, CTA/offer composition, contrast gates and composition lighting;
+- `scripts/build_contact_sheet.py` — review-only mixed-format overview;
+- `scripts/render_banner_pack.py` — matrix-driven render + Google validation + contact sheet + output manifest.
+
+The renderer never silently rewrites copy or shrinks it below the configured minimum. Unsupported content in a small layout returns an explicit failure instead of being squeezed into the banner.
 
 ## Default Uploaded Display core pack
 
-Current Google guidance for Uploaded Display creatives within Demand Gen recommends:
+The current core pack encoded for Uploaded Display within Demand Gen is:
 
 - 300x250
 - 336x280
@@ -39,28 +61,45 @@ Current Google guidance for Uploaded Display creatives within Demand Gen recomme
 - 300x600
 - 320x50
 
-The skill does **not** resize one master design into these formats. It preserves one creative concept while rebuilding composition by layout family.
+The skill does **not** resize one master design into these formats. One creative contract is rebuilt through the relevant layout families.
+
+## One banner per job
+
+For a run with `3 concepts × 7 sizes × 2 variants × 1 language`, the controller creates **42 matrix rows** and therefore 42 traceable final banner jobs by default.
+
+Each `BANNER_DESIGNER` receives only its frozen concept, relevant brand/reference/lighting context, exact dimension/layout family, exact copy and one output path. The worker may adapt the composition but may not redefine the offer, price, CTA, brand, or creative contract.
+
+## Pack rendering
+
+Example:
+
+```bash
+python scripts/render_banner_pack.py \
+  --matrix run/banner-matrix.json \
+  --spec-dir run/render-specs \
+  --mode demand_gen_uploaded_display \
+  --pack core \
+  --contact-sheet run/contact-sheet.png \
+  --manifest run/output-manifest.json \
+  --report run/pack-report.json
+```
+
+The pack runner returns `PASS` only when **every** matrix row renders and passes Google technical preflight. `output-manifest.json` is created only for a fully passing pack.
 
 ## Design evidence policy
 
-Every rule is classified as:
+Every reusable rule is classified as:
 
 1. platform requirement;
 2. research evidence;
 3. production heuristic;
 4. test hypothesis.
 
-This prevents common mistakes such as treating a responsive-image blank-space recommendation as a universal fill percentage, or claiming that one font category or CTA color always performs best.
+This prevents common mistakes such as treating a responsive-image blank-space recommendation as a universal fill percentage, declaring one font category or CTA color universally superior, or treating a lighting preset as a guaranteed CTR improvement.
 
-## Validator
+## Tests
 
-Example:
-
-```bash
-python scripts/validate_google_banner.py outputs/banner_300x250.png --mode demand_gen_uploaded_display --pack core
-```
-
-The validator uses a conservative 150,000-byte ceiling for Google's stated 150 KB static uploaded-display limit. It recognizes PNG, JPEG, and GIF without third-party packages and detects animated GIF/APNG for modes that require static images.
+GitHub Actions installs renderer dependencies and runs the full regression suite for matrix logic, lighting configuration, contact sheets, deterministic rendering, pack assembly, real Google preflight integration, and the original dependency-free image validator.
 
 ## Roadmap
 
