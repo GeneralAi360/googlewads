@@ -20,6 +20,7 @@ Produce exactly one final banner file for this banner-matrix row.
 
 - Business brief ID/hash: `{{BUSINESS_BRIEF_ID}}`
 - Brand/design identity: `{{BRAND_ID}}`
+- Approved art-direction ID: `{{ART_DIRECTION_ID_OR_LOCKED_BRAND}}`
 - Creative contract ID/hash: `{{CREATIVE_CONTRACT_ID}}`
 - Reference DNA ID(s): `{{REFERENCE_DNA_IDS_OR_NONE}}`
 - Lighting plan ID: `{{LIGHTING_PLAN_ID_OR_NONE}}`
@@ -55,14 +56,20 @@ Never remove mandatory legal text.
 
 ## Visual contract
 
+- Approved visual thesis: `{{VISUAL_THESIS}}`
 - Hero subject: `{{HERO_SUBJECT}}`
 - Crop/focal rule: `{{CROP_RULE}}`
 - Intended scan path: `{{SCAN_PATH}}`
+- Primary alignment logic: `{{ALIGNMENT_LOGIC}}`
+- Graphic/photographic device: `{{GRAPHIC_DEVICE}}`
 - Copy-safe zone: `{{COPY_SAFE_ZONE}}`
 - Typography context: `{{TYPE_CONTEXT}}`
 - Color context: `{{COLOR_CONTEXT}}`
 - Grid/spacing context: `{{GRID_CONTEXT}}`
 - CTA treatment: `{{CTA_CONTEXT}}`
+- Generic-style exclusions: `{{ANTI_TEMPLATE_EXCLUSIONS}}`
+
+Recompose the approved visual language for this aspect ratio. Do not imitate the coordinates of a representative preview or another size.
 
 ## Lighting contract
 
@@ -105,6 +112,7 @@ Do not modify:
 - shared banner matrix;
 - brand/design docs;
 - concept contracts;
+- approved art-direction identity;
 - other job folders;
 - other banners.
 
@@ -122,7 +130,8 @@ You may not:
 - invent claims/proof;
 - change CTA semantics;
 - change logo/brand identity;
-- redefine the concept;
+- redefine the concept or visual thesis;
+- introduce a new generic art style because it is visually fashionable;
 - add a new lighting concept;
 - create child agents;
 - produce another size;
@@ -134,6 +143,7 @@ Before reporting PASS:
 
 - [ ] primary AOI is intentional;
 - [ ] primary proposition is readable quickly;
+- [ ] headline has a deliberate silhouette/line break;
 - [ ] CTA is discoverable;
 - [ ] logo/brand is clear but not accidentally dominant;
 - [ ] typography is readable at 100% actual pixel size;
@@ -141,8 +151,11 @@ Before reporting PASS:
 - [ ] contrast is adequate;
 - [ ] copy is not placed over uncontrolled glare/noise/striped shadow;
 - [ ] lighting reinforces rather than competes with hierarchy;
-- [ ] hero crop is recognizable;
-- [ ] spacing/alignment follows the frozen design context;
+- [ ] hero crop preserves the important product/person geometry;
+- [ ] crop was recomposed for this aspect ratio rather than mechanically reused;
+- [ ] spacing/alignment follows one deliberate frozen design logic;
+- [ ] decoration does not introduce template-like glass cards/blobs/glows/gradients outside the approved visual thesis;
+- [ ] semantic content stays in safe/clear zones;
 - [ ] only approved copy is rendered.
 
 ## Technical gate
@@ -167,6 +180,7 @@ Return:
 - Concept ID
 - Variant
 - Language
+- Approved art-direction ID
 - Copy actually rendered
 - Content intentionally removed
 - Lighting scheme ID
@@ -184,6 +198,7 @@ Return without expanding scope:
 - `CLAIM_UNVERIFIED`
 - `REFERENCE_CONFLICT`
 - `LIGHTING_CONFLICT`
+- `ART_DIRECTION_CONFLICT`
 - `DESIGN_CHANGED`
 - `DESIGN_DRIFT`
 - `TECHNICAL_BLOCKED`
