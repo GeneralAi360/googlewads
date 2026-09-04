@@ -102,6 +102,53 @@ def _matrix_axes(matrix: dict[str, Any]) -> tuple[set[str], set[str], set[str], 
     return concepts, variants, languages, sizes
 
 
+def _validate_design_locks(design_brief: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
+    commercial_lock = design_brief.get("commercial_lock")
+    if not isinstance(commercial_lock, dict):
+        raise PreproductionFreezeError("COMMERCIAL_LOCK_MISSING", "design brief commercial_lock is required")
+    proposition = _require_text(commercial_lock.get("primary_proposition"), "commercial_lock.primary_proposition")
+    approved_ctas = commercial_lock.get("approved_ctas")
+    if not isinstance(approved_ctas, list) or not approved_ctas or any(not isinstance(item, str) or not item.strip() for item in approved_ctas):
+        raise PreproductionFreezeError("COMMERCIAL_LOCK_MISSING", "commercial_lock.approved_ctas must contain at least one CTA")
+    if len(approved_ctas) != len(set(approved_ctas)):
+        raise PreproductionFreezeError("COMMERCIAL_LOCK_INVALID", "commercial_lock.approved_ctas must be unique")
+    if commercial_lock.get("copy_change_requires_controller_reapproval") is not True:
+        raise PreproductionFreezeError("COMMERCIAL_LOCK_INVALID", "copy changes must require controller reapproval")
+    commercial_message = design_brief.get("commercial_message") or {}
+    if commercial_message.get("primary_proposition") not in {None, proposition}:
+        raise PreproductionFreezeError("COMMERCIAL_LOCK_MISMATCH", "commercial_message primary proposition differs from commercial_lock")
+    if commercial_message.get("cta") is not None and commercial_message.get("cta") not in approved_ctas:
+        raise PreproductionFreezeError("COMMERCIAL_LOCK_MISMATCH", "commercial_message CTA is not in commercial_lock approved_ctas")
+
+    brand_lock = design_brief.get("brand_identity_lock")
+    if not isinstance(brand_lock, dict):
+        raise PreproductionFreezeError("BRAND_IDENTITY_UNRESOLVED", "design brief brand_identity_lock is required")
+    _require_text(brand_lock.get("display_name"), "brand_identity_lock.display_name")
+    alternate_names = brand_lock.get("alternate_names_allowed")
+    if not isinstance(alternate_names, list) or len(alternate_names) != len(set(alternate_names)):
+        raise PreproductionFreezeError("BRAND_IDENTITY_UNRESOLVED", "alternate_names_allowed must be a unique list")
+    brand_context = design_brief.get("brand_context") or {}
+    if brand_context.get("brand_id") is not None and brand_context.get("brand_id") != brand_lock.get("brand_id"):
+        raise PreproductionFreezeError("BRAND_IDENTITY_UNRESOLVED", "brand_context.brand_id differs from brand_identity_lock.brand_id")
+    context_display = brand_context.get("display_name")
+    if context_display is not None and context_display not in {brand_lock["display_name"], *alternate_names}:
+        raise PreproductionFreezeError("BRAND_IDENTITY_UNRESOLVED", "brand_context display_name is not approved by brand_identity_lock")
+
+    required_assets = design_brief.get("required_assets")
+    if not isinstance(required_assets, list):
+        raise PreproductionFreezeError("ASSET_REQUIREMENTS_MISSING", "design brief required_assets must be a list")
+    asset_ids = [item.get("asset_id") for item in required_assets if isinstance(item, dict)]
+    if len(asset_ids) != len(required_assets) or any(not item for item in asset_ids) or len(asset_ids) != len(set(asset_ids)):
+        raise PreproductionFreezeError("ASSET_REQUIREMENTS_INVALID", "required asset IDs must be non-empty and unique")
+    if brand_lock.get("logo_asset_required"):
+        logo_requirements = [item for item in required_assets if item.get("required") and item.get("role") == "LOGO"]
+        if not logo_requirements:
+            raise PreproductionFreezeError("ASSET_REQUIREMENTS_MISSING", "brand identity requires an explicit LOGO asset requirement")
+        if any(item.get("generated_substitute_allowed") for item in logo_requirements):
+            raise PreproductionFreezeError("ASSET_REQUIREMENTS_INVALID", "generated logo substitutes cannot satisfy a locked brand identity")
+    return commercial_lock, brand_lock, required_assets
+
+
 def freeze_preproduction(
     matrix: dict[str, Any],
     research: dict[str, Any],
@@ -142,6 +189,8 @@ def freeze_preproduction(
         raise PreproductionFreezeError("DESIGN_BRIEF_STALE", "design brief research binding is stale/mismatched")
     if design_brief.get("category_map_id") != category_map_id or design_brief.get("category_map_sha256") != category_sha:
         raise PreproductionFreezeError("DESIGN_BRIEF_STALE", "design brief category-map binding is stale/mismatched")
+
+    commercial_lock, brand_lock, required_assets = _validate_design_locks(design_brief)
 
     quality = design_brief.get("asset_quality_policy") or {}
     for key in (
@@ -235,6 +284,9 @@ def freeze_preproduction(
         "competitive_research": {"id": research_id, "path": research_path.as_posix(), "sha256": research_sha},
         "category_design_map": {"id": category_map_id, "path": category_map_path.as_posix(), "sha256": category_sha},
         "design_brief": {"id": design_brief_id, "path": design_brief_path.as_posix(), "sha256": design_sha},
+        "commercial_lock": commercial_lock,
+        "brand_identity_lock": brand_lock,
+        "required_asset_ids": [item["asset_id"] for item in required_assets if item.get("required")],
         "art_direction_approval": {"id": art_approval["approval_id"], "path": art_approval_path.as_posix(), "sha256": art_sha},
         "representative_design_approval": {"id": representative_approval["approval_id"], "path": representative_approval_path.as_posix(), "sha256": rep_approval_sha},
         "selected_art_direction_id": art_direction_id,
