@@ -3,28 +3,78 @@
   "title": "Banner Output Manifest",
   "type": "object",
   "additionalProperties": false,
-  "required": ["campaign_id", "platform_mode", "files"],
+  "required": [
+    "campaign_id",
+    "generated_at",
+    "platform_mode",
+    "google_pack",
+    "matrix_sha256",
+    "render_engine",
+    "files"
+  ],
   "properties": {
     "campaign_id": {"type": "string"},
-    "generated_at": {"type": ["string", "null"], "format": "date-time"},
+    "generated_at": {"type": "string", "format": "date-time"},
     "platform_mode": {"type": "string"},
+    "google_pack": {"type": "string"},
     "spec_snapshot_date": {"type": ["string", "null"]},
+    "matrix_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "render_engine": {"type": "string"},
     "files": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["variant_id", "path", "width", "height", "status"],
+        "required": [
+          "job_id",
+          "variant_id",
+          "dimension",
+          "path",
+          "sha256",
+          "render_spec_path",
+          "render_spec_sha256",
+          "width",
+          "height",
+          "status"
+        ],
         "properties": {
+          "job_id": {"type": "string"},
           "concept_id": {"type": ["string", "null"]},
           "variant_id": {"type": "string"},
+          "language": {"type": ["string", "null"]},
+          "dimension": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"},
+          "google_name": {"type": ["string", "null"]},
           "path": {"type": "string"},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "render_spec_path": {"type": "string"},
+          "render_spec_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
           "width": {"type": "integer", "minimum": 1},
           "height": {"type": "integer", "minimum": 1},
           "bytes": {"type": ["integer", "null"], "minimum": 0},
           "format": {"type": ["string", "null"]},
           "layout_family": {"type": ["string", "null"]},
-          "status": {"enum": ["PASS", "FAIL_PLATFORM_SPEC", "FAIL_FILE_SIZE", "FAIL_DIMENSIONS", "FAIL_COPY_OVERFLOW", "FAIL_CONTRAST", "FAIL_BRAND_CONSISTENCY", "FAIL_UNSUPPORTED_CLAIM", "REVIEW_VISUAL_HIERARCHY", "REVIEW_POLICY"]},
+          "brand_id": {"type": ["string", "null"]},
+          "creative_contract_id": {"type": ["string", "null"]},
+          "hero_asset_id": {"type": ["string", "null"]},
+          "reference_dna_ids": {"type": "array", "items": {"type": "string"}},
+          "source_grounding_ids": {"type": "array", "items": {"type": "string"}},
+          "lighting_scheme_id": {"type": ["integer", "null"], "minimum": 1, "maximum": 30},
+          "status": {
+            "enum": [
+              "PASS",
+              "FAIL_PLATFORM_SPEC",
+              "FAIL_FILE_SIZE",
+              "FAIL_DIMENSIONS",
+              "FAIL_COPY_OVERFLOW",
+              "FAIL_CONTRAST",
+              "FAIL_LOCAL_CONTRAST",
+              "FAIL_BRAND_CONSISTENCY",
+              "FAIL_UNSUPPORTED_CLAIM",
+              "REVIEW_VISUAL_HIERARCHY",
+              "REVIEW_POLICY"
+            ]
+          },
           "checks": {"type": "array", "items": {"type": "string"}}
         }
       }
