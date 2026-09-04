@@ -38,7 +38,10 @@
         "brand_consistency": {"$ref": "#/$defs/check"},
         "intentional_layout_adaptation": {"$ref": "#/$defs/check"},
         "small_format_simplification": {"$ref": "#/$defs/check"},
-        "contact_sheet_review": {"$ref": "#/$defs/check"}
+        "contact_sheet_review": {"$ref": "#/$defs/check"},
+        "campaign_design_grammar": {"$ref": "#/$defs/check"},
+        "cross_size_lighting_consistency": {"$ref": "#/$defs/check"},
+        "anti_template_generic_style": {"$ref": "#/$defs/check"}
       }
     },
     "findings": {
