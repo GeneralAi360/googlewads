@@ -28,6 +28,7 @@ Status: in development; baseline runtime implemented.
 Implemented:
 - Python + Pillow renderer decision (`docs/ADR-001-renderer.md`);
 - `requirements.txt` and `schemas/banner-render-spec.schema.json`;
+- separate `schemas/banner-matrix.schema.json` so the lightweight job matrix is not confused with the full controller-owned `banner-run` contract;
 - `config/layout-presets.json` covering every Google layout family in the registry;
 - exact PNG/JPG rendering;
 - real font measurement and line wrapping;
@@ -40,6 +41,8 @@ Implemented:
 - contact-sheet generator;
 - matrix-driven pack runner;
 - render-spec to matrix identity checks;
+- one-job-per-row materializer producing narrow task briefs and render-spec shells without inventing missing facts;
+- overwrite protection for worker files unless controller explicitly uses `--force`;
 - real pack-runner handoff to `validate_google_banner.py`;
 - pack report with per-job failures;
 - output manifest emitted only for a fully passing pack;
@@ -53,8 +56,7 @@ Remaining before v0.2 completion:
 - richer manifest timestamps/spec snapshot provenance;
 - reusable example run fixture with hero/logo assets;
 - visual review fixture/contact-sheet acceptance baseline;
-- helper that materializes per-job render-spec shells from a banner matrix;
-- end-to-end eval of interview → subagent jobs → rendered/validated pack.
+- end-to-end eval of interview → matrix → materialized subagent jobs → rendered/validated pack.
 
 ## v0.3 — Visual QA intelligence
 
