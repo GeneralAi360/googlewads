@@ -1,0 +1,30 @@
+{
+  "schema_version": "0.1.0",
+  "purpose": "Real production failures discovered during user acceptance testing. These cases are regression requirements, not synthetic style preferences.",
+  "cases": [
+    {
+      "case_id": "REAL-01",
+      "title": "Generic childish B2B art direction produced before market/category research",
+      "context": "A Work run for a B2B cloud/Bitrix24 offer produced three 300x250 preview directions that shared nearly the same copy-left/illustration-right template and used toy-like/generic cloud illustrations. User rejected the result as low-quality and non-professional.",
+      "failure_stage": "PREPRODUCTION",
+      "expected_findings": [
+        "PREMATURE_RENDER_BEFORE_MARKET_RESEARCH",
+        "COMPETITIVE_CONTEXT_MISSING",
+        "ART_DIRECTIONS_NOT_MATERIALLY_DISTINCT",
+        "GENERIC_AI_CLIPART",
+        "B2B_CATEGORY_SIGNAL_TOO_WEAK",
+        "ASSET_QUALITY_BELOW_PRODUCTION",
+        "DESIGN_NOT_PROFESSIONAL_ENOUGH"
+      ],
+      "required_regressions": [
+        "competitive research must precede unresolved art-direction rendering",
+        "category design map must exist before detailed design brief freeze",
+        "three written art directions must be materially different before previews",
+        "written art direction must be approved before representative rendering",
+        "one high-fidelity representative design must be approved before full pack scale-out",
+        "representative approval must explicitly pass asset quality, professional category fit and anti-generic-AI checks"
+      ],
+      "performance_claim_policy": "Do not label competitor/reference creatives high-converting without verified conversion metrics."
+    }
+  ]
+}
