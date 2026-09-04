@@ -32,6 +32,7 @@ The accepted baseline is Python + Pillow. See `docs/ADR-001-renderer.md`.
 Implemented components:
 - `config/layout-presets.json` — normalized layout-family presets;
 - `schemas/banner-render-spec.schema.json` — one deterministic render spec per banner-matrix row;
+- `scripts/materialize_banner_jobs.py` — one render-spec shell + one narrow task brief per row;
 - `scripts/render_banner.py` — exact PNG/JPG renderer;
 - `scripts/build_contact_sheet.py` — review-only overview;
 - `scripts/render_banner_pack.py` — matrix-driven pack runner;
@@ -39,7 +40,36 @@ Implemented components:
 
 Pillow is the precision raster layer, not the creative-strategy layer. Layout presets are production heuristics and may be overridden by a frozen banner task when the concept requires another composition.
 
-## 3. One banner = one render spec
+## 3. Matrix, full run, and one-banner render spec are different contracts
+
+Keep three layers separate:
+
+1. `schemas/banner-run.schema.json` — full controller-owned run: business/brand/reference identity, creative contracts, matrix state and subagent policy.
+2. `schemas/banner-matrix.schema.json` — deterministic list of expected final banner jobs and output paths.
+3. `schemas/banner-render-spec.schema.json` — exactly one worker-owned render specification for one matrix row.
+
+Do not force the lightweight matrix document to carry the entire controller context. Do not give a banner worker the entire run merely because that information exists.
+
+## 4. Materialize one narrow job per matrix row
+
+After the matrix is frozen, run:
+
+```bash
+python scripts/materialize_banner_jobs.py \
+  --matrix run/banner-matrix.json \
+  --out-dir run/jobs
+```
+
+The materializer creates:
+- `task-briefs/{job_id}.md`;
+- `render-specs/{job_id}.json`;
+- `dispatch-index.json`.
+
+It copies only facts present in the matrix. Missing copy, brand, logo, hero, or lighting fields remain empty/null until the controller supplies approved context. This is intentional: materialization is routing, not creative inference.
+
+Existing job files are not overwritten by default. `--force` is a controller-level reconciliation action, not a normal worker behavior.
+
+## 5. One banner = one render spec
 
 Each final banner job should have a render spec containing:
 - `job_id` identical to its banner-matrix row;
@@ -55,7 +85,7 @@ Each final banner job should have a render spec containing:
 
 The pack runner rejects a render spec whose `job_id`, width, height, or layout family differs from the frozen matrix row.
 
-## 4. Text fitting is fail-closed
+## 6. Text fitting is fail-closed
 
 The renderer measures the actual selected font and tries sizes only inside the configured range.
 
@@ -67,13 +97,13 @@ The correct follow-up is a controller/design decision: shorten the copy, alter t
 
 If a layout family intentionally has no `offer` or `support` slot, passing that content returns `FAIL_LAYOUT` rather than squeezing it into an unrelated area.
 
-## 5. Focal crop and assets
+## 7. Focal crop and assets
 
 Hero images use cover-crop with an explicit normalized focal point when supplied. Logos use contain-fit so the deterministic layer does not crop the brand mark.
 
 The renderer does not recreate a supplied logo with AI and does not vendor proprietary fonts. Real brand font files/paths must be provided by the project/run when required.
 
-## 6. Composition lighting
+## 8. Composition lighting
 
 Implemented deterministic primitives:
 - radial `spotlight`;
@@ -89,13 +119,13 @@ Still planned in v0.2:
 
 Scene lighting remains part of the source hero image and follows `references/lighting-intelligence.md`.
 
-## 7. Contrast
+## 9. Contrast
 
 For flat colors, `scripts/render_banner.py` calculates relative luminance and contrast ratio and can enforce explicit minimums.
 
-For text over photography, average-background contrast is insufficient. Local luminance variation across the actual glyph region still requires visual/local-image QA; do not claim that the current flat-color calculation proves photographic readability.
+For text over photography, average-background contrast is insufficient. Local luminance variation across the actual copy zone still requires visual/local-image QA; do not claim that the current flat-color calculation proves photographic readability.
 
-## 8. Export and byte limits
+## 10. Export and byte limits
 
 PNG and JPG are supported by the v0.2 renderer.
 
@@ -108,7 +138,7 @@ Rules:
 
 This preserves the difference between creative/render failure and Google technical failure.
 
-## 9. Matrix-driven pack assembly
+## 11. Matrix-driven pack assembly
 
 The pack runner consumes:
 - one `BANNER_MATRIX` JSON;
@@ -123,7 +153,7 @@ Example:
 ```bash
 python scripts/render_banner_pack.py \
   --matrix run/banner-matrix.json \
-  --spec-dir run/render-specs \
+  --spec-dir run/jobs/render-specs \
   --mode demand_gen_uploaded_display \
   --pack core \
   --contact-sheet run/contact-sheet.png \
@@ -135,19 +165,19 @@ The run is `PASS` only when every matrix row renders and passes Google technical
 
 A missing render spec, mismatched matrix/spec identity, copy overflow, file-size failure, contrast failure, or Google validator failure keeps the full pack in `FAIL`.
 
-## 10. Output manifest
+## 12. Output manifest
 
 `output-manifest.json` is emitted only for a fully passing pack. It maps each final file to its concept/variant, path, dimensions, file bytes/format, layout family, and passed checks.
 
 An incomplete run may produce a diagnostic pack report and a partial review contact sheet, but it must not emit a manifest that implies full campaign readiness.
 
-## 11. Contact sheet
+## 13. Contact sheet
 
 The contact sheet displays mixed banner sizes inside consistent review cells and labels each file with filename and native dimensions.
 
 It is review-only and is never a Google upload asset. A contact sheet does not replace inspection of critical banners at 100% actual pixel size.
 
-## 12. Technical preflight
+## 14. Technical preflight
 
 ### Uploaded Display static
 Check:
@@ -170,7 +200,7 @@ Check separately:
 
 Do not apply the finished-banner raster pipeline blindly to asset-based ads.
 
-## 13. Visual preflight
+## 15. Visual preflight
 
 Check at 100% size:
 - proposition is understandable without zooming;
@@ -182,7 +212,7 @@ Check at 100% size:
 - lighting does not sabotage copy-safe areas;
 - JPEG/PNG export has not damaged text or product edges.
 
-## 14. Pack-level consistency
+## 16. Pack-level consistency
 
 A pack passes visually only when:
 - all size adaptations remain faithful to the frozen creative contract;
@@ -192,7 +222,7 @@ A pack passes visually only when:
 - no worker silently changes offer/price/CTA;
 - all files are named and traceable.
 
-## 15. Failure states
+## 17. Failure states
 
 Use explicit states such as:
 - `PASS`
