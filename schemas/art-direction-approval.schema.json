@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/art-direction-approval.schema.json",
+  "title": "Written Art Direction Approval",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["approval_id", "status", "approved_by", "design_brief_id", "design_brief_sha256", "selected_direction"],
+  "properties": {
+    "approval_id": {"type": "string", "minLength": 1},
+    "status": {"const": "APPROVED"},
+    "approved_by": {"enum": ["USER", "BRAND_SYSTEM", "ART_DIRECTOR_REVIEWER"]},
+    "approved_at": {"type": ["string", "null"]},
+    "design_brief_id": {"type": "string", "minLength": 1},
+    "design_brief_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "selected_direction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["art_direction_id", "label", "candidate_ids", "visual_thesis", "composition", "hero_strategy", "typography", "palette", "lighting_image_treatment", "graphic_device", "trust_signals", "whitespace_character", "anti_patterns"],
+      "properties": {
+        "art_direction_id": {"type": "string", "minLength": 1},
+        "label": {"type": "string", "minLength": 1},
+        "candidate_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "visual_thesis": {"type": "string", "minLength": 1},
+        "composition": {"type": "string", "minLength": 1},
+        "hero_strategy": {"type": "string", "minLength": 1},
+        "typography": {"type": "string", "minLength": 1},
+        "palette": {"type": "string", "minLength": 1},
+        "lighting_image_treatment": {"type": "string", "minLength": 1},
+        "graphic_device": {"type": "string", "minLength": 1},
+        "trust_signals": {"type": "array", "items": {"type": "string"}},
+        "whitespace_character": {"type": "string", "minLength": 1},
+        "anti_patterns": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "notes": {"type": ["string", "null"]}
+  }
+}
