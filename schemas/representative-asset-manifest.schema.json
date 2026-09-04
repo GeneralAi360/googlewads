@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/representative-asset-manifest.schema.json",
+  "title": "Representative Design Asset Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["manifest_id", "design_brief_id", "design_brief_sha256", "status", "assets"],
+  "properties": {
+    "manifest_id": {"type": "string", "minLength": 1},
+    "design_brief_id": {"type": "string", "minLength": 1},
+    "design_brief_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"enum": ["ASSETS_READY", "NEEDS_ASSET"]},
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset_id", "role", "required", "source_type", "path", "sha256", "generated_substitute", "privacy_checked", "rights_status"],
+        "properties": {
+          "asset_id": {"type": "string", "minLength": 1},
+          "role": {"enum": ["PRODUCT_UI", "LOGO", "PRODUCT_PHOTO", "PEOPLE_PHOTO", "ILLUSTRATION", "BACKGROUND", "FONT", "OTHER"]},
+          "required": {"type": "boolean"},
+          "source_type": {"enum": ["USER_PROVIDED", "BRAND_OWNED", "OFFICIAL_PRODUCT", "LICENSED_STOCK", "GENERATED", "OTHER"]},
+          "path": {"type": ["string", "null"]},
+          "sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+          "width": {"type": ["integer", "null"], "minimum": 1},
+          "height": {"type": ["integer", "null"], "minimum": 1},
+          "generated_substitute": {"type": "boolean"},
+          "privacy_checked": {"type": "boolean"},
+          "rights_status": {"enum": ["APPROVED", "UNKNOWN", "REJECTED"]},
+          "notes": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "missing_asset_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "notes": {"type": ["string", "null"]}
+  }
+}
