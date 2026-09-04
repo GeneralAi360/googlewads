@@ -49,7 +49,13 @@ def validate(matrix: dict[str, Any], creative_freeze: dict[str, Any], contracts_
         try:
             contract = load_json(contract_path)
             spec = load_json(spec_path)
-            expected_copy = apply_module.variant_copy(contract, variant_id, language)
+            expected_copy = apply_module.variant_copy(
+                contract,
+                variant_id,
+                language,
+                row.get("layout_family"),
+                row.get("dimension"),
+            )
             provenance = spec.get("provenance") or {}
             problems = []
             if spec.get("copy") != expected_copy:
@@ -64,13 +70,22 @@ def validate(matrix: dict[str, Any], creative_freeze: dict[str, Any], contracts_
                 problems.append("reference_dna_ids mismatch")
             if provenance.get("source_grounding_ids") != (meta.get("source_grounding_ids") or []):
                 problems.append("source_grounding_ids mismatch")
+            if provenance.get("brand_id") != contract.get("brand_id"):
+                problems.append("brand_id mismatch")
+            if provenance.get("lighting_scheme_id") != (contract.get("lighting") or {}).get("lighting_scheme_id"):
+                problems.append("lighting_scheme_id mismatch")
             if problems:
                 failures.append({"job_id": job_id, "reason": "; ".join(problems)})
             else:
                 passed.append(job_id)
-        except BindingValidationError as exc:
+        except (BindingValidationError, getattr(apply_module, "CreativeBindingError", ValueError)) as exc:
             failures.append({"job_id": job_id, "reason": str(exc)})
-    return {"status": "CREATIVE_BINDING_PASS" if not failures and len(passed) == len(rows) else "CREATIVE_BINDING_FAIL", "expected_jobs": len(rows), "passed_jobs": len(passed), "failures": failures}
+    return {
+        "status": "CREATIVE_BINDING_PASS" if not failures and len(passed) == len(rows) else "CREATIVE_BINDING_FAIL",
+        "expected_jobs": len(rows),
+        "passed_jobs": len(passed),
+        "failures": failures,
+    }
 
 
 def main() -> int:
