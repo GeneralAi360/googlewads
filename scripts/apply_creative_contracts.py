@@ -31,15 +31,51 @@ def frozen_map(freeze: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return result
 
 
-def variant_copy(contract: dict[str, Any], variant_id: str, language: str) -> dict[str, Any]:
+def _apply_copy_override(copy: dict[str, Any], override: Any, label: str) -> None:
+    if override is None:
+        return
+    if not isinstance(override, dict):
+        raise CreativeBindingError(f"{label} copy override must be an object")
+    allowed = {"headline", "support", "offer", "cta"}
+    unknown = sorted(set(override) - allowed)
+    if unknown:
+        raise CreativeBindingError(f"{label} copy override has unknown keys: {', '.join(unknown)}")
+    for key, value in override.items():
+        copy[key] = value
+
+
+def variant_copy(
+    contract: dict[str, Any],
+    variant_id: str,
+    language: str,
+    layout_family: str | None = None,
+    dimension: str | None = None,
+) -> dict[str, Any]:
     variants = {item["variant_id"]: item for item in contract["variants"]}
     if variant_id not in variants:
         raise CreativeBindingError(f"variant {variant_id} missing in {contract['concept_id']}")
-    copies = variants[variant_id]["copy_by_language"]
+    variant = variants[variant_id]
+    copies = variant["copy_by_language"]
     if language not in copies:
         raise CreativeBindingError(f"language {language} missing in {contract['concept_id']}/{variant_id}")
     value = copies[language]
-    return {"headline": value["headline"], "support": value.get("support"), "offer": value.get("offer"), "cta": value["cta"]}
+    result = {
+        "headline": value["headline"],
+        "support": value.get("support"),
+        "offer": value.get("offer"),
+        "cta": value["cta"],
+    }
+    if layout_family:
+        family_override = (variant.get("copy_overrides_by_layout_family") or {}).get(layout_family)
+        _apply_copy_override(result, family_override, f"layout family {layout_family}")
+    if dimension:
+        dimension_override = (variant.get("copy_overrides_by_dimension") or {}).get(dimension)
+        _apply_copy_override(result, dimension_override, f"dimension {dimension}")
+    if not isinstance(result.get("headline"), str) or not result["headline"].strip():
+        raise CreativeBindingError(f"{contract['concept_id']}/{variant_id}/{language}: final headline cannot be empty")
+    if not isinstance(result.get("cta"), str) or not result["cta"].strip():
+        raise CreativeBindingError(f"{contract['concept_id']}/{variant_id}/{language}: final CTA cannot be empty")
+    return result
 
 
 def apply(matrix: dict[str, Any], freeze: dict[str, Any], contracts_dir: Path, spec_dir: Path, *, out_index: Path | None = None) -> dict[str, Any]:
@@ -61,7 +97,7 @@ def apply(matrix: dict[str, Any], freeze: dict[str, Any], contracts_dir: Path, s
         spec = load_json(spec_path)
         if spec.get("job_id") != row["job_id"]:
             raise CreativeBindingError(f"spec job mismatch: {row['job_id']}")
-        copy = variant_copy(contract, variant_id, language)
+        copy = variant_copy(contract, variant_id, language, row.get("layout_family"), row.get("dimension"))
         spec["copy"] = copy
         lighting = contract.get("lighting") or {}
         spec["provenance"] = {
@@ -76,7 +112,18 @@ def apply(matrix: dict[str, Any], freeze: dict[str, Any], contracts_dir: Path, s
             "lighting_scheme_id": lighting.get("lighting_scheme_id")
         }
         spec_path.write_text(json.dumps(spec, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        bindings.append({"job_id": row["job_id"], "concept_id": concept_id, "variant_id": variant_id, "language": language, "render_spec_path": spec_path.as_posix(), "creative_contract_path": contract_path.as_posix(), "creative_contract_sha256": meta["sha256"]})
+        bindings.append({
+            "job_id": row["job_id"],
+            "concept_id": concept_id,
+            "variant_id": variant_id,
+            "language": language,
+            "layout_family": row.get("layout_family"),
+            "dimension": row.get("dimension"),
+            "render_spec_path": spec_path.as_posix(),
+            "creative_contract_path": contract_path.as_posix(),
+            "creative_contract_sha256": meta["sha256"],
+            "applied_copy": copy,
+        })
     result = {"status": "CREATIVE_CONTRACTS_APPLIED", "expected_jobs": len(rows), "bindings": bindings}
     if out_index:
         out_index.parent.mkdir(parents=True, exist_ok=True)
