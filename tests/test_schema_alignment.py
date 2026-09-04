@@ -22,6 +22,8 @@ class SchemaAlignmentTests(unittest.TestCase):
         cls.freeze = load_module(ROOT / "scripts" / "freeze_creative_contracts.py", "freeze_creative_contracts")
         cls.apply = load_module(ROOT / "scripts" / "apply_creative_contracts.py", "apply_creative_contracts")
         cls.schema = json.loads((ROOT / "schemas" / "banner-render-spec.schema.json").read_text(encoding="utf-8"))
+        cls.banner_review_schema = json.loads((ROOT / "schemas" / "banner-review.schema.json").read_text(encoding="utf-8"))
+        cls.pack_review_schema = json.loads((ROOT / "schemas" / "pack-review.schema.json").read_text(encoding="utf-8"))
 
     def test_creative_binding_provenance_keys_are_schema_allowed(self):
         matrix = {
@@ -81,6 +83,33 @@ class SchemaAlignmentTests(unittest.TestCase):
         sha_schema = self.schema["properties"]["provenance"]["properties"]["creative_contract_sha256"]
         self.assertIn("string", sha_schema["type"])
         self.assertEqual(sha_schema["pattern"], "^[0-9a-f]{64}$")
+
+    def test_lighting_target_selector_schema_matches_renderer_runtime(self):
+        defs = self.schema["$defs"]
+        for name in ("heroGlow", "textPlate"):
+            properties = defs[name]["properties"]
+            self.assertIn("target_slot", properties)
+            self.assertIn("target_slots", properties)
+            self.assertIn("box", properties)
+
+    def test_banner_review_schema_allows_design_diagnostic_checks(self):
+        properties = self.banner_review_schema["properties"]["checks"]["properties"]
+        for name in (
+            "thumbnail_glance",
+            "grayscale_hierarchy",
+            "squint_hierarchy",
+            "anti_template_generic_style",
+        ):
+            self.assertIn(name, properties)
+
+    def test_pack_review_schema_allows_campaign_design_grammar_checks(self):
+        properties = self.pack_review_schema["properties"]["checks"]["properties"]
+        for name in (
+            "campaign_design_grammar",
+            "cross_size_lighting_consistency",
+            "anti_template_generic_style",
+        ):
+            self.assertIn(name, properties)
 
 
 if __name__ == "__main__":
