@@ -75,10 +75,11 @@ def assert_spec_matches_row(spec: dict[str, Any], row: dict[str, Any]) -> None:
         "height": row.get("height"),
         "layout_family": row.get("layout_family"),
     }
-    mismatches = []
-    for key, expected in checks.items():
-        if spec.get(key) != expected:
-            mismatches.append(f"{key}: spec={spec.get(key)!r} matrix={expected!r}")
+    mismatches = [
+        f"{key}: spec={spec.get(key)!r} matrix={expected!r}"
+        for key, expected in checks.items()
+        if spec.get(key) != expected
+    ]
     if mismatches:
         raise PackError("FAIL_SPEC_MATRIX_MISMATCH", "; ".join(mismatches))
 
@@ -87,26 +88,13 @@ def _dedupe(values: list[str] | None) -> list[str]:
     return list(dict.fromkeys(item for item in (values or []) if item))
 
 
-def _contract_copy(contract: dict[str, Any], variant_id: str, language: str) -> dict[str, Any]:
-    variants = contract.get("variants") or []
-    by_variant = {item.get("variant_id"): item for item in variants if isinstance(item, dict) and item.get("variant_id")}
-    if variant_id not in by_variant:
-        raise PackError("FAIL_CREATIVE_BINDING", f"contract missing variant {variant_id}")
-    copies = by_variant[variant_id].get("copy_by_language") or {}
-    if language not in copies:
-        raise PackError("FAIL_CREATIVE_BINDING", f"contract missing language {language} for {variant_id}")
-    value = copies[language]
-    if not isinstance(value, dict):
-        raise PackError("FAIL_CREATIVE_BINDING", f"contract copy is malformed for {variant_id}/{language}")
-    return {
-        "headline": value.get("headline"),
-        "support": value.get("support"),
-        "offer": value.get("offer"),
-        "cta": value.get("cta"),
-    }
-
-
-def assert_frozen_creative_binding(spec: dict[str, Any], row: dict[str, Any], *, required: bool) -> None:
+def assert_frozen_creative_binding(
+    spec: dict[str, Any],
+    row: dict[str, Any],
+    *,
+    required: bool,
+    binding_module,
+) -> None:
     provenance = spec.get("provenance") or {}
     contract_id = provenance.get("creative_contract_id")
     contract_path_value = provenance.get("creative_contract_path")
@@ -136,14 +124,27 @@ def assert_frozen_creative_binding(spec: dict[str, Any], row: dict[str, Any], *,
     if contract.get("concept_id") != concept_id or contract.get("status") != "APPROVED":
         raise PackError("FAIL_CREATIVE_BINDING", "creative contract identity/status does not match frozen matrix")
 
-    expected_copy = _contract_copy(contract, variant_id, language)
+    try:
+        expected_copy = binding_module.variant_copy(
+            contract,
+            variant_id,
+            language,
+            row.get("layout_family"),
+            row.get("dimension"),
+        )
+    except getattr(binding_module, "CreativeBindingError", ValueError) as exc:
+        raise PackError("FAIL_CREATIVE_BINDING", str(exc)) from exc
     if spec.get("copy") != expected_copy:
         raise PackError("FAIL_CREATIVE_BINDING", "render-spec copy differs from approved creative contract")
 
     expected_refs = contract.get("reference_dna_ids") or []
     if provenance.get("reference_dna_ids") != expected_refs:
         raise PackError("FAIL_CREATIVE_BINDING", "render-spec reference_dna_ids differ from creative contract")
-    expected_sources = [item.get("source_id") for item in contract.get("source_grounding") or [] if isinstance(item, dict) and item.get("source_id")]
+    expected_sources = [
+        item.get("source_id")
+        for item in contract.get("source_grounding") or []
+        if isinstance(item, dict) and item.get("source_id")
+    ]
     if provenance.get("source_grounding_ids") != expected_sources:
         raise PackError("FAIL_CREATIVE_BINDING", "render-spec source grounding differs from creative contract")
     if provenance.get("brand_id") != contract.get("brand_id"):
@@ -197,7 +198,11 @@ def build_manifest(
                 "source_grounding_ids": _dedupe(provenance.get("source_grounding_ids")),
                 "lighting_scheme_id": provenance.get("lighting_scheme_id") or row.get("lighting_scheme_id"),
                 "status": "PASS",
-                "checks": ["creative_binding", "deterministic_render", "google_technical_preflight"] if provenance.get("creative_contract_sha256") else ["deterministic_render", "google_technical_preflight"],
+                "checks": (
+                    ["creative_binding", "deterministic_render", "google_technical_preflight"]
+                    if provenance.get("creative_contract_sha256")
+                    else ["deterministic_render", "google_technical_preflight"]
+                ),
             }
         )
     return {
@@ -226,6 +231,7 @@ def render_pack(
     rows = validate_matrix(matrix)
     renderer = load_script("render_banner")
     sheet = load_script("build_contact_sheet")
+    binding_module = load_script("apply_creative_contracts")
     validator_module = None
     google_config = None
     spec_snapshot_date = matrix.get("spec_snapshot_date") or matrix.get("google_spec_snapshot_date")
@@ -265,7 +271,12 @@ def render_pack(
             except (UnicodeDecodeError, json.JSONDecodeError) as exc:
                 raise PackError("FAIL_INPUT", f"invalid render spec {spec_path}: {exc}") from exc
             assert_spec_matches_row(spec, row)
-            assert_frozen_creative_binding(spec, row, required=require_creative_binding)
+            assert_frozen_creative_binding(
+                spec,
+                row,
+                required=require_creative_binding,
+                binding_module=binding_module,
+            )
             job["spec_provenance"] = dict(spec.get("provenance") or {})
 
             output = dict(spec.get("output") or {})
@@ -345,7 +356,11 @@ def main() -> int:
     parser.add_argument("--pack", default="core")
     parser.add_argument("--contact-sheet", type=Path)
     parser.add_argument("--manifest", type=Path)
-    parser.add_argument("--allow-unbound-creative", action="store_true", help="Development/legacy only: permit render specs without a frozen creative contract")
+    parser.add_argument(
+        "--allow-unbound-creative",
+        action="store_true",
+        help="Development/legacy only: permit render specs without a frozen creative contract",
+    )
     parser.add_argument("--report", required=True, type=Path)
     args = parser.parse_args()
     try:
