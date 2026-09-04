@@ -99,12 +99,27 @@ class PreproductionDesignGateTests(unittest.TestCase):
             "category_map_id": "CDM-001",
             "category_map_sha256": category_sha,
             "campaign": {"objective": "lead"},
-            "commercial_message": {"headline": "Cloud CRM"},
+            "commercial_message": {"primary_proposition": "Cloud CRM", "cta": "Get consultation"},
+            "commercial_lock": {
+                "primary_proposition": "Cloud CRM",
+                "approved_ctas": ["Get consultation", "Request demo"],
+                "product_variant": "cloud",
+                "supporting_proof": None,
+                "mandatory_qualifiers": [],
+                "copy_change_requires_controller_reapproval": True,
+            },
             "audience": {"primary": "B2B"},
-            "brand_context": {"brand_id": "brand"},
+            "brand_context": {"brand_id": "brand", "display_name": "BRAND"},
+            "brand_identity_lock": {
+                "brand_id": "brand",
+                "display_name": "BRAND",
+                "logo_asset_required": False,
+                "alternate_names_allowed": [],
+            },
             "art_direction_strategy": {"mode": "ART_DIRECTION_PREVIEW_3", "candidate_count": 3, "representative_format": "300x250"},
             "visual_hierarchy": {"primary_aoi": "product UI", "primary_message": "offer", "intended_scan_path": ["product", "headline", "cta"], "brand_priority": 4},
             "image_strategy": {"hero_type": "product-led", "product_scale": "dominant", "copy_safe_area_required": True},
+            "required_assets": [],
             "asset_quality_policy": {
                 "reject_low_resolution_assets": True,
                 "reject_generic_ai_clipart": True,
@@ -185,6 +200,8 @@ class PreproductionDesignGateTests(unittest.TestCase):
             self.assertEqual(result["status"], "PREPRODUCTION_FROZEN")
             self.assertEqual(result["research_rigor"], "FULL")
             self.assertEqual(result["selected_art_direction_id"], "AD-ENTERPRISE-01")
+            self.assertEqual(result["commercial_lock"]["approved_ctas"], ["Get consultation", "Request demo"])
+            self.assertEqual(result["brand_identity_lock"]["display_name"], "BRAND")
 
     def test_full_research_requires_multiple_real_targets(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -205,6 +222,24 @@ class PreproductionDesignGateTests(unittest.TestCase):
                 self.freeze.freeze_preproduction(matrix, research, category, brief, art, representative, root / "freeze.json", research_path=paths["research"], category_map_path=paths["category"], design_brief_path=paths["brief"], art_approval_path=paths["art"], representative_approval_path=paths["representative"])
             self.assertEqual(ctx.exception.code, "COMPETITIVE_RESEARCH_DEGRADED")
 
+    def test_commercial_message_change_requires_new_lock(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            matrix, research, category, brief, art, representative, paths = self.artifacts(root)
+            brief["commercial_message"]["cta"] = "Unapproved CTA"
+            with self.assertRaises(self.freeze.PreproductionFreezeError) as ctx:
+                self.freeze.freeze_preproduction(matrix, research, category, brief, art, representative, root / "freeze.json", research_path=paths["research"], category_map_path=paths["category"], design_brief_path=paths["brief"], art_approval_path=paths["art"], representative_approval_path=paths["representative"])
+            self.assertEqual(ctx.exception.code, "COMMERCIAL_LOCK_MISMATCH")
+
+    def test_brand_identity_drift_is_blocked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            matrix, research, category, brief, art, representative, paths = self.artifacts(root)
+            brief["brand_context"]["display_name"] = "UNAPPROVED BRAND"
+            with self.assertRaises(self.freeze.PreproductionFreezeError) as ctx:
+                self.freeze.freeze_preproduction(matrix, research, category, brief, art, representative, root / "freeze.json", research_path=paths["research"], category_map_path=paths["category"], design_brief_path=paths["brief"], art_approval_path=paths["art"], representative_approval_path=paths["representative"])
+            self.assertEqual(ctx.exception.code, "BRAND_IDENTITY_UNRESOLVED")
+
     def test_stale_representative_hash_blocks_scale_out(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -215,13 +250,11 @@ class PreproductionDesignGateTests(unittest.TestCase):
             self.assertEqual(ctx.exception.code, "REPRESENTATIVE_APPROVAL_STALE")
 
     def test_reference_only_ad_cannot_be_called_high_converting(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            research = self.research()
-            research["creatives"][0]["performance_evidence"]["note"] = "high-converting design"
-            with self.assertRaises(self.freeze.PreproductionFreezeError) as ctx:
-                self.freeze._validate_research(research, False)
-            self.assertEqual(ctx.exception.code, "PERFORMANCE_CLAIM_UNSUPPORTED")
+        research = self.research()
+        research["creatives"][0]["performance_evidence"]["note"] = "high-converting design"
+        with self.assertRaises(self.freeze.PreproductionFreezeError) as ctx:
+            self.freeze._validate_research(research, False)
+        self.assertEqual(ctx.exception.code, "PERFORMANCE_CLAIM_UNSUPPORTED")
 
     def test_competitive_materializer_creates_one_readonly_job_per_target(self):
         with tempfile.TemporaryDirectory() as tmp:
