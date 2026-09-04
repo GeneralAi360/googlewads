@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 
@@ -56,6 +57,16 @@ class BannerMatrixTests(unittest.TestCase):
         row = result["banner_matrix"][0]
         self.assertEqual(row["language"], "pt-BR")
         self.assertIn("Lpt-BR", row["job_id"])
+
+    def test_matrix_schema_required_shape_matches_builder_output(self):
+        schema = json.loads((ROOT / "schemas" / "banner-matrix.schema.json").read_text(encoding="utf-8"))
+        result = self.module.build_matrix(run_id="demo", concepts=1, sizes=["300x250"], variants=1, languages=["ru"], output_format="png", output_root="outputs", config=self.config)
+        for key in schema["required"]:
+            self.assertIn(key, result)
+        row = result["banner_matrix"][0]
+        for key in schema["properties"]["banner_matrix"]["items"]["required"]:
+            self.assertIn(key, row)
+        self.assertEqual(result["output_math"]["formula"], schema["properties"]["output_math"]["properties"]["formula"]["const"])
 
 
 if __name__ == "__main__":
