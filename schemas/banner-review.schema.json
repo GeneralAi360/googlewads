@@ -47,7 +47,11 @@
         "information_density": {"$ref": "#/$defs/check"},
         "crop_safe_zones": {"$ref": "#/$defs/check"},
         "cta_clarity": {"$ref": "#/$defs/check"},
-        "actual_size_check": {"$ref": "#/$defs/check"}
+        "actual_size_check": {"$ref": "#/$defs/check"},
+        "thumbnail_glance": {"$ref": "#/$defs/check"},
+        "grayscale_hierarchy": {"$ref": "#/$defs/check"},
+        "squint_hierarchy": {"$ref": "#/$defs/check"},
+        "anti_template_generic_style": {"$ref": "#/$defs/check"}
       }
     },
     "findings": {
