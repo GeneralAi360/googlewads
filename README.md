@@ -6,7 +6,7 @@ The project is broader than a legacy GDN banner prompt. It separates asset-based
 
 ## Core pipeline
 
-`Business context -> unresolved-question intake -> reference DNA -> frozen creative contracts -> banner matrix -> one narrow banner job per row -> deterministic render -> independent review -> Google preflight -> pack assembly -> performance learning`
+`Business context -> unresolved-question intake -> reference DNA -> frozen creative contracts -> banner matrix -> materialized one-job briefs/specs -> one narrow banner worker per row -> deterministic render -> independent review -> Google preflight -> pack assembly -> performance learning`
 
 ## Current development branch
 
@@ -34,10 +34,12 @@ Draft PR: `#1 feat: Performance Banner Designer v0.1 foundation`
 ### Banner-run contracts
 - `schemas/business-brief.schema.json`;
 - `schemas/banner-concept.schema.json`;
-- `schemas/banner-run.schema.json`;
-- `schemas/banner-render-spec.schema.json`;
-- `schemas/output-manifest.schema.json`;
-- `scripts/build_banner_matrix.py` — deterministic `concepts × sizes × variants × languages` job matrix.
+- `schemas/banner-run.schema.json` — full controller-owned run with creative contracts/context;
+- `schemas/banner-matrix.schema.json` — deterministic final-job matrix document;
+- `schemas/banner-render-spec.schema.json` — one worker render spec;
+- `schemas/output-manifest.schema.json` — fully passing pack manifest;
+- `scripts/build_banner_matrix.py` — deterministic `concepts × sizes × variants × languages` matrix;
+- `scripts/materialize_banner_jobs.py` — one task brief + one render-spec shell per matrix row, without inventing missing facts.
 
 ### Deterministic renderer / pack builder
 - `requirements.txt` — Pillow raster dependency;
@@ -67,16 +69,26 @@ The skill does **not** resize one master design into these formats. One creative
 
 For a run with `3 concepts × 7 sizes × 2 variants × 1 language`, the controller creates **42 matrix rows** and therefore 42 traceable final banner jobs by default.
 
-Each `BANNER_DESIGNER` receives only its frozen concept, relevant brand/reference/lighting context, exact dimension/layout family, exact copy and one output path. The worker may adapt the composition but may not redefine the offer, price, CTA, brand, or creative contract.
+Materialize those jobs with:
+
+```bash
+python scripts/materialize_banner_jobs.py \
+  --matrix run/banner-matrix.json \
+  --out-dir run/jobs
+```
+
+This creates `run/jobs/task-briefs/{job_id}.md`, `run/jobs/render-specs/{job_id}.json`, and a `dispatch-index.json`. Existing worker files are not overwritten unless the controller explicitly uses `--force`.
+
+Each `BANNER_DESIGNER` receives only its frozen concept, relevant brand/reference/lighting context, exact dimension/layout family, exact approved copy and one output path. The worker may adapt the composition but may not redefine the offer, price, CTA, brand, or creative contract.
 
 ## Pack rendering
 
-Example:
+After worker render specs are complete:
 
 ```bash
 python scripts/render_banner_pack.py \
   --matrix run/banner-matrix.json \
-  --spec-dir run/render-specs \
+  --spec-dir run/jobs/render-specs \
   --mode demand_gen_uploaded_display \
   --pack core \
   --contact-sheet run/contact-sheet.png \
@@ -99,7 +111,7 @@ This prevents common mistakes such as treating a responsive-image blank-space re
 
 ## Tests
 
-GitHub Actions installs renderer dependencies and runs the full regression suite for matrix logic, lighting configuration, contact sheets, deterministic rendering, pack assembly, real Google preflight integration, and the original dependency-free image validator.
+GitHub Actions installs renderer dependencies and runs the full regression suite for matrix logic/schema alignment, lighting configuration, job materialization, contact sheets, deterministic rendering, pack assembly, real Google preflight integration, and the original dependency-free image validator.
 
 ## Roadmap
 
