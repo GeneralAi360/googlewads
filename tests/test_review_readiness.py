@@ -101,6 +101,85 @@ class ReviewReadinessTests(unittest.TestCase):
             self.assertTrue((root / "review-run" / "pack-review-task.md").is_file())
             self.assertFalse((root / "review-run" / "pack-review.json").exists())
             self.assertTrue(all(Path(item["task_path"]).is_file() for item in result["banner_reviews"]))
+            self.assertFalse(result["design_qa_attached"])
+
+    def test_materializer_attaches_hash_bound_design_qa_views(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            matrix, manifest, manifest_path = self.fixture(root, count=1)
+            item = manifest["files"][0]
+            qa_root = root / "qa"
+            qa_root.mkdir()
+            views = {
+                "actual": item["path"],
+                "grayscale": (qa_root / "grayscale.png").as_posix(),
+                "squint": (qa_root / "squint.png").as_posix(),
+                "thumbnail_board": (qa_root / "thumbnail-board.png").as_posix(),
+            }
+            for name, path in views.items():
+                if name != "actual":
+                    Path(path).write_bytes(b"diagnostic")
+            qa_index = {
+                "artifact_role": "DESIGN_QA_DIAGNOSTICS_ONLY",
+                "delivery_asset": False,
+                "jobs": [
+                    {
+                        "job_id": item["job_id"],
+                        "source_sha256": item["sha256"],
+                        "views": views,
+                    }
+                ],
+            }
+            qa_path = root / "design-qa-index.json"
+            qa_path.write_text(json.dumps(qa_index), encoding="utf-8")
+            result = self.materializer.materialize_reviews(
+                matrix,
+                manifest,
+                root / "review-run",
+                manifest_path=manifest_path,
+                qa_index_path=qa_path,
+            )
+            self.assertTrue(result["design_qa_attached"])
+            self.assertTrue(result["banner_reviews"][0]["design_qa_attached"])
+            task = Path(result["banner_reviews"][0]["task_path"]).read_text(encoding="utf-8")
+            self.assertIn("25% glance board", task)
+            self.assertIn("Grayscale hierarchy", task)
+            self.assertIn("Squint/blur hierarchy", task)
+
+    def test_materializer_rejects_stale_design_qa_views(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            matrix, manifest, manifest_path = self.fixture(root, count=1)
+            item = manifest["files"][0]
+            qa_path = root / "design-qa-index.json"
+            qa_path.write_text(
+                json.dumps(
+                    {
+                        "jobs": [
+                            {
+                                "job_id": item["job_id"],
+                                "source_sha256": "0" * 64,
+                                "views": {
+                                    "actual": item["path"],
+                                    "grayscale": "g.png",
+                                    "squint": "s.png",
+                                    "thumbnail_board": "t.png",
+                                },
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaises(self.materializer.ReviewMaterializeError) as ctx:
+                self.materializer.materialize_reviews(
+                    matrix,
+                    manifest,
+                    root / "review-run",
+                    manifest_path=manifest_path,
+                    qa_index_path=qa_path,
+                )
+            self.assertIn("stale design QA", str(ctx.exception))
 
     def test_missing_banner_reviews_block_completion(self):
         with tempfile.TemporaryDirectory() as tmp:
