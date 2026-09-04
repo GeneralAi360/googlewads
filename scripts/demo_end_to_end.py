@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Create and verify a synthetic seven-format Google core-pack demo run.
+"""Create a synthetic seven-format Google core-pack production demo.
 
-The demo now starts at the structured intake gate, freezes the run, materializes
-one job per banner, renders every banner, runs real Google technical preflight,
-and emits contact sheet + provenance manifest. All business facts are synthetic.
+The demo exercises the canonical deterministic path through:
+intake -> run freeze -> matrix -> job materialization -> approved creative/art-direction
+freeze -> per-job binding -> render -> Google technical preflight -> manifest ->
+diagnostic design-QA views -> independent review-task materialization.
+
+It deliberately stops before fabricating DESIGN_REVIEWER/PACK_REVIEWER reports. All
+business facts and imagery are synthetic fixtures.
 """
 from __future__ import annotations
 
@@ -72,10 +76,62 @@ def complete_demo_context() -> dict[str, Any]:
             "copy_safe_zone": "layout-family dependent",
             "effect_policy": "restrained",
         },
-        "production": {
-            "approval_step": False,
-            "confidentiality_restrictions": None,
+        "production": {"approval_step": False, "confidentiality_restrictions": None},
+    }
+
+
+def demo_creative_contract() -> dict[str, Any]:
+    return {
+        "concept_id": "C01",
+        "status": "APPROVED",
+        "angle": "offer-led synthetic demo",
+        "audience_state": "product-aware",
+        "primary_proposition": "Synthetic custom-kitchen proposition",
+        "supporting_proof": None,
+        "visual_idea": "Clean product-led kitchen hero with copy-safe region",
+        "primary_aoi": "product hero",
+        "scan_path": ["product hero", "headline", "cta", "brand"],
+        "brand_id": "demo-brand",
+        "art_direction": {
+            "mode": "ART_DIRECTION_LOCKED",
+            "art_direction_id": "AD-DEMO-CLEAN-PREMIUM",
+            "visual_thesis": "Warm restrained product-led commercial composition",
+            "selection_provenance": "BRAND_LOCKED",
+            "representative_preview_id": None,
+            "selected_from_candidate_ids": [],
+            "alignment_logic": "copy and action grouped away from dominant product mass",
+            "graphic_device": "single product hero with restrained tonal accents",
+            "image_treatment": "clean warm commercial product image",
+            "whitespace_character": "restrained and breathable",
+            "anti_template_exclusions": ["random glass cards", "decorative blobs", "unmotivated neon glow"],
         },
+        "reference_dna_ids": [],
+        "lighting": {
+            "lighting_scheme_id": None,
+            "scene_directive": "soft warm directional product light",
+            "composition_directive": "restrained copy separation only",
+        },
+        "source_grounding": [
+            {"source_id": "synthetic-demo-fixture", "supports": "all synthetic demo proposition/copy"}
+        ],
+        "variants": [
+            {
+                "variant_id": "V01",
+                "test_hypothesis": "pipeline baseline only; no performance claim",
+                "visual_direction_override": None,
+                "copy_by_language": {
+                    "ru": {
+                        "headline": "Кухни на заказ",
+                        "support": "Синтетический demo-подзаголовок",
+                        "offer": "DEMO OFFER",
+                        "cta": "Рассчитать",
+                    }
+                },
+                "copy_overrides_by_layout_family": {
+                    "micro_horizontal": {"support": None, "offer": None}
+                },
+            }
+        ],
     }
 
 
@@ -92,21 +148,24 @@ def create_demo_hero(path: Path) -> Path:
     return path
 
 
-def fill_specs(matrix: dict[str, Any], dispatch_dir: Path, hero_path: Path, font_path: str) -> None:
+def create_and_freeze_creative(matrix: dict[str, Any], out_dir: Path, freeze_module) -> tuple[Path, dict[str, Any]]:
+    contracts_dir = out_dir / "creative-contracts"
+    contracts_dir.mkdir(parents=True, exist_ok=True)
+    contract_path = contracts_dir / "C01.creative.json"
+    contract_path.write_text(json.dumps(demo_creative_contract(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    freeze_path = out_dir / "creative-freeze.json"
+    creative_freeze = freeze_module.freeze_contracts(matrix, contracts_dir, freeze_path)
+    return contracts_dir, creative_freeze
+
+
+def complete_bound_specs(matrix: dict[str, Any], dispatch_dir: Path, hero_path: Path, font_path: str) -> None:
     specs_dir = dispatch_dir / "render-specs"
     for row in matrix["banner_matrix"]:
         spec_path = specs_dir / f"{row['job_id']}.json"
         spec = json.loads(spec_path.read_text(encoding="utf-8"))
         family = row["layout_family"]
-        copy = {
-            "headline": "Кухни на заказ",
-            "support": "Синтетический demo-подзаголовок",
-            "offer": "DEMO OFFER",
-            "cta": "Рассчитать",
-        }
-        if family == "micro_horizontal":
-            copy["support"] = None
-            copy["offer"] = None
+        provenance = dict(spec.get("provenance") or {})
+        provenance["hero_asset_id"] = "demo-hero-01"
         spec.update(
             {
                 "background": {"color": "#F5EFE8"},
@@ -116,7 +175,6 @@ def fill_specs(matrix: dict[str, Any], dispatch_dir: Path, hero_path: Path, font
                     "mode": "full_bleed" if family == "micro_horizontal" else "slot",
                 },
                 "logo": {"brand_name": "DEMO", "clearspace_ratio": 0.08},
-                "copy": copy,
                 "brand": {
                     "font_regular": font_path,
                     "font_bold": font_path,
@@ -151,14 +209,7 @@ def fill_specs(matrix: dict[str, Any], dispatch_dir: Path, hero_path: Path, font
                     }
                 ),
                 "qa": {"min_cta_contrast": 4.5},
-                "provenance": {
-                    "brand_id": "demo-brand",
-                    "creative_contract_id": None,
-                    "hero_asset_id": "demo-hero-01",
-                    "reference_dna_ids": [],
-                    "source_grounding_ids": ["synthetic-demo-fixture"],
-                    "lighting_scheme_id": None,
-                },
+                "provenance": provenance,
                 "output": {
                     "path": row["output_path"],
                     "format": "jpg",
@@ -173,12 +224,17 @@ def fill_specs(matrix: dict[str, Any], dispatch_dir: Path, hero_path: Path, font
 
 def run_demo(out_dir: Path) -> dict[str, Any]:
     out_dir.mkdir(parents=True, exist_ok=True)
-    freeze_module = load_script("freeze_banner_run")
+    run_freeze = load_script("freeze_banner_run")
     materializer = load_script("materialize_banner_jobs")
+    creative_freezer = load_script("freeze_creative_contracts")
+    creative_apply = load_script("apply_creative_contracts")
+    creative_validate = load_script("validate_creative_bindings")
     renderer = load_script("render_banner")
     pack_runner = load_script("render_banner_pack")
+    qa_builder = load_script("build_design_qa_views")
+    review_materializer = load_script("materialize_review_jobs")
 
-    freeze_result = freeze_module.freeze_context(
+    freeze_result = run_freeze.freeze_context(
         complete_demo_context(),
         run_id="demo-core",
         out_dir=out_dir / "freeze",
@@ -187,18 +243,57 @@ def run_demo(out_dir: Path) -> dict[str, Any]:
     matrix = freeze_result["matrix"]
     dispatch_dir = out_dir / "dispatch"
     materializer.materialize(matrix, dispatch_dir)
-    hero_path = create_demo_hero(out_dir / "assets" / "demo-hero.jpg")
-    fill_specs(matrix, dispatch_dir, hero_path, renderer.resolve_font_path(None))
 
+    contracts_dir, creative_freeze = create_and_freeze_creative(matrix, out_dir, creative_freezer)
+    creative_apply.apply(
+        matrix,
+        creative_freeze,
+        contracts_dir,
+        dispatch_dir / "render-specs",
+        out_index=out_dir / "creative-bindings.json",
+    )
+    binding_report = creative_validate.validate(
+        matrix,
+        creative_freeze,
+        contracts_dir,
+        dispatch_dir / "render-specs",
+    )
+    if binding_report["status"] != "CREATIVE_BINDING_PASS":
+        raise RuntimeError(f"synthetic creative binding failed: {binding_report}")
+
+    hero_path = create_demo_hero(out_dir / "assets" / "demo-hero.jpg")
+    complete_bound_specs(matrix, dispatch_dir, hero_path, renderer.resolve_font_path(None))
+
+    manifest_path = out_dir / "output-manifest.json"
+    contact_sheet_path = out_dir / "contact-sheet.png"
     result = pack_runner.render_pack(
         matrix,
         dispatch_dir / "render-specs",
         mode=freeze_result["freeze"]["google_mode"],
         pack="core",
-        contact_sheet=out_dir / "contact-sheet.png",
-        manifest_path=out_dir / "output-manifest.json",
+        contact_sheet=contact_sheet_path,
+        manifest_path=manifest_path,
+        require_creative_binding=True,
     )
+    if result["status"] == "PASS":
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        qa_index = qa_builder.build_views(manifest, out_dir / "design-qa")
+        review_index = review_materializer.materialize_reviews(
+            matrix,
+            manifest,
+            out_dir / "review",
+            manifest_path=manifest_path,
+            contact_sheet_path=contact_sheet_path,
+            qa_index_path=Path(qa_index["index_path"]),
+        )
+        result["design_qa_index"] = qa_index["index_path"]
+        result["review_index"] = (out_dir / "review" / "review-index.json").as_posix()
+        result["expected_review_tasks"] = review_index["expected_banner_reviews"]
+        result["independent_review_reports_fabricated"] = False
+
     result["freeze_path"] = freeze_result["freeze_path"]
+    result["creative_freeze_path"] = (out_dir / "creative-freeze.json").as_posix()
+    result["creative_binding_status"] = binding_report["status"]
     result["intake_status"] = freeze_result["intake"]["status"]
     report_path = out_dir / "pack-report.json"
     report_path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -206,7 +301,7 @@ def run_demo(out_dir: Path) -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run the synthetic intake-to-seven-format banner production demo")
+    parser = argparse.ArgumentParser(description="Run the synthetic intake-to-review-dispatch banner production demo")
     parser.add_argument("--out-dir", type=Path, default=Path("demo-output"))
     args = parser.parse_args()
     result = run_demo(args.out_dir)
