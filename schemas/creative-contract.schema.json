@@ -13,6 +13,7 @@
     "primary_aoi",
     "scan_path",
     "brand_id",
+    "art_direction",
     "reference_dna_ids",
     "source_grounding",
     "variants"
@@ -29,7 +30,7 @@
     "scan_path": {"type": "array", "minItems": 2, "items": {"type": "string"}},
     "brand_id": {"type": ["string", "null"]},
     "art_direction": {
-      "type": ["object", "null"],
+      "type": "object",
       "additionalProperties": false,
       "required": ["mode", "art_direction_id", "visual_thesis", "selection_provenance"],
       "properties": {
