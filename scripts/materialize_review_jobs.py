@@ -26,6 +26,24 @@ def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _load_qa_views(path: Path | None) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+    if path is None:
+        return {}, {}
+    payload = load_json(path)
+    jobs = payload.get("jobs")
+    if not isinstance(jobs, list):
+        raise ReviewMaterializeError("design QA index requires jobs list")
+    by_job: dict[str, dict[str, Any]] = {}
+    for item in jobs:
+        job_id = item.get("job_id")
+        if not isinstance(job_id, str) or not job_id:
+            raise ReviewMaterializeError("design QA index contains empty job_id")
+        if job_id in by_job:
+            raise ReviewMaterializeError(f"duplicate design QA job: {job_id}")
+        by_job[job_id] = item
+    return payload, by_job
+
+
 def materialize_reviews(
     matrix: dict[str, Any],
     manifest: dict[str, Any],
@@ -33,6 +51,7 @@ def materialize_reviews(
     *,
     manifest_path: Path | None = None,
     contact_sheet_path: Path | None = None,
+    qa_index_path: Path | None = None,
     force: bool = False,
 ) -> dict[str, Any]:
     rows = matrix.get("banner_matrix")
@@ -48,6 +67,12 @@ def materialize_reviews(
     if missing:
         raise ReviewMaterializeError("manifest missing jobs: " + ", ".join(missing))
 
+    qa_payload, qa_by_job = _load_qa_views(qa_index_path)
+    if qa_by_job:
+        qa_missing = [row["job_id"] for row in rows if row["job_id"] not in qa_by_job]
+        if qa_missing:
+            raise ReviewMaterializeError("design QA index missing jobs: " + ", ".join(qa_missing))
+
     tasks_dir = out_dir / "banner-review-tasks"
     reports_dir = out_dir / "banner-review-reports"
     tasks_dir.mkdir(parents=True, exist_ok=True)
@@ -59,6 +84,30 @@ def materialize_reviews(
         report_path = reports_dir / f"{row['job_id']}.review.json"
         if not force and (task_path.exists() or report_path.exists()):
             raise ReviewMaterializeError(f"refusing to overwrite review files for {row['job_id']}")
+
+        qa_section = ""
+        qa_item = qa_by_job.get(row["job_id"])
+        if qa_item:
+            if qa_item.get("source_sha256") != item.get("sha256"):
+                raise ReviewMaterializeError(f"stale design QA diagnostics for {row['job_id']}")
+            views = qa_item.get("views") or {}
+            required_views = ("actual", "grayscale", "squint", "thumbnail_board")
+            missing_views = [name for name in required_views if not views.get(name)]
+            if missing_views:
+                raise ReviewMaterializeError(
+                    f"design QA diagnostics missing views for {row['job_id']}: " + ", ".join(missing_views)
+                )
+            qa_section = f"""
+## Diagnostic review views
+These are **diagnostic-only derivatives** of the exact output. They are not delivery assets and must not replace inspection of the original.
+- Actual output: `{views['actual']}`
+- 25% glance board: `{views['thumbnail_board']}`
+- Grayscale hierarchy: `{views['grayscale']}`
+- Squint/blur hierarchy: `{views['squint']}`
+
+Use them to test whether hierarchy survives small-view, luminance-only, and blurred-mass inspection. Do not infer CTR or a universal design law from these diagnostics.
+"""
+
         task = f"""# Independent design review — {row['job_id']}
 
 ## Immutable reviewed artifact
@@ -70,41 +119,60 @@ def materialize_reviews(
 - Variant: `{row.get('variant_id')}`
 - Language: `{row.get('language')}`
 - Review report target: `{report_path.as_posix()}`
-
+{qa_section}
 ## Context boundary
 Review this banner read-only in a fresh independent context when the host supports it. The controller must provide only the frozen creative contract, brand/design context, relevant REFERENCE_DNA, lighting directive and this artifact. Do not modify the banner. Do not create child agents. Do not inspect unrelated concepts unless needed for a controller-approved cross-size check.
 
 ## Mandatory checks
 - concept fidelity
 - brand fidelity
-- visual hierarchy
+- visual hierarchy / primary AOI
 - lighting/focal guidance
 - typography and actual-size legibility
+- 25% glance/thumbnail behavior when diagnostics exist
+- grayscale hierarchy when diagnostics exist
+- squint/blur hierarchy when diagnostics exist
 - color/contrast
 - information density
 - crop/safe zones
 - CTA clarity
+- anti-template / anti-generic-AI styling
 - actual-size inspection
 
 Write a report matching `schemas/banner-review.schema.json`. `reviewed_output_sha256` must equal `{item['sha256']}`. A changed output requires a new review.
 """
         task_path.write_text(task, encoding="utf-8")
-        jobs.append({"job_id": row["job_id"], "task_path": task_path.as_posix(), "report_path": report_path.as_posix(), "output_sha256": item["sha256"]})
+        jobs.append(
+            {
+                "job_id": row["job_id"],
+                "task_path": task_path.as_posix(),
+                "report_path": report_path.as_posix(),
+                "output_sha256": item["sha256"],
+                "design_qa_attached": bool(qa_item),
+            }
+        )
 
     pack_task_path = out_dir / "pack-review-task.md"
     pack_report_path = out_dir / "pack-review.json"
     if not force and (pack_task_path.exists() or pack_report_path.exists()):
         raise ReviewMaterializeError("refusing to overwrite pack review files")
-    manifest_hash = sha256_file(manifest_path) if manifest_path and manifest_path.is_file() else hashlib.sha256(json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    manifest_hash = (
+        sha256_file(manifest_path)
+        if manifest_path and manifest_path.is_file()
+        else hashlib.sha256(
+            json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+    )
     pack_task_path.write_text(
         f"""# Independent pack review
 
 - Manifest SHA-256: `{manifest_hash}`
 - Expected files: `{len(rows)}`
 - Contact sheet: `{contact_sheet_path.as_posix() if contact_sheet_path else 'CONTROLLER_MUST_PROVIDE'}`
+- Design QA index: `{qa_index_path.as_posix() if qa_index_path else 'NOT_PROVIDED'}`
 - Report target: `{pack_report_path.as_posix()}`
 
-Review the whole pack read-only after all individual banner reviews pass. Check missing/duplicate files, cross-size concept and brand consistency, deliberate layout adaptation, small-format simplification, and the contact sheet at representative display size. Do not fix files. Write `schemas/pack-review.schema.json`. A changed manifest requires a new pack review.
+Review the whole pack read-only after all individual banner reviews pass. Check missing/duplicate files, cross-size concept and brand consistency, deliberate layout adaptation, small-format simplification, campaign-level design grammar, and the contact sheet at representative display size. Do not fix files. Write `schemas/pack-review.schema.json`. A changed manifest requires a new pack review.
 """,
         encoding="utf-8",
     )
@@ -114,6 +182,8 @@ Review the whole pack read-only after all individual banner reviews pass. Check 
         "pack_review_task": pack_task_path.as_posix(),
         "pack_review_report": pack_report_path.as_posix(),
         "manifest_sha256": manifest_hash,
+        "design_qa_index": qa_index_path.as_posix() if qa_index_path else None,
+        "design_qa_attached": bool(qa_payload),
     }
     index_path = out_dir / "review-index.json"
     index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -125,17 +195,36 @@ def main() -> int:
     parser.add_argument("--matrix", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--contact-sheet", type=Path)
+    parser.add_argument("--qa-index", type=Path)
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
     try:
         matrix = load_json(args.matrix)
         manifest = load_json(args.manifest)
-        result = materialize_reviews(matrix, manifest, args.out_dir, manifest_path=args.manifest, contact_sheet_path=args.contact_sheet, force=args.force)
+        result = materialize_reviews(
+            matrix,
+            manifest,
+            args.out_dir,
+            manifest_path=args.manifest,
+            contact_sheet_path=args.contact_sheet,
+            qa_index_path=args.qa_index,
+            force=args.force,
+        )
     except ReviewMaterializeError as exc:
         print(json.dumps({"status": "FAIL", "error": str(exc)}, ensure_ascii=False))
         return 2
-    print(json.dumps({"status": "READY_FOR_REVIEW", "index": (args.out_dir / 'review-index.json').as_posix(), "reviews": result['expected_banner_reviews']}, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "status": "READY_FOR_REVIEW",
+                "index": (args.out_dir / "review-index.json").as_posix(),
+                "reviews": result["expected_banner_reviews"],
+                "design_qa_attached": result["design_qa_attached"],
+            },
+            ensure_ascii=False,
+        )
+    )
     return 0
 
 
