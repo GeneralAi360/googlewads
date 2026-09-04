@@ -44,6 +44,26 @@ def _load_qa_views(path: Path | None) -> tuple[dict[str, Any], dict[str, dict[st
     return payload, by_job
 
 
+def _validate_qa_item(job_id: str, item: dict[str, Any], qa_item: dict[str, Any]) -> dict[str, str]:
+    if qa_item.get("source_sha256") != item.get("sha256"):
+        raise ReviewMaterializeError(f"stale design QA diagnostics for {job_id}")
+    views = qa_item.get("views") or {}
+    required_views = ("actual", "grayscale", "squint", "thumbnail_board")
+    missing_views = [name for name in required_views if not views.get(name)]
+    if missing_views:
+        raise ReviewMaterializeError(
+            f"design QA diagnostics missing views for {job_id}: " + ", ".join(missing_views)
+        )
+    if Path(str(views["actual"])).as_posix() != Path(str(item.get("path"))).as_posix():
+        raise ReviewMaterializeError(f"design QA actual view does not match manifest output for {job_id}")
+    missing_files = [name for name in required_views if not Path(str(views[name])).is_file()]
+    if missing_files:
+        raise ReviewMaterializeError(
+            f"design QA diagnostic files missing for {job_id}: " + ", ".join(missing_files)
+        )
+    return {name: str(views[name]) for name in required_views}
+
+
 def materialize_reviews(
     matrix: dict[str, Any],
     manifest: dict[str, Any],
@@ -88,15 +108,7 @@ def materialize_reviews(
         qa_section = ""
         qa_item = qa_by_job.get(row["job_id"])
         if qa_item:
-            if qa_item.get("source_sha256") != item.get("sha256"):
-                raise ReviewMaterializeError(f"stale design QA diagnostics for {row['job_id']}")
-            views = qa_item.get("views") or {}
-            required_views = ("actual", "grayscale", "squint", "thumbnail_board")
-            missing_views = [name for name in required_views if not views.get(name)]
-            if missing_views:
-                raise ReviewMaterializeError(
-                    f"design QA diagnostics missing views for {row['job_id']}: " + ", ".join(missing_views)
-                )
+            views = _validate_qa_item(row["job_id"], item, qa_item)
             qa_section = f"""
 ## Diagnostic review views
 These are **diagnostic-only derivatives** of the exact output. They are not delivery assets and must not replace inspection of the original.
