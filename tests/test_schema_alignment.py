@@ -26,6 +26,7 @@ class SchemaAlignmentTests(unittest.TestCase):
         cls.output_schema = json.loads((ROOT / "schemas" / "output-manifest.schema.json").read_text(encoding="utf-8"))
         cls.banner_review_schema = json.loads((ROOT / "schemas" / "banner-review.schema.json").read_text(encoding="utf-8"))
         cls.pack_review_schema = json.loads((ROOT / "schemas" / "pack-review.schema.json").read_text(encoding="utf-8"))
+        cls.preproduction_schema = json.loads((ROOT / "schemas" / "preproduction-freeze.schema.json").read_text(encoding="utf-8"))
 
     def test_creative_binding_provenance_keys_are_schema_allowed(self):
         matrix = {
@@ -93,6 +94,7 @@ class SchemaAlignmentTests(unittest.TestCase):
         self.assertTrue(actual <= allowed, f"runtime provenance fields not allowed by schema: {sorted(actual - allowed)}")
         self.assertIn("creative_contract_path", actual)
         self.assertIn("creative_contract_sha256", actual)
+        self.assertIn("preproduction_freeze_sha256", actual)
         self.assertEqual(spec["provenance"]["art_direction_id"], "AD-C01-LOCKED")
 
     def test_creative_contract_sha_schema_requires_64_hex_when_non_null(self):
@@ -100,11 +102,32 @@ class SchemaAlignmentTests(unittest.TestCase):
         self.assertIn("string", sha_schema["type"])
         self.assertEqual(sha_schema["pattern"], "^[0-9a-f]{64}$")
 
+    def test_preproduction_sha_schema_requires_64_hex_when_non_null(self):
+        sha_schema = self.schema["properties"]["provenance"]["properties"]["preproduction_freeze_sha256"]
+        self.assertIn("string", sha_schema["type"])
+        self.assertEqual(sha_schema["pattern"], "^[0-9a-f]{64}$")
+        self.assertIn("preproduction_freeze_sha256", self.output_schema["properties"])
+        manifest_props = self.output_schema["properties"]["files"]["items"]["properties"]
+        self.assertIn("preproduction_freeze_sha256", manifest_props)
+
     def test_art_direction_is_required_and_provenance_fields_are_schema_allowed(self):
         self.assertIn("art_direction", self.creative_schema["required"])
         self.assertIn("art_direction_id", self.schema["properties"]["provenance"]["properties"])
         manifest_props = self.output_schema["properties"]["files"]["items"]["properties"]
         self.assertIn("art_direction_id", manifest_props)
+
+    def test_preproduction_schema_binds_all_approval_artifacts(self):
+        required = set(self.preproduction_schema["required"])
+        for name in (
+            "competitive_research",
+            "category_design_map",
+            "design_brief",
+            "art_direction_approval",
+            "representative_design_approval",
+            "selected_art_direction_id",
+            "representative_artifact_sha256",
+        ):
+            self.assertIn(name, required)
 
     def test_lighting_target_selector_schema_matches_renderer_runtime(self):
         defs = self.schema["$defs"]
@@ -114,8 +137,17 @@ class SchemaAlignmentTests(unittest.TestCase):
             self.assertIn("target_slots", properties)
             self.assertIn("box", properties)
 
-    def test_banner_review_schema_allows_design_diagnostic_checks(self):
-        properties = self.banner_review_schema["properties"]["checks"]["properties"]
+    def test_banner_review_schema_requires_quality_and_diagnostic_checks(self):
+        checks = self.banner_review_schema["properties"]["checks"]
+        properties = checks["properties"]
+        required = set(checks["required"])
+        for name in (
+            "asset_quality",
+            "professional_category_fit",
+            "anti_generic_ai",
+        ):
+            self.assertIn(name, properties)
+            self.assertIn(name, required)
         for name in (
             "thumbnail_glance",
             "grayscale_hierarchy",
@@ -124,12 +156,18 @@ class SchemaAlignmentTests(unittest.TestCase):
         ):
             self.assertIn(name, properties)
 
-    def test_pack_review_schema_allows_campaign_design_grammar_checks(self):
-        properties = self.pack_review_schema["properties"]["checks"]["properties"]
+    def test_pack_review_schema_requires_category_and_asset_consistency(self):
+        checks = self.pack_review_schema["properties"]["checks"]
+        properties = checks["properties"]
+        required = set(checks["required"])
+        for name in ("professional_category_consistency", "asset_quality_consistency"):
+            self.assertIn(name, properties)
+            self.assertIn(name, required)
         for name in (
             "campaign_design_grammar",
             "cross_size_lighting_consistency",
             "anti_template_generic_style",
+            "anti_generic_ai_consistency",
         ):
             self.assertIn(name, properties)
 
