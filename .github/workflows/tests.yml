@@ -19,5 +19,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Run validator tests
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run tests
         run: python -m unittest discover -s tests -v
