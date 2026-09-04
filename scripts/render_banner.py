@@ -382,7 +382,10 @@ def sample_local_contrast(
     crop = canvas.convert("RGB").crop((left, top, right, bottom))
     sample_width, sample_height = min(grid, crop.width), min(grid, crop.height)
     crop = crop.resize((max(1, sample_width), max(1, sample_height)), Image.Resampling.BOX)
-    pixels = list(crop.getdata())
+    if hasattr(crop, "get_flattened_data"):
+        pixels = list(crop.get_flattened_data())
+    else:
+        pixels = list(crop.getdata())
     ratios = sorted(pixel_contrast(text_color, pixel) for pixel in pixels)
     local_luminance = [luminance(pixel) for pixel in pixels]
     p10_index = max(0, min(len(ratios) - 1, round((len(ratios) - 1) * 0.10)))
