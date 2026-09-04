@@ -38,7 +38,16 @@ def assert_spec_matches_row(spec: dict[str, Any], row: dict[str, Any]) -> None:
         if spec.get(key) != expected: mismatches.append(f"{key}: spec={spec.get(key)!r} matrix={expected!r}")
     if mismatches: raise PackError("FAIL_SPEC_MATRIX_MISMATCH", "; ".join(mismatches))
 
-def render_pack(matrix: dict[str, Any], spec_dir: Path, *, mode: str="demand_gen_uploaded_display", pack: str="core", contact_sheet: Path|None=None, technical_validator: Callable[[Path,str,str],dict[str,Any]]|None=None) -> dict[str, Any]:
+def build_manifest(matrix: dict[str, Any], jobs: list[dict[str, Any]], mode: str) -> dict[str, Any]:
+    files=[]; by_id={job["job_id"]:job for job in jobs}
+    for row in matrix["banner_matrix"]:
+        job=by_id[row["job_id"]]
+        if job["status"]!="PASS": raise PackError("FAIL_MANIFEST", "manifest requires a fully passing pack")
+        render=job["render"]; saved=render["output"]
+        files.append({"concept_id":row.get("concept_id"),"variant_id":row.get("variant_id") or row["job_id"],"path":render["output_path"],"width":row["width"],"height":row["height"],"bytes":saved.get("bytes"),"format":saved.get("format"),"layout_family":row.get("layout_family"),"status":"PASS","checks":["deterministic_render","google_technical_preflight"]})
+    return {"campaign_id":matrix.get("run_id") or "banner-run","generated_at":None,"platform_mode":mode,"spec_snapshot_date":None,"files":files}
+
+def render_pack(matrix: dict[str, Any], spec_dir: Path, *, mode: str="demand_gen_uploaded_display", pack: str="core", contact_sheet: Path|None=None, manifest_path: Path|None=None, technical_validator: Callable[[Path,str,str],dict[str,Any]]|None=None) -> dict[str, Any]:
     rows=validate_matrix(matrix); renderer=load_script("render_banner"); sheet=load_script("build_contact_sheet")
     validator_module=None; google_config=None
     if technical_validator is None:
@@ -68,12 +77,15 @@ def render_pack(matrix: dict[str, Any], spec_dir: Path, *, mode: str="demand_gen
     if passed_files and contact_sheet is not None:
         sheet.build_contact_sheet(passed_files,contact_sheet); contact=contact_sheet.as_posix()
     failures=[{"job_id":j["job_id"],**(j["error"] or {"code":"FAIL_JOB","message":"unknown failure"})} for j in jobs if j["status"]!="PASS"]
-    return {"status":"PASS" if passed==expected else "FAIL","run_id":matrix.get("run_id"),"expected_output_files":expected,"passed_output_files":passed,"failed_output_files":expected-passed,"contact_sheet":contact,"jobs":jobs,"failures":failures}
+    status="PASS" if passed==expected else "FAIL"; manifest=None
+    if status=="PASS" and manifest_path is not None:
+        manifest_data=build_manifest(matrix,jobs,mode); manifest_path.parent.mkdir(parents=True,exist_ok=True); manifest_path.write_text(json.dumps(manifest_data,ensure_ascii=False,indent=2)+"\n",encoding="utf-8"); manifest=manifest_path.as_posix()
+    return {"status":status,"run_id":matrix.get("run_id"),"expected_output_files":expected,"passed_output_files":passed,"failed_output_files":expected-passed,"contact_sheet":contact,"manifest":manifest,"jobs":jobs,"failures":failures}
 
 def main() -> int:
     p=argparse.ArgumentParser(description="Render every row in a banner matrix from per-job render specs")
-    p.add_argument("--matrix",required=True,type=Path); p.add_argument("--spec-dir",required=True,type=Path); p.add_argument("--mode",default="demand_gen_uploaded_display"); p.add_argument("--pack",default="core"); p.add_argument("--contact-sheet",type=Path); p.add_argument("--report",required=True,type=Path); a=p.parse_args()
-    try: result=render_pack(load_json(a.matrix),a.spec_dir,mode=a.mode,pack=a.pack,contact_sheet=a.contact_sheet)
+    p.add_argument("--matrix",required=True,type=Path); p.add_argument("--spec-dir",required=True,type=Path); p.add_argument("--mode",default="demand_gen_uploaded_display"); p.add_argument("--pack",default="core"); p.add_argument("--contact-sheet",type=Path); p.add_argument("--manifest",type=Path); p.add_argument("--report",required=True,type=Path); a=p.parse_args()
+    try: result=render_pack(load_json(a.matrix),a.spec_dir,mode=a.mode,pack=a.pack,contact_sheet=a.contact_sheet,manifest_path=a.manifest)
     except PackError as exc: result={"status":"FAIL","failures":[{"code":exc.code,"message":str(exc)}]}
     a.report.parent.mkdir(parents=True,exist_ok=True); a.report.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps({"status":result["status"],"report":a.report.as_posix()},ensure_ascii=False))
