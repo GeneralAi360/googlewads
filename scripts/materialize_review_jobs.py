@@ -133,11 +133,14 @@ Use them to test whether hierarchy survives small-view, luminance-only, and blur
 - Review report target: `{report_path.as_posix()}`
 {qa_section}
 ## Context boundary
-Review this banner read-only in a fresh independent context when the host supports it. The controller must provide only the frozen creative contract, brand/design context, relevant REFERENCE_DNA, lighting directive and this artifact. Do not modify the banner. Do not create child agents. Do not inspect unrelated concepts unless needed for a controller-approved cross-size check.
+Review this banner read-only in a fresh independent context when the host supports it. The controller must provide only the frozen creative contract, approved preproduction/design context, brand context, relevant REFERENCE_DNA, lighting directive and this exact artifact. Do not modify the banner. Do not create child agents. Do not inspect unrelated concepts unless needed for a controller-approved cross-size check.
 
 ## Mandatory checks
 - concept fidelity
 - brand fidelity
+- **asset quality**: no visibly low-resolution/stretched hero, compression artifacts, broken source asset, inconsistent render style or placeholder identity
+- **professional category fit**: the visual language must reach the maturity/credibility expected by the approved category design map
+- **anti-generic-AI quality**: reject obvious generic AI clipart, toy/clay visual language when not explicitly approved, and generic template imagery that contradicts the frozen art direction
 - visual hierarchy / primary AOI
 - lighting/focal guidance
 - typography and actual-size legibility
@@ -148,10 +151,10 @@ Review this banner read-only in a fresh independent context when the host suppor
 - information density
 - crop/safe zones
 - CTA clarity
-- anti-template / anti-generic-AI styling
+- anti-template / generic-style drift
 - actual-size inspection
 
-Write a report matching `schemas/banner-review.schema.json`. `reviewed_output_sha256` must equal `{item['sha256']}`. A changed output requires a new review.
+Write a report matching `schemas/banner-review.schema.json`. Its required checks include `asset_quality`, `professional_category_fit`, and `anti_generic_ai`. `reviewed_output_sha256` must equal `{item['sha256']}`. A changed output requires a new review.
 """
         task_path.write_text(task, encoding="utf-8")
         jobs.append(
@@ -184,7 +187,7 @@ Write a report matching `schemas/banner-review.schema.json`. `reviewed_output_sh
 - Design QA index: `{qa_index_path.as_posix() if qa_index_path else 'NOT_PROVIDED'}`
 - Report target: `{pack_report_path.as_posix()}`
 
-Review the whole pack read-only after all individual banner reviews pass. Check missing/duplicate files, cross-size concept and brand consistency, deliberate layout adaptation, small-format simplification, campaign-level design grammar, and the contact sheet at representative display size. Do not fix files. Write `schemas/pack-review.schema.json`. A changed manifest requires a new pack review.
+Review the whole pack read-only after all individual banner reviews pass. Check missing/duplicate files, cross-size concept and brand consistency, deliberate layout adaptation, small-format simplification, campaign-level design grammar, consistent professional category maturity/asset quality, and the contact sheet at representative display size. Do not fix files. Write `schemas/pack-review.schema.json`. A changed manifest requires a new pack review.
 """,
         encoding="utf-8",
     )
