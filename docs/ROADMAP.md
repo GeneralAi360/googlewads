@@ -46,7 +46,8 @@ Implemented:
 - real pack-runner handoff to `validate_google_banner.py`;
 - pack report with per-job failures;
 - output manifest emitted only for a fully passing pack;
-- exact-size regression coverage for all seven core formats.
+- exact-size regression coverage for all seven core formats;
+- 41-test green CI baseline.
 
 Remaining before v0.2 completion:
 - photographic local contrast sampling behind text;
