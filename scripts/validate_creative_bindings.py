@@ -72,6 +72,13 @@ def validate(matrix: dict[str, Any], creative_freeze: dict[str, Any], contracts_
                 problems.append("source_grounding_ids mismatch")
             if provenance.get("brand_id") != contract.get("brand_id"):
                 problems.append("brand_id mismatch")
+            expected_art_direction = (contract.get("art_direction") or {}).get("art_direction_id")
+            if not expected_art_direction:
+                problems.append("creative contract art_direction_id missing")
+            elif meta.get("art_direction_id") != expected_art_direction:
+                problems.append("creative freeze art_direction_id mismatch")
+            elif provenance.get("art_direction_id") != expected_art_direction:
+                problems.append("art_direction_id mismatch")
             if provenance.get("lighting_scheme_id") != (contract.get("lighting") or {}).get("lighting_scheme_id"):
                 problems.append("lighting_scheme_id mismatch")
             if problems:
