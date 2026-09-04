@@ -65,19 +65,42 @@
           "copy_by_language": {
             "type": "object",
             "minProperties": 1,
-            "additionalProperties": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["headline", "cta"],
-              "properties": {
-                "headline": {"type": "string", "minLength": 1},
-                "support": {"type": ["string", "null"]},
-                "offer": {"type": ["string", "null"]},
-                "cta": {"type": "string", "minLength": 1}
-              }
-            }
+            "additionalProperties": {"$ref": "#/$defs/fullCopy"}
+          },
+          "copy_overrides_by_layout_family": {
+            "type": "object",
+            "additionalProperties": {"$ref": "#/$defs/copyOverride"}
+          },
+          "copy_overrides_by_dimension": {
+            "type": "object",
+            "propertyNames": {"pattern": "^[0-9]+x[0-9]+$"},
+            "additionalProperties": {"$ref": "#/$defs/copyOverride"}
           }
         }
+      }
+    }
+  },
+  "$defs": {
+    "fullCopy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["headline", "cta"],
+      "properties": {
+        "headline": {"type": "string", "minLength": 1},
+        "support": {"type": ["string", "null"]},
+        "offer": {"type": ["string", "null"]},
+        "cta": {"type": "string", "minLength": 1}
+      }
+    },
+    "copyOverride": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "headline": {"type": ["string", "null"]},
+        "support": {"type": ["string", "null"]},
+        "offer": {"type": ["string", "null"]},
+        "cta": {"type": ["string", "null"]}
       }
     }
   }
