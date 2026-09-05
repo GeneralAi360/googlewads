@@ -4,16 +4,7 @@
   "title": "Independent Banner Design Review",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "job_id",
-    "reviewer_role",
-    "independent_context",
-    "reviewed_output_path",
-    "reviewed_output_sha256",
-    "status",
-    "checks",
-    "findings"
-  ],
+  "required": ["job_id", "reviewer_role", "independent_context", "reviewed_output_path", "reviewed_output_sha256", "status", "checks", "findings"],
   "properties": {
     "job_id": {"type": "string", "minLength": 1},
     "reviewer_role": {"const": "DESIGN_REVIEWER"},
@@ -27,10 +18,15 @@
       "additionalProperties": false,
       "required": [
         "concept_fidelity",
+        "idea_fidelity",
+        "emotional_fidelity",
+        "visual_character_fidelity",
+        "campaign_design_system_fidelity",
         "brand_fidelity",
         "asset_quality",
         "professional_category_fit",
         "visual_hierarchy",
+        "lighting_intent_fidelity",
         "lighting_focal_guidance",
         "typography_legibility",
         "color_contrast",
@@ -42,10 +38,15 @@
       ],
       "properties": {
         "concept_fidelity": {"$ref": "#/$defs/check"},
+        "idea_fidelity": {"$ref": "#/$defs/check"},
+        "emotional_fidelity": {"$ref": "#/$defs/check"},
+        "visual_character_fidelity": {"$ref": "#/$defs/check"},
+        "campaign_design_system_fidelity": {"$ref": "#/$defs/check"},
         "brand_fidelity": {"$ref": "#/$defs/check"},
         "asset_quality": {"$ref": "#/$defs/check"},
         "professional_category_fit": {"$ref": "#/$defs/check"},
         "visual_hierarchy": {"$ref": "#/$defs/check"},
+        "lighting_intent_fidelity": {"$ref": "#/$defs/check"},
         "lighting_focal_guidance": {"$ref": "#/$defs/check"},
         "typography_legibility": {"$ref": "#/$defs/check"},
         "color_contrast": {"$ref": "#/$defs/check"},
@@ -76,7 +77,5 @@
     },
     "summary": {"type": ["string", "null"]}
   },
-  "$defs": {
-    "check": {"enum": ["PASS", "FAIL", "NOT_APPLICABLE", "UNCHECKABLE"]}
-  }
+  "$defs": {"check": {"enum": ["PASS", "FAIL", "NOT_APPLICABLE", "UNCHECKABLE"]}}
 }
