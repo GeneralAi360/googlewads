@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail if a banner worker mutates frozen creative copy/provenance."""
+"""Fail if a banner worker mutates frozen creative/design-system provenance."""
 from __future__ import annotations
 
 import argparse
@@ -37,6 +37,26 @@ def validate(matrix: dict[str, Any], creative_freeze: dict[str, Any], contracts_
     rows = matrix.get("banner_matrix") or []
     failures = []
     passed = []
+    freeze_provenance = {
+        "preproduction_freeze_sha256": creative_freeze.get("preproduction_freeze_sha256"),
+        "campaign_design_system_id": creative_freeze.get("campaign_design_system_id"),
+        "campaign_design_system_sha256": creative_freeze.get("campaign_design_system_sha256"),
+        "idea_architecture_id": creative_freeze.get("idea_architecture_id"),
+        "visual_character_signature_id": creative_freeze.get("visual_character_signature_id"),
+        "lighting_intent_id": creative_freeze.get("lighting_intent_id"),
+    }
+    required_identity = (
+        "preproduction_freeze_sha256",
+        "campaign_design_system_id",
+        "campaign_design_system_sha256",
+        "idea_architecture_id",
+        "visual_character_signature_id",
+        "lighting_intent_id",
+    )
+    missing_identity = [key for key in required_identity if not freeze_provenance.get(key)]
+    if missing_identity:
+        raise BindingValidationError("creative freeze missing design-system provenance: " + ", ".join(missing_identity))
+
     for row in rows:
         job_id = row["job_id"]
         concept_id, variant_id, language = row["concept_id"], row["variant_id"], row["language"]
@@ -49,13 +69,7 @@ def validate(matrix: dict[str, Any], creative_freeze: dict[str, Any], contracts_
         try:
             contract = load_json(contract_path)
             spec = load_json(spec_path)
-            expected_copy = apply_module.variant_copy(
-                contract,
-                variant_id,
-                language,
-                row.get("layout_family"),
-                row.get("dimension"),
-            )
+            expected_copy = apply_module.variant_copy(contract, variant_id, language, row.get("layout_family"), row.get("dimension"))
             provenance = spec.get("provenance") or {}
             problems = []
             if spec.get("copy") != expected_copy:
@@ -66,6 +80,9 @@ def validate(matrix: dict[str, Any], creative_freeze: dict[str, Any], contracts_
                 problems.append("creative_contract_path mismatch")
             if provenance.get("creative_contract_sha256") != meta.get("sha256"):
                 problems.append("creative_contract_sha256 mismatch")
+            for key, expected in freeze_provenance.items():
+                if provenance.get(key) != expected:
+                    problems.append(f"{key} mismatch")
             if provenance.get("reference_dna_ids") != (contract.get("reference_dna_ids") or []):
                 problems.append("reference_dna_ids mismatch")
             if provenance.get("source_grounding_ids") != (meta.get("source_grounding_ids") or []):
@@ -96,7 +113,7 @@ def validate(matrix: dict[str, Any], creative_freeze: dict[str, Any], contracts_
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate banner render specs against frozen creative contracts")
+    parser = argparse.ArgumentParser(description="Validate banner render specs against frozen creative/design-system contracts")
     parser.add_argument("--matrix", type=Path, required=True)
     parser.add_argument("--creative-freeze", type=Path, required=True)
     parser.add_argument("--contracts-dir", type=Path, required=True)
