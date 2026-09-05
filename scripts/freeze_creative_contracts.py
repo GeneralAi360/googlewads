@@ -60,9 +60,16 @@ def validated_reference_ids(reference_index: dict[str, Any] | None) -> set[str] 
 def validate_preproduction_freeze(
     preproduction: dict[str, Any] | None,
     matrix: dict[str, Any],
-) -> tuple[str | None, str | None, dict[str, Any] | None, dict[str, Any] | None]:
+) -> tuple[str | None, str | None, dict[str, Any] | None, dict[str, Any] | None, dict[str, str | None]]:
+    empty_system = {
+        "campaign_design_system_id": None,
+        "campaign_design_system_sha256": None,
+        "idea_architecture_id": None,
+        "visual_character_signature_id": None,
+        "lighting_intent_id": None,
+    }
     if preproduction is None:
-        return None, None, None, None
+        return None, None, None, None, empty_system
     if preproduction.get("status") != "PREPRODUCTION_FROZEN":
         raise CreativeFreezeError("PREPRODUCTION_NOT_FROZEN", "preproduction design gate is not frozen")
     if preproduction.get("matrix_sha256") != canonical_sha(matrix):
@@ -79,7 +86,23 @@ def validate_preproduction_freeze(
     brand_lock = preproduction.get("brand_identity_lock")
     if not isinstance(brand_lock, dict):
         raise CreativeFreezeError("PREPRODUCTION_INVALID", "preproduction freeze brand_identity_lock is required")
-    return canonical_sha(preproduction), art_direction_id, commercial_lock, brand_lock
+    system_binding = preproduction.get("campaign_design_system")
+    if not isinstance(system_binding, dict):
+        raise CreativeFreezeError("PREPRODUCTION_INVALID", "preproduction freeze campaign_design_system binding is required")
+    system_id = system_binding.get("id")
+    system_sha = system_binding.get("sha256")
+    if not isinstance(system_id, str) or not system_id.strip() or not isinstance(system_sha, str) or len(system_sha) != 64:
+        raise CreativeFreezeError("PREPRODUCTION_INVALID", "campaign design system ID/SHA are required")
+    ids = {
+        "campaign_design_system_id": system_id,
+        "campaign_design_system_sha256": system_sha,
+        "idea_architecture_id": preproduction.get("idea_architecture_id"),
+        "visual_character_signature_id": preproduction.get("visual_character_signature_id"),
+        "lighting_intent_id": preproduction.get("lighting_intent_id"),
+    }
+    if any(not isinstance(ids[key], str) or not str(ids[key]).strip() for key in ("idea_architecture_id", "visual_character_signature_id", "lighting_intent_id")):
+        raise CreativeFreezeError("PREPRODUCTION_INVALID", "idea/visual-character/lighting identity missing from preproduction freeze")
+    return canonical_sha(preproduction), art_direction_id, commercial_lock, brand_lock, ids
 
 
 def validate_art_direction(contract: dict[str, Any], concept_id: str) -> dict[str, Any]:
@@ -114,34 +137,22 @@ def _validate_preproduction_locks(
     if commercial_lock is not None:
         expected_prop = commercial_lock.get("primary_proposition")
         if contract.get("primary_proposition") != expected_prop:
-            raise CreativeFreezeError(
-                "CREATIVE_COMMERCIAL_LOCK_MISMATCH",
-                f"{concept_id}: primary proposition differs from preproduction commercial lock",
-            )
+            raise CreativeFreezeError("CREATIVE_COMMERCIAL_LOCK_MISMATCH", f"{concept_id}: primary proposition differs from preproduction commercial lock")
         approved_ctas = set(commercial_lock.get("approved_ctas") or [])
         if not approved_ctas:
             raise CreativeFreezeError("PREPRODUCTION_INVALID", "preproduction commercial lock has no approved CTA")
         for variant in contract.get("variants") or []:
             for language, copy in (variant.get("copy_by_language") or {}).items():
                 if copy.get("cta") not in approved_ctas:
-                    raise CreativeFreezeError(
-                        "CREATIVE_COMMERCIAL_LOCK_MISMATCH",
-                        f"{concept_id}/{variant.get('variant_id')}/{language}: CTA is not pre-approved",
-                    )
+                    raise CreativeFreezeError("CREATIVE_COMMERCIAL_LOCK_MISMATCH", f"{concept_id}/{variant.get('variant_id')}/{language}: CTA is not pre-approved")
             for scope_name in ("copy_overrides_by_layout_family", "copy_overrides_by_dimension"):
                 for scope_id, override in (variant.get(scope_name) or {}).items():
                     if isinstance(override, dict) and override.get("cta") is not None and override.get("cta") not in approved_ctas:
-                        raise CreativeFreezeError(
-                            "CREATIVE_COMMERCIAL_LOCK_MISMATCH",
-                            f"{concept_id}/{variant.get('variant_id')}/{scope_name}/{scope_id}: CTA override is not pre-approved",
-                        )
+                        raise CreativeFreezeError("CREATIVE_COMMERCIAL_LOCK_MISMATCH", f"{concept_id}/{variant.get('variant_id')}/{scope_name}/{scope_id}: CTA override is not pre-approved")
     if brand_lock is not None:
         expected_brand_id = brand_lock.get("brand_id")
         if expected_brand_id is not None and contract.get("brand_id") != expected_brand_id:
-            raise CreativeFreezeError(
-                "CREATIVE_BRAND_LOCK_MISMATCH",
-                f"{concept_id}: brand_id differs from preproduction brand identity lock",
-            )
+            raise CreativeFreezeError("CREATIVE_BRAND_LOCK_MISMATCH", f"{concept_id}: brand_id differs from preproduction brand identity lock")
 
 
 def validate_contract(
@@ -222,7 +233,7 @@ def freeze_contracts(
         raise CreativeFreezeError("CREATIVE_FREEZE_EXISTS", f"refusing to overwrite {out_path}")
     axes = expected_axes(matrix)
     allowed_refs = validated_reference_ids(reference_index)
-    preproduction_sha, approved_art_direction_id, commercial_lock, brand_lock = validate_preproduction_freeze(preproduction_freeze, matrix)
+    preproduction_sha, approved_art_direction_id, commercial_lock, brand_lock, design_system = validate_preproduction_freeze(preproduction_freeze, matrix)
     frozen = []
     for concept_id in sorted(axes):
         path = contracts_dir / f"{concept_id}.creative.json"
@@ -258,6 +269,7 @@ def freeze_contracts(
         "matrix_sha256": canonical_sha(matrix),
         "preproduction_freeze_id": preproduction_freeze.get("freeze_id") if preproduction_freeze else None,
         "preproduction_freeze_sha256": preproduction_sha,
+        **design_system,
         "concept_count": len(frozen),
         "contracts": frozen
     }
@@ -276,7 +288,7 @@ def main() -> int:
         "--preproduction-freeze",
         type=Path,
         required=True,
-        help="Required normal-production binding proving competitive research, design brief, written art direction and representative design approval",
+        help="Required normal-production binding proving research, approved idea/art direction, representative and campaign design system",
     )
     args = parser.parse_args()
     try:
