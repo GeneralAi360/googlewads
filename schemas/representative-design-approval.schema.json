@@ -21,8 +21,27 @@
     "quality_checks": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["asset_quality", "professional_category_fit", "hierarchy", "typography", "brand_fidelity", "commercial_message_fidelity", "hero_crop", "lighting_contrast", "cta_clarity", "anti_generic_ai"],
+      "required": [
+        "idea_fidelity",
+        "emotional_fidelity",
+        "visual_character_fidelity",
+        "lighting_intent_fidelity",
+        "asset_quality",
+        "professional_category_fit",
+        "hierarchy",
+        "typography",
+        "brand_fidelity",
+        "commercial_message_fidelity",
+        "hero_crop",
+        "lighting_contrast",
+        "cta_clarity",
+        "anti_generic_ai"
+      ],
       "properties": {
+        "idea_fidelity": {"const": "PASS"},
+        "emotional_fidelity": {"const": "PASS"},
+        "visual_character_fidelity": {"const": "PASS"},
+        "lighting_intent_fidelity": {"const": "PASS"},
         "asset_quality": {"const": "PASS"},
         "professional_category_fit": {"const": "PASS"},
         "hierarchy": {"const": "PASS"},
