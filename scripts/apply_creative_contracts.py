@@ -66,11 +66,9 @@ def variant_copy(
         "cta": value["cta"],
     }
     if layout_family:
-        family_override = (variant.get("copy_overrides_by_layout_family") or {}).get(layout_family)
-        _apply_copy_override(result, family_override, f"layout family {layout_family}")
+        _apply_copy_override(result, (variant.get("copy_overrides_by_layout_family") or {}).get(layout_family), f"layout family {layout_family}")
     if dimension:
-        dimension_override = (variant.get("copy_overrides_by_dimension") or {}).get(dimension)
-        _apply_copy_override(result, dimension_override, f"dimension {dimension}")
+        _apply_copy_override(result, (variant.get("copy_overrides_by_dimension") or {}).get(dimension), f"dimension {dimension}")
     if not isinstance(result.get("headline"), str) or not result["headline"].strip():
         raise CreativeBindingError(f"{contract['concept_id']}/{variant_id}/{language}: final headline cannot be empty")
     if not isinstance(result.get("cta"), str) or not result["cta"].strip():
@@ -85,6 +83,21 @@ def apply(matrix: dict[str, Any], freeze: dict[str, Any], contracts_dir: Path, s
     frozen = frozen_map(freeze)
     bindings = []
     preproduction_sha = freeze.get("preproduction_freeze_sha256")
+    campaign_system_id = freeze.get("campaign_design_system_id")
+    campaign_system_sha = freeze.get("campaign_design_system_sha256")
+    idea_id = freeze.get("idea_architecture_id")
+    visual_character_id = freeze.get("visual_character_signature_id")
+    lighting_intent_id = freeze.get("lighting_intent_id")
+    for key, value in (
+        ("campaign_design_system_id", campaign_system_id),
+        ("campaign_design_system_sha256", campaign_system_sha),
+        ("idea_architecture_id", idea_id),
+        ("visual_character_signature_id", visual_character_id),
+        ("lighting_intent_id", lighting_intent_id),
+    ):
+        if not isinstance(value, str) or not value:
+            raise CreativeBindingError(f"creative freeze missing {key}")
+
     for row in rows:
         concept_id, variant_id, language = row.get("concept_id"), row.get("variant_id"), row.get("language")
         meta = frozen.get(concept_id)
@@ -112,9 +125,16 @@ def apply(matrix: dict[str, Any], freeze: dict[str, Any], contracts_dir: Path, s
             "brand_id": contract.get("brand_id"),
             "art_direction_id": art_direction_id,
             "preproduction_freeze_sha256": preproduction_sha,
+            "campaign_design_system_id": campaign_system_id,
+            "campaign_design_system_sha256": campaign_system_sha,
+            "idea_architecture_id": idea_id,
+            "visual_character_signature_id": visual_character_id,
+            "lighting_intent_id": lighting_intent_id,
             "creative_contract_id": concept_id,
             "creative_contract_path": contract_path.as_posix(),
             "creative_contract_sha256": meta["sha256"],
+            "hero_generation_spec_id": (spec.get("provenance") or {}).get("hero_generation_spec_id"),
+            "hero_generation_spec_sha256": (spec.get("provenance") or {}).get("hero_generation_spec_sha256"),
             "hero_asset_id": (spec.get("provenance") or {}).get("hero_asset_id"),
             "reference_dna_ids": contract.get("reference_dna_ids") or [],
             "source_grounding_ids": meta.get("source_grounding_ids") or [],
@@ -130,6 +150,11 @@ def apply(matrix: dict[str, Any], freeze: dict[str, Any], contracts_dir: Path, s
             "dimension": row.get("dimension"),
             "art_direction_id": art_direction_id,
             "preproduction_freeze_sha256": preproduction_sha,
+            "campaign_design_system_id": campaign_system_id,
+            "campaign_design_system_sha256": campaign_system_sha,
+            "idea_architecture_id": idea_id,
+            "visual_character_signature_id": visual_character_id,
+            "lighting_intent_id": lighting_intent_id,
             "render_spec_path": spec_path.as_posix(),
             "creative_contract_path": contract_path.as_posix(),
             "creative_contract_sha256": meta["sha256"],
