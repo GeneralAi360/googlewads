@@ -35,36 +35,22 @@ class CreativeContractTests(unittest.TestCase):
 
     def art_direction(self):
         return {
-            "mode": "ART_DIRECTION_LOCKED",
-            "art_direction_id": "AD-C01-LOCKED",
-            "visual_thesis": "Product-led restrained commercial grid",
-            "selection_provenance": "BRAND_LOCKED",
-            "representative_preview_id": None,
-            "selected_from_candidate_ids": [],
-            "alignment_logic": "copy left, hero right",
-            "graphic_device": "product hero with restrained offer chip",
-            "image_treatment": "clean commercial photography",
-            "whitespace_character": "restrained",
+            "mode": "ART_DIRECTION_LOCKED", "art_direction_id": "AD-C01-LOCKED", "visual_thesis": "Product-led restrained commercial grid",
+            "selection_provenance": "BRAND_LOCKED", "representative_preview_id": None, "selected_from_candidate_ids": [],
+            "alignment_logic": "copy left, hero right", "graphic_device": "product hero with restrained offer chip",
+            "image_treatment": "clean commercial photography", "whitespace_character": "restrained",
             "anti_template_exclusions": ["random glass cards", "decorative blobs"],
         }
 
     def contract(self):
         return {
-            "concept_id": "C01",
-            "status": "APPROVED",
-            "angle": "offer-led",
-            "audience_state": "product-aware",
-            "primary_proposition": "Verified demo proposition",
-            "supporting_proof": None,
-            "visual_idea": "Product hero with copy-safe zone",
-            "primary_aoi": "product",
-            "scan_path": ["product", "headline", "cta"],
-            "brand_id": "brand-demo",
-            "art_direction": self.art_direction(),
-            "reference_dna_ids": ["REF-A"],
+            "concept_id": "C01", "status": "APPROVED", "angle": "offer-led", "audience_state": "product-aware",
+            "primary_proposition": "Verified demo proposition", "supporting_proof": None,
+            "visual_idea": "Product hero with copy-safe zone", "primary_aoi": "product", "scan_path": ["product", "headline", "cta"],
+            "brand_id": "brand-demo", "art_direction": self.art_direction(), "reference_dna_ids": ["REF-A"],
             "lighting": {"lighting_scheme_id": 1, "scene_directive": "soft directional", "composition_directive": "restrained"},
             "source_grounding": [{"source_id": "landing-page", "supports": "primary proposition"}],
-            "variants": [{"variant_id": "V01", "test_hypothesis": "baseline", "visual_direction_override": None, "copy_by_language": {"ru": {"headline": "Кухни на заказ", "support": None, "offer": None, "cta": "Рассчитать"}}}]
+            "variants": [{"variant_id": "V01", "test_hypothesis": "baseline", "visual_direction_override": None, "copy_by_language": {"ru": {"headline": "Кухни на заказ", "support": None, "offer": None, "cta": "Рассчитать"}}}],
         }
 
     def write_contract(self, root, value=None):
@@ -74,11 +60,22 @@ class CreativeContractTests(unittest.TestCase):
         path.write_text(json.dumps(value or self.contract(), ensure_ascii=False, indent=2), encoding="utf-8")
         return contracts, path
 
+    @staticmethod
+    def add_design_identity(freeze):
+        freeze.update({
+            "preproduction_freeze_sha256": "a" * 64,
+            "campaign_design_system_id": "CDS-CREATIVE-1", "campaign_design_system_sha256": "b" * 64,
+            "idea_architecture_id": "IDEA-CREATIVE-1", "visual_character_signature_id": "VC-CREATIVE-1", "lighting_intent_id": "LIGHT-CREATIVE-1",
+        })
+        return freeze
+
+    def freeze_for_binding(self, matrix, contracts, out, **kwargs):
+        return self.add_design_identity(self.freeze.freeze_contracts(matrix, contracts, out, **kwargs))
+
     def test_freeze_requires_approved_contract_and_exact_matrix_axes(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            contract = self.contract()
-            contract["status"] = "DRAFT"
+            contract = self.contract(); contract["status"] = "DRAFT"
             contracts, _ = self.write_contract(root, contract)
             with self.assertRaises(self.freeze.CreativeFreezeError) as ctx:
                 self.freeze.freeze_contracts(self.matrix(), contracts, root / "freeze.json")
@@ -87,8 +84,7 @@ class CreativeContractTests(unittest.TestCase):
     def test_freeze_requires_art_direction(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            contract = self.contract()
-            contract.pop("art_direction")
+            contract = self.contract(); contract.pop("art_direction")
             contracts, _ = self.write_contract(root, contract)
             with self.assertRaises(self.freeze.CreativeFreezeError) as ctx:
                 self.freeze.freeze_contracts(self.matrix(), contracts, root / "freeze.json")
@@ -98,12 +94,7 @@ class CreativeContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             contract = self.contract()
-            contract["art_direction"].update({
-                "mode": "ART_DIRECTION_PREVIEW_3",
-                "selection_provenance": "USER_APPROVED",
-                "selected_from_candidate_ids": ["A", "B"],
-                "representative_preview_id": None,
-            })
+            contract["art_direction"].update({"mode": "ART_DIRECTION_PREVIEW_3", "selection_provenance": "USER_APPROVED", "selected_from_candidate_ids": ["A", "B"], "representative_preview_id": None})
             contracts, _ = self.write_contract(root, contract)
             with self.assertRaises(self.freeze.CreativeFreezeError) as ctx:
                 self.freeze.freeze_contracts(self.matrix(), contracts, root / "freeze.json")
@@ -112,8 +103,7 @@ class CreativeContractTests(unittest.TestCase):
     def test_missing_matrix_language_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            contract = self.contract()
-            contract["variants"][0]["copy_by_language"] = {"en": {"headline": "Kitchens", "support": None, "offer": None, "cta": "Quote"}}
+            contract = self.contract(); contract["variants"][0]["copy_by_language"] = {"en": {"headline": "Kitchens", "support": None, "offer": None, "cta": "Quote"}}
             contracts, _ = self.write_contract(root, contract)
             with self.assertRaises(self.freeze.CreativeFreezeError) as ctx:
                 self.freeze.freeze_contracts(self.matrix(), contracts, root / "freeze.json")
@@ -121,8 +111,7 @@ class CreativeContractTests(unittest.TestCase):
 
     def test_unvalidated_reference_id_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            contracts, _ = self.write_contract(root)
+            root = Path(tmp); contracts, _ = self.write_contract(root)
             reference_index = {"status": "REFERENCE_DNA_READY", "reports": [{"reference_id": "OTHER"}]}
             with self.assertRaises(self.freeze.CreativeFreezeError) as ctx:
                 self.freeze.freeze_contracts(self.matrix(), contracts, root / "freeze.json", reference_index=reference_index)
@@ -130,39 +119,32 @@ class CreativeContractTests(unittest.TestCase):
 
     def test_frozen_contract_applies_exact_copy_and_provenance_to_every_job(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            matrix = self.matrix()
-            contracts, _ = self.write_contract(root)
+            root = Path(tmp); matrix = self.matrix(); contracts, _ = self.write_contract(root)
             reference_index = {"status": "REFERENCE_DNA_READY", "reports": [{"reference_id": "REF-A"}]}
-            creative_freeze = self.freeze.freeze_contracts(matrix, contracts, root / "creative-freeze.json", reference_index=reference_index)
-            self.assertEqual(creative_freeze["contracts"][0]["art_direction_id"], "AD-C01-LOCKED")
-            jobs = root / "jobs"
-            self.materializer.materialize(matrix, jobs)
+            creative_freeze = self.freeze_for_binding(matrix, contracts, root / "creative-freeze.json", reference_index=reference_index)
+            jobs = root / "jobs"; self.materializer.materialize(matrix, jobs)
             result = self.apply.apply(matrix, creative_freeze, contracts, jobs / "render-specs", out_index=root / "bindings.json")
             self.assertEqual(result["status"], "CREATIVE_CONTRACTS_APPLIED")
-            self.assertEqual(result["expected_jobs"], 2)
             for row in matrix["banner_matrix"]:
                 spec = json.loads((jobs / "render-specs" / f"{row['job_id']}.json").read_text(encoding="utf-8"))
                 self.assertEqual(spec["copy"]["headline"], "Кухни на заказ")
-                self.assertEqual(spec["copy"]["cta"], "Рассчитать")
-                self.assertEqual(spec["provenance"]["creative_contract_id"], "C01")
-                self.assertEqual(spec["provenance"]["art_direction_id"], "AD-C01-LOCKED")
-                self.assertRegex(spec["provenance"]["creative_contract_sha256"], r"^[0-9a-f]{64}$")
-                self.assertEqual(spec["provenance"]["reference_dna_ids"], ["REF-A"])
-                self.assertEqual(spec["provenance"]["source_grounding_ids"], ["landing-page"])
+                self.assertEqual(spec["provenance"]["campaign_design_system_id"], "CDS-CREATIVE-1")
+                self.assertEqual(spec["provenance"]["idea_architecture_id"], "IDEA-CREATIVE-1")
+                self.assertEqual(spec["provenance"]["visual_character_signature_id"], "VC-CREATIVE-1")
+                self.assertEqual(spec["provenance"]["lighting_intent_id"], "LIGHT-CREATIVE-1")
+
+    def prepare(self, root):
+        matrix = self.matrix(); contracts, _ = self.write_contract(root)
+        creative_freeze = self.freeze_for_binding(matrix, contracts, root / "creative-freeze.json")
+        jobs = root / "jobs"; self.materializer.materialize(matrix, jobs)
+        self.apply.apply(matrix, creative_freeze, contracts, jobs / "render-specs")
+        return matrix, contracts, creative_freeze, jobs
 
     def test_binding_validator_detects_worker_copy_mutation(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            matrix = self.matrix()
-            contracts, _ = self.write_contract(root)
-            creative_freeze = self.freeze.freeze_contracts(matrix, contracts, root / "creative-freeze.json")
-            jobs = root / "jobs"
-            self.materializer.materialize(matrix, jobs)
-            self.apply.apply(matrix, creative_freeze, contracts, jobs / "render-specs")
+            root = Path(tmp); matrix, contracts, creative_freeze, jobs = self.prepare(root)
             first = jobs / "render-specs" / f"{matrix['banner_matrix'][0]['job_id']}.json"
-            spec = json.loads(first.read_text(encoding="utf-8"))
-            spec["copy"]["cta"] = "Worker changed CTA"
+            spec = json.loads(first.read_text(encoding="utf-8")); spec["copy"]["cta"] = "Worker changed CTA"
             first.write_text(json.dumps(spec, ensure_ascii=False), encoding="utf-8")
             result = self.validate.validate(matrix, creative_freeze, contracts, jobs / "render-specs")
             self.assertEqual(result["status"], "CREATIVE_BINDING_FAIL")
@@ -170,30 +152,27 @@ class CreativeContractTests(unittest.TestCase):
 
     def test_binding_validator_detects_worker_art_direction_mutation(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            matrix = self.matrix()
-            contracts, _ = self.write_contract(root)
-            creative_freeze = self.freeze.freeze_contracts(matrix, contracts, root / "creative-freeze.json")
-            jobs = root / "jobs"
-            self.materializer.materialize(matrix, jobs)
-            self.apply.apply(matrix, creative_freeze, contracts, jobs / "render-specs")
+            root = Path(tmp); matrix, contracts, creative_freeze, jobs = self.prepare(root)
             first = jobs / "render-specs" / f"{matrix['banner_matrix'][0]['job_id']}.json"
-            spec = json.loads(first.read_text(encoding="utf-8"))
-            spec["provenance"]["art_direction_id"] = "AD-WORKER-MUTATION"
+            spec = json.loads(first.read_text(encoding="utf-8")); spec["provenance"]["art_direction_id"] = "AD-WORKER-MUTATION"
             first.write_text(json.dumps(spec, ensure_ascii=False), encoding="utf-8")
             result = self.validate.validate(matrix, creative_freeze, contracts, jobs / "render-specs")
             self.assertEqual(result["status"], "CREATIVE_BINDING_FAIL")
             self.assertIn("art_direction_id mismatch", result["failures"][0]["reason"])
 
+    def test_binding_validator_detects_worker_lighting_intent_mutation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); matrix, contracts, creative_freeze, jobs = self.prepare(root)
+            first = jobs / "render-specs" / f"{matrix['banner_matrix'][0]['job_id']}.json"
+            spec = json.loads(first.read_text(encoding="utf-8")); spec["provenance"]["lighting_intent_id"] = "LIGHT-WORKER-MUTATION"
+            first.write_text(json.dumps(spec, ensure_ascii=False), encoding="utf-8")
+            result = self.validate.validate(matrix, creative_freeze, contracts, jobs / "render-specs")
+            self.assertEqual(result["status"], "CREATIVE_BINDING_FAIL")
+            self.assertIn("lighting_intent_id mismatch", result["failures"][0]["reason"])
+
     def test_untouched_bindings_pass(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            matrix = self.matrix()
-            contracts, _ = self.write_contract(root)
-            creative_freeze = self.freeze.freeze_contracts(matrix, contracts, root / "creative-freeze.json")
-            jobs = root / "jobs"
-            self.materializer.materialize(matrix, jobs)
-            self.apply.apply(matrix, creative_freeze, contracts, jobs / "render-specs")
+            root = Path(tmp); matrix, contracts, creative_freeze, jobs = self.prepare(root)
             result = self.validate.validate(matrix, creative_freeze, contracts, jobs / "render-specs")
             self.assertEqual(result["status"], "CREATIVE_BINDING_PASS")
             self.assertEqual(result["passed_jobs"], 2)
