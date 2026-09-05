@@ -1,0 +1,65 @@
+{
+  "schema_version": "0.2.0",
+  "states": ["RESOLVED", "MISSING", "CONDITIONAL", "NOT_APPLICABLE"],
+  "questions": [
+    {"id":"Q01","section":"deliverables","text":"What Google ad mode is required?","paths":["formats.mode"],"condition":"always","gate":"production"},
+    {"id":"Q02","section":"deliverables","text":"How many materially different creative concepts are needed?","paths":["deliverables.concept_count"],"condition":"always","gate":"production"},
+    {"id":"Q03","section":"deliverables","text":"Which exact dimensions or Google pack are needed?","paths":["formats.pack","formats.dimensions"],"condition":"always","gate":"production"},
+    {"id":"Q04","section":"deliverables","text":"How many A/B variants are needed per concept and size?","paths":["deliverables.variant_count"],"condition":"always","gate":"production"},
+    {"id":"Q05","section":"deliverables","text":"Which languages or locales are required?","paths":["deliverables.languages"],"condition":"always","gate":"production"},
+    {"id":"Q06","section":"deliverables","text":"Does the stated banner count mean total files or concepts repeated across sizes?","paths":["deliverables.count_semantics"],"condition":"raw_count_phrase","gate":"production"},
+    {"id":"Q07","section":"deliverables","text":"What final raster format is required?","paths":["deliverables.output_format"],"condition":"always","gate":"production"},
+    {"id":"Q08","section":"deliverables","text":"Is a contact sheet/overview required?","paths":["deliverables.contact_sheet"],"condition":"multi_output","gate":"advisory","default":"true_for_multi_output"},
+
+    {"id":"Q09","section":"campaign","text":"What is the campaign trying to achieve?","paths":["campaign.objective"],"condition":"always","gate":"production"},
+    {"id":"Q10","section":"campaign","text":"What product or service is being promoted?","paths":["business.product_service"],"condition":"always","gate":"production"},
+    {"id":"Q11","section":"campaign","text":"What landing page or destination is used?","paths":["campaign.landing_page"],"condition":"always","gate":"production"},
+    {"id":"Q12","section":"campaign","text":"Who is the target audience?","paths":["audience.primary"],"condition":"always","gate":"production"},
+    {"id":"Q13","section":"campaign","text":"What geography matters?","paths":["business.geography"],"condition":"always","gate":"production"},
+    {"id":"Q14","section":"campaign","text":"What funnel or awareness state is this for?","paths":["campaign.funnel_stage","audience.awareness_state"],"condition":"always","gate":"production"},
+    {"id":"Q15","section":"campaign","text":"What exact action should the user take after seeing the ad?","paths":["campaign.primary_action"],"condition":"always","gate":"production"},
+
+    {"id":"Q16","section":"offer","text":"What is the primary proposition?","paths":["offer.primary_value_proposition"],"condition":"always","gate":"production"},
+    {"id":"Q17","section":"offer","text":"Is there a verified price, promotion, deadline, bonus, or explicitly none?","paths":["offer.price","offer.promotion","offer.promotion_state"],"condition":"always","gate":"production"},
+    {"id":"Q18","section":"offer","text":"What verified proof can be used, including explicitly none?","paths":["offer.proof_points"],"condition":"always","gate":"production"},
+    {"id":"Q19","section":"offer","text":"What CTA is approved?","paths":["offer.cta"],"condition":"always","gate":"production"},
+    {"id":"Q20","section":"offer","text":"Are legal disclaimers or mandatory statements required, including explicitly none?","paths":["constraints.legal_disclaimers"],"condition":"always","gate":"production"},
+    {"id":"Q21","section":"offer","text":"Which claims, topics, or phrases are forbidden, including explicitly none?","paths":["constraints.prohibited_claims"],"condition":"always","gate":"production"},
+
+    {"id":"Q22","section":"brand","text":"Is there an existing BRAND/DESIGN file or explicitly no formal system?","paths":["brand.brand_file","brand.design_file","brand.no_formal_system"],"condition":"always","gate":"production"},
+    {"id":"Q23","section":"brand","text":"Which logo assets are approved, or is there explicitly no logo asset?","paths":["brand.logo_assets","brand.no_logo_asset"],"condition":"always","gate":"production"},
+    {"id":"Q24","section":"brand","text":"Which fonts are approved/available, or may a run-local fallback be used?","paths":["brand.fonts","brand.allow_font_fallback"],"condition":"always","gate":"production"},
+    {"id":"Q25","section":"brand","text":"Which brand colors are approved, or may a run-local palette be proposed?","paths":["brand.colors","brand.allow_run_local_palette"],"condition":"always","gate":"production"},
+    {"id":"Q26","section":"brand","text":"Are real product/service photos available, including explicitly none?","paths":["brand.real_photos"],"condition":"visual","gate":"production"},
+    {"id":"Q27","section":"brand","text":"May AI-generated hero images be used?","paths":["brand.ai_hero_allowed"],"condition":"visual","gate":"production"},
+    {"id":"Q28","section":"brand","text":"Are people or faces allowed or desired?","paths":["brand.people_faces_policy"],"condition":"visual","gate":"advisory"},
+    {"id":"Q29","section":"brand","text":"Are there brand-specific UI/photo/retouching rules, including explicitly none?","paths":["brand.additional_rules"],"condition":"always","gate":"advisory"},
+    {"id":"Q30","section":"brand","text":"What visual elements must never be used, including explicitly none?","paths":["brand.prohibited_elements"],"condition":"always","gate":"production"},
+
+    {"id":"Q31","section":"references","text":"Which references should be analyzed?","paths":["references.items"],"condition":"references","gate":"production"},
+    {"id":"Q32","section":"references","text":"What does the user like in the references?","paths":["references.liked_attributes"],"condition":"references","gate":"production"},
+    {"id":"Q33","section":"references","text":"What should be changed or avoided from the references?","paths":["references.disliked_attributes"],"condition":"references","gate":"advisory"},
+    {"id":"Q34","section":"references","text":"How close should the result be to the references?","paths":["references.similarity_level"],"condition":"references","gate":"production"},
+    {"id":"Q35","section":"references","text":"Which reference is primary if references conflict?","paths":["references.primary_reference"],"condition":"multiple_references","gate":"production"},
+    {"id":"Q36","section":"references","text":"Is any specific reference element mandatory, including explicitly none?","paths":["references.mandatory_elements"],"condition":"references","gate":"advisory"},
+
+    {"id":"Q37","section":"visual","text":"What is the hero subject?","paths":["visual.hero_subject"],"condition":"visual","gate":"production"},
+    {"id":"Q38","section":"visual","text":"What mood is required?","paths":["visual.mood"],"condition":"visual","gate":"production"},
+    {"id":"Q39","section":"visual","text":"Are there material-specific lighting needs, including explicitly none?","paths":["visual.material_lighting"],"condition":"visual","gate":"production"},
+    {"id":"Q40","section":"visual","text":"Is a specific lighting style/reference required, including explicitly none?","paths":["visual.lighting_style"],"condition":"visual","gate":"advisory"},
+    {"id":"Q41","section":"visual","text":"Should the image reserve a copy-safe zone, and where?","paths":["visual.copy_safe_zone"],"condition":"visual","gate":"production"},
+    {"id":"Q42","section":"visual","text":"Are artificial glows, neon, god rays, hard shadows, or colored gels acceptable?","paths":["visual.effect_policy"],"condition":"visual","gate":"advisory"},
+
+    {"id":"Q43","section":"performance","text":"Which existing creatives are winners or losers?","paths":["performance.winners_losers"],"condition":"performance","gate":"advisory"},
+    {"id":"Q44","section":"performance","text":"Which performance metric matters most?","paths":["performance.primary_metric"],"condition":"performance","gate":"production"},
+    {"id":"Q45","section":"performance","text":"What audience/placement/context produced the result?","paths":["performance.context"],"condition":"performance","gate":"advisory"},
+    {"id":"Q46","section":"performance","text":"What variables actually differed between creatives?","paths":["performance.changed_variables"],"condition":"performance","gate":"advisory"},
+
+    {"id":"Q47","section":"production","text":"What is the deadline or release date, including no fixed deadline?","paths":["production.deadline"],"condition":"always","gate":"advisory"},
+    {"id":"Q48","section":"production","text":"Is there a required naming convention?","paths":["production.naming_convention"],"condition":"always","gate":"advisory"},
+    {"id":"Q49","section":"production","text":"Are source/editable files required or only final assets?","paths":["production.source_files"],"condition":"always","gate":"advisory"},
+    {"id":"Q50","section":"production","text":"Is an approval step required before rendering the full pack?","paths":["production.approval_step"],"condition":"always","gate":"production"},
+    {"id":"Q51","section":"production","text":"Are there external tool/model restrictions, including explicitly none?","paths":["production.tool_restrictions"],"condition":"always","gate":"advisory"},
+    {"id":"Q52","section":"production","text":"Are there confidentiality or asset-use restrictions, including explicitly none?","paths":["production.confidentiality_restrictions"],"condition":"always","gate":"production"}
+  ]
+}

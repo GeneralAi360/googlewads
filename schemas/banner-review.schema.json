@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/banner-review.schema.json",
+  "title": "Independent Banner Design Review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["job_id", "reviewer_role", "independent_context", "reviewed_output_path", "reviewed_output_sha256", "status", "checks", "findings"],
+  "properties": {
+    "job_id": {"type": "string", "minLength": 1},
+    "reviewer_role": {"const": "DESIGN_REVIEWER"},
+    "reviewer_thread_id": {"type": ["string", "null"]},
+    "independent_context": {"type": "boolean"},
+    "reviewed_output_path": {"type": "string", "minLength": 1},
+    "reviewed_output_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"enum": ["PASS", "FAIL", "BLOCKED"]},
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "concept_fidelity",
+        "idea_fidelity",
+        "emotional_fidelity",
+        "visual_character_fidelity",
+        "campaign_design_system_fidelity",
+        "brand_fidelity",
+        "asset_quality",
+        "professional_category_fit",
+        "visual_hierarchy",
+        "lighting_intent_fidelity",
+        "lighting_focal_guidance",
+        "typography_legibility",
+        "color_contrast",
+        "information_density",
+        "crop_safe_zones",
+        "cta_clarity",
+        "anti_generic_ai",
+        "actual_size_check"
+      ],
+      "properties": {
+        "concept_fidelity": {"$ref": "#/$defs/check"},
+        "idea_fidelity": {"$ref": "#/$defs/check"},
+        "emotional_fidelity": {"$ref": "#/$defs/check"},
+        "visual_character_fidelity": {"$ref": "#/$defs/check"},
+        "campaign_design_system_fidelity": {"$ref": "#/$defs/check"},
+        "brand_fidelity": {"$ref": "#/$defs/check"},
+        "asset_quality": {"$ref": "#/$defs/check"},
+        "professional_category_fit": {"$ref": "#/$defs/check"},
+        "visual_hierarchy": {"$ref": "#/$defs/check"},
+        "lighting_intent_fidelity": {"$ref": "#/$defs/check"},
+        "lighting_focal_guidance": {"$ref": "#/$defs/check"},
+        "typography_legibility": {"$ref": "#/$defs/check"},
+        "color_contrast": {"$ref": "#/$defs/check"},
+        "information_density": {"$ref": "#/$defs/check"},
+        "crop_safe_zones": {"$ref": "#/$defs/check"},
+        "cta_clarity": {"$ref": "#/$defs/check"},
+        "anti_generic_ai": {"$ref": "#/$defs/check"},
+        "actual_size_check": {"$ref": "#/$defs/check"},
+        "thumbnail_glance": {"$ref": "#/$defs/check"},
+        "grayscale_hierarchy": {"$ref": "#/$defs/check"},
+        "squint_hierarchy": {"$ref": "#/$defs/check"},
+        "anti_template_generic_style": {"$ref": "#/$defs/check"}
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["severity", "area", "message", "blocking"],
+        "properties": {
+          "severity": {"enum": ["CRITICAL", "IMPORTANT", "MINOR", "NOTE"]},
+          "area": {"type": "string"},
+          "message": {"type": "string"},
+          "blocking": {"type": "boolean"}
+        }
+      }
+    },
+    "summary": {"type": ["string", "null"]}
+  },
+  "$defs": {"check": {"enum": ["PASS", "FAIL", "NOT_APPLICABLE", "UNCHECKABLE"]}}
+}

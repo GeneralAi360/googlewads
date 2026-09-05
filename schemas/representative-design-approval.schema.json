@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/representative-design-approval.schema.json",
+  "title": "Representative High-Fidelity Design Approval",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["approval_id", "status", "approved_by", "art_direction_approval_id", "art_direction_approval_sha256", "art_direction_id", "preview_id", "artifact_path", "artifact_sha256", "width", "height", "quality_checks"],
+  "properties": {
+    "approval_id": {"type": "string", "minLength": 1},
+    "status": {"const": "APPROVED"},
+    "approved_by": {"enum": ["USER", "ART_DIRECTOR_REVIEWER"]},
+    "approved_at": {"type": ["string", "null"]},
+    "art_direction_approval_id": {"type": "string", "minLength": 1},
+    "art_direction_approval_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "art_direction_id": {"type": "string", "minLength": 1},
+    "preview_id": {"type": "string", "minLength": 1},
+    "artifact_path": {"type": "string", "minLength": 1},
+    "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "width": {"type": "integer", "minimum": 1},
+    "height": {"type": "integer", "minimum": 1},
+    "quality_checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "idea_fidelity",
+        "emotional_fidelity",
+        "visual_character_fidelity",
+        "lighting_intent_fidelity",
+        "asset_quality",
+        "professional_category_fit",
+        "hierarchy",
+        "typography",
+        "brand_fidelity",
+        "commercial_message_fidelity",
+        "hero_crop",
+        "lighting_contrast",
+        "cta_clarity",
+        "anti_generic_ai"
+      ],
+      "properties": {
+        "idea_fidelity": {"const": "PASS"},
+        "emotional_fidelity": {"const": "PASS"},
+        "visual_character_fidelity": {"const": "PASS"},
+        "lighting_intent_fidelity": {"const": "PASS"},
+        "asset_quality": {"const": "PASS"},
+        "professional_category_fit": {"const": "PASS"},
+        "hierarchy": {"const": "PASS"},
+        "typography": {"const": "PASS"},
+        "brand_fidelity": {"const": "PASS"},
+        "commercial_message_fidelity": {"const": "PASS"},
+        "hero_crop": {"const": "PASS"},
+        "lighting_contrast": {"const": "PASS"},
+        "cta_clarity": {"const": "PASS"},
+        "anti_generic_ai": {"const": "PASS"}
+      }
+    },
+    "notes": {"type": ["string", "null"]}
+  }
+}

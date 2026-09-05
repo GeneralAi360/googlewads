@@ -1,0 +1,51 @@
+{
+  "schema_version": "0.2.0",
+  "purpose": "Real production failures discovered during user acceptance testing. These cases are regression requirements, not synthetic style preferences.",
+  "cases": [
+    {
+      "case_id": "REAL-01",
+      "title": "Generic childish B2B art direction produced before market/category research",
+      "context": "A Work run for a B2B cloud/Bitrix24 offer produced three 300x250 preview directions that shared nearly the same copy-left/illustration-right template and used toy-like/generic cloud illustrations. User rejected the result as low-quality and non-professional.",
+      "failure_stage": "PREPRODUCTION",
+      "expected_findings": [
+        "PREMATURE_RENDER_BEFORE_MARKET_RESEARCH",
+        "COMPETITIVE_CONTEXT_MISSING",
+        "ART_DIRECTIONS_NOT_MATERIALLY_DISTINCT",
+        "GENERIC_AI_CLIPART",
+        "B2B_CATEGORY_SIGNAL_TOO_WEAK",
+        "ASSET_QUALITY_BELOW_PRODUCTION",
+        "DESIGN_NOT_PROFESSIONAL_ENOUGH"
+      ],
+      "required_regressions": [
+        "competitive research must precede unresolved art-direction rendering",
+        "category design map must exist before detailed design brief freeze",
+        "three written art directions must be materially different before previews",
+        "written art direction must be approved before representative rendering",
+        "one high-fidelity representative design must be approved before full pack scale-out",
+        "representative approval must explicitly pass asset quality, professional category fit and anti-generic-AI checks"
+      ],
+      "performance_claim_policy": "Do not label competitor/reference creatives high-converting without verified conversion metrics."
+    },
+    {
+      "case_id": "REAL-02",
+      "title": "Improved written art direction drifted into unapproved CTA and ambiguous brand identity",
+      "context": "After REAL-01 hardening, a Work run correctly reported DEGRADED research and produced a much stronger written B2B direction based on real product UI. However the direction introduced the CTA 'Оставить заявку' without proving it was the frozen CTA and described the brand anchor as MITGROUP / MitLab, leaving identity selection to the designer. The direction also correctly identified real Bitrix24 UI as required and stated that fake/generated UI must not substitute for it.",
+      "failure_stage": "WRITTEN_ART_DIRECTION",
+      "expected_findings": [
+        "COMMERCIAL_MESSAGE_DRIFT",
+        "UNAPPROVED_CTA_INTRODUCED",
+        "BRAND_IDENTITY_UNRESOLVED",
+        "REAL_PRODUCT_ASSET_REQUIRED"
+      ],
+      "required_regressions": [
+        "design brief must freeze primary proposition and an allowlist of approved CTA strings before art direction",
+        "art direction may change CTA treatment but cannot invent CTA wording",
+        "design brief must freeze one canonical brand identity and explicit allowed alternate display names",
+        "identity-critical UI/logo assets must be represented as required assets with generated substitution disabled when real assets are required",
+        "representative rendering must return NEEDS_ASSET when a required real product UI or brand asset is missing, stale, low-resolution, privacy-unsafe or rights-unapproved",
+        "creative freeze must reject CTA, proposition or brand IDs that differ from preproduction locks"
+      ],
+      "performance_claim_policy": "DEGRADED research may inform design direction only after explicit acceptance; it does not prove relative advertising performance."
+    }
+  ]
+}

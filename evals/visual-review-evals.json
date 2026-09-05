@@ -1,0 +1,150 @@
+{
+  "schema_version": "0.1.0",
+  "purpose": "Visual-judgment fixtures for DESIGN_REVIEWER and PACK_REVIEWER evaluation. These fixtures test whether a fresh visual reviewer can detect known banner-quality problems from rendered artifacts without reading the expected findings first.",
+  "evaluation_protocol": {
+    "reviewer_context": "fresh_read_only_visual",
+    "expected_findings_hidden_from_reviewer": true,
+    "reviewer_inputs": [
+      "rendered banner artifact(s)",
+      "exact dimension/layout family",
+      "frozen creative contract excerpt",
+      "brand/design context excerpt",
+      "task-local QA checklist"
+    ],
+    "scoring": {
+      "critical_expected_finding_recall": 1.0,
+      "important_expected_finding_recall_min": 0.8,
+      "false_critical_findings_max": 0,
+      "must_reference_visible_evidence": true
+    }
+  },
+  "cases": [
+    {
+      "id": "VR-01",
+      "name": "Photographic copy-zone glare",
+      "scope": "single_banner",
+      "dimension": "300x250",
+      "layout_family": "rectangle",
+      "fixture_recipe": {
+        "hero": "high-luminance photographic texture behind headline slot",
+        "headline_color": "#FFFFFF",
+        "copy_scrim": false,
+        "text_plate": false
+      },
+      "expected_findings": [
+        {
+          "severity": "CRITICAL",
+          "code": "COPY_ZONE_CONTRAST_UNSTABLE",
+          "evidence": "Headline crosses bright and dark local regions; portions lose legibility at actual size.",
+          "recommended_fix": "Create a controlled copy-safe tonal zone using crop, scrim or plate before changing the concept."
+        }
+      ],
+      "must_not_claim": ["CTR will be low", "white text is always wrong"]
+    },
+    {
+      "id": "VR-02",
+      "name": "Logo dominates the commercial message",
+      "scope": "single_banner",
+      "dimension": "300x250",
+      "layout_family": "rectangle",
+      "fixture_recipe": {
+        "logo_slot_scale": 2.2,
+        "headline_scale": 0.75,
+        "hero_scale": 0.8
+      },
+      "expected_findings": [
+        {
+          "severity": "IMPORTANT",
+          "code": "BRAND_ANCHOR_OVERRANKS_PROPOSITION",
+          "evidence": "Logo becomes the largest/highest-contrast AOI and competes with the proposition.",
+          "recommended_fix": "Reduce logo scale/contrast while preserving clearspace and brand recognizability."
+        }
+      ],
+      "must_not_claim": ["logos should always be small"]
+    },
+    {
+      "id": "VR-03",
+      "name": "Hero focal crop damages product comprehension",
+      "scope": "single_banner",
+      "dimension": "160x600",
+      "layout_family": "narrow_vertical",
+      "fixture_recipe": {
+        "hero_subject": "product with essential upper-right feature",
+        "focal_point": [0.08, 0.9],
+        "crop_mode": "cover"
+      },
+      "expected_findings": [
+        {
+          "severity": "CRITICAL",
+          "code": "HERO_CROP_LOSES_ESSENTIAL_SUBJECT",
+          "evidence": "The crop removes an essential identifying part of the product, weakening comprehension.",
+          "recommended_fix": "Move the focal point or use a different crop/asset for the narrow family."
+        }
+      ],
+      "must_not_claim": ["cover crop is inherently bad"]
+    },
+    {
+      "id": "VR-04",
+      "name": "Micro banner carries large-format information density",
+      "scope": "single_banner",
+      "dimension": "320x50",
+      "layout_family": "micro_horizontal",
+      "fixture_recipe": {
+        "elements": ["logo", "headline", "support", "offer", "proof badge", "cta"],
+        "headline_lines": 2,
+        "support_lines": 1
+      },
+      "expected_findings": [
+        {
+          "severity": "CRITICAL",
+          "code": "MICRO_FORMAT_OVERLOADED",
+          "evidence": "Too many independent AOIs/copy levels compete within 50px height and require tiny text.",
+          "recommended_fix": "Preserve proposition + CTA + brand; remove secondary proof/support and adapt the concept rather than shrink everything."
+        }
+      ],
+      "must_not_claim": ["a fixed universal fill percentage was exceeded"]
+    },
+    {
+      "id": "VR-05",
+      "name": "Decorative lighting steals focal priority",
+      "scope": "single_banner",
+      "dimension": "336x280",
+      "layout_family": "rectangle",
+      "fixture_recipe": {
+        "spotlight_center": [0.86, 0.12],
+        "spotlight_opacity": 220,
+        "commercial_message_zone": "lower-left",
+        "hero_zone": "center"
+      },
+      "expected_findings": [
+        {
+          "severity": "IMPORTANT",
+          "code": "DECORATIVE_LIGHTING_BECOMES_PRIMARY_AOI",
+          "evidence": "The brightest region is disconnected from the hero, proposition and CTA, pulling attention into empty decoration.",
+          "recommended_fix": "Reduce/move the light so it supports product separation or the intended scan path."
+        }
+      ],
+      "must_not_claim": ["the brightest pixel must always be the CTA"]
+    },
+    {
+      "id": "VR-06",
+      "name": "Cross-size campaign design drift",
+      "scope": "pack",
+      "dimensions": ["300x250", "728x90", "160x600", "320x50"],
+      "fixture_recipe": {
+        "stable_files": 3,
+        "drift_file": "728x90",
+        "drift_changes": ["different type family", "different CTA shape", "unapproved accent color", "logo treatment changed"]
+      },
+      "expected_findings": [
+        {
+          "severity": "CRITICAL",
+          "code": "CROSS_SIZE_DESIGN_DRIFT",
+          "evidence": "One format no longer appears to belong to the same frozen campaign identity despite carrying the same concept.",
+          "recommended_fix": "Restore approved typography/CTA/color/logo tokens while keeping the family-specific composition."
+        }
+      ],
+      "must_not_claim": ["all sizes must use identical geometry"]
+    }
+  ]
+}
