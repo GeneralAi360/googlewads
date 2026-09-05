@@ -161,22 +161,28 @@ Banner review now checks:
 
 Pack review checks those across sizes.
 
+### Verified deterministic milestone
+
+- verified head before the documentation-only tail: `dc46154418daaa84e7fe77710e2a25ef0a0f4076`;
+- full unittest suite: **136 tests, OK**;
+- latest documentation head `b6fb3e7aa113c7e6febfa82abb113fa0b4efe5c2`: GitHub Actions **PASS**.
+
 ### Current v0.2 validation work
 
 Before v0.2 can be fully validated:
 
-1. Keep deterministic CI green on the final meaning-first/lighting-linked head.
-2. Continue the real Work MITGROUP task from the updated skill:
+1. Continue the real Work MITGROUP task from the updated skill:
    - validate commercial/brand locks;
    - validate required real UI/logo assets;
+   - resolve current `IDEA_ARCHITECTURE`, visual character and lighting intent;
    - create one representative 300x250 only after `ASSETS_READY`;
    - verify idea/emotion/character/lighting fidelity;
    - freeze campaign design system;
    - only then test scale-out.
-3. Incorporate the user's next banner-style examples as visual-character/reference vocabulary and evaluate whether they reveal additional system gaps.
-4. Execute six hidden-key visual eval cases through genuinely fresh visual reviewer contexts and score them.
-5. Perform a genuinely independent final repository/PR review and reconcile important findings.
-6. Merge only with explicit user approval.
+2. Incorporate the user's next banner-style examples as visual-character/reference vocabulary and evaluate whether they reveal additional system gaps.
+3. Execute six hidden-key visual eval cases through genuinely fresh visual reviewer contexts and score them.
+4. Perform a genuinely independent final repository/PR review and reconcile important findings.
+5. Merge only with explicit user approval.
 
 If fresh independent reviewer contexts are unavailable, report this as an external rigor blocker instead of fabricating reports.
 
