@@ -11,23 +11,14 @@
     "width": {"type": "integer", "minimum": 1},
     "height": {"type": "integer", "minimum": 1},
     "layout_family": {"type": "string", "minLength": 1},
-    "background": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {"color": {"$ref": "#/$defs/color"}}
-    },
+    "background": {"type": "object", "additionalProperties": false, "properties": {"color": {"$ref": "#/$defs/color"}}},
     "hero": {
       "type": ["object", "null"],
       "additionalProperties": false,
       "properties": {
         "path": {"type": "string"},
         "mode": {"type": "string", "enum": ["slot", "full_bleed", "full_bleed_optional"]},
-        "focal_point": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
-          "items": {"type": "number", "minimum": 0, "maximum": 1}
-        }
+        "focal_point": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0, "maximum": 1}}
       }
     },
     "logo": {
@@ -106,9 +97,16 @@
         "brand_id": {"type": ["string", "null"]},
         "art_direction_id": {"type": ["string", "null"]},
         "preproduction_freeze_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "campaign_design_system_id": {"type": ["string", "null"]},
+        "campaign_design_system_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "idea_architecture_id": {"type": ["string", "null"]},
+        "visual_character_signature_id": {"type": ["string", "null"]},
+        "lighting_intent_id": {"type": ["string", "null"]},
         "creative_contract_id": {"type": ["string", "null"]},
         "creative_contract_path": {"type": ["string", "null"]},
         "creative_contract_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "hero_generation_spec_id": {"type": ["string", "null"]},
+        "hero_generation_spec_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
         "hero_asset_id": {"type": ["string", "null"]},
         "reference_dna_ids": {"type": "array", "items": {"type": "string"}},
         "source_grounding_ids": {"type": "array", "items": {"type": "string"}},
