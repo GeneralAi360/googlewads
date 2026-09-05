@@ -31,6 +31,10 @@ class DemoEndToEndTests(unittest.TestCase):
             self.assertEqual(result["intake_status"], "READY_TO_FREEZE")
             self.assertEqual(result["preproduction_status"], "PREPRODUCTION_FROZEN")
             self.assertEqual(result["preproduction_research_rigor"], "FULL")
+            self.assertEqual(result["idea_architecture_id"], "IDEA-DEMO-001")
+            self.assertEqual(result["visual_character_signature_id"], "VC-DEMO-001")
+            self.assertEqual(result["lighting_intent_id"], "LIGHT-DEMO-001")
+            self.assertEqual(result["campaign_design_system_id"], "CDS-DEMO-001")
             self.assertRegex(result["creative_preproduction_sha256"], r"^[0-9a-f]{64}$")
             self.assertEqual(result["creative_binding_status"], "CREATIVE_BINDING_PASS")
             self.assertEqual(result["expected_output_files"], 7)
@@ -47,6 +51,7 @@ class DemoEndToEndTests(unittest.TestCase):
                 root / "preproduction" / "design-brief.json",
                 root / "preproduction" / "art-direction-approval.json",
                 root / "preproduction" / "representative-design-approval.json",
+                root / "preproduction" / "campaign-design-system.json",
                 root / "preproduction" / "representative-300x250.png",
                 root / "preproduction-freeze.json",
                 root / "creative-freeze.json",
@@ -73,21 +78,41 @@ class DemoEndToEndTests(unittest.TestCase):
             self.assertEqual(freeze["status"], "FROZEN")
             self.assertEqual(freeze["expected_output_files"], 7)
             self.assertEqual(preproduction["status"], "PREPRODUCTION_FROZEN")
-            self.assertEqual(preproduction["research_rigor"], "FULL")
             self.assertEqual(preproduction["selected_art_direction_id"], "AD-DEMO-CLEAN-PREMIUM")
+            self.assertEqual(preproduction["idea_architecture_id"], "IDEA-DEMO-001")
+            self.assertEqual(preproduction["visual_character_signature_id"], "VC-DEMO-001")
+            self.assertEqual(preproduction["lighting_intent_id"], "LIGHT-DEMO-001")
+            self.assertEqual(preproduction["campaign_design_system"]["id"], "CDS-DEMO-001")
+
             self.assertEqual(creative_freeze["status"], "CREATIVE_CONTRACTS_FROZEN")
             self.assertEqual(creative_freeze["contracts"][0]["art_direction_id"], "AD-DEMO-CLEAN-PREMIUM")
             self.assertEqual(creative_freeze["preproduction_freeze_id"], preproduction["freeze_id"])
-            self.assertRegex(creative_freeze["preproduction_freeze_sha256"], r"^[0-9a-f]{64}$")
+            self.assertEqual(creative_freeze["campaign_design_system_id"], "CDS-DEMO-001")
+            self.assertEqual(creative_freeze["idea_architecture_id"], "IDEA-DEMO-001")
+            self.assertEqual(creative_freeze["visual_character_signature_id"], "VC-DEMO-001")
+            self.assertEqual(creative_freeze["lighting_intent_id"], "LIGHT-DEMO-001")
+
             self.assertEqual(len(matrix["banner_matrix"]), 7)
             self.assertEqual(len(manifest["files"]), 7)
+            self.assertEqual(manifest["campaign_design_system_id"], "CDS-DEMO-001")
+            self.assertEqual(manifest["idea_architecture_id"], "IDEA-DEMO-001")
+            self.assertEqual(manifest["visual_character_signature_id"], "VC-DEMO-001")
+            self.assertEqual(manifest["lighting_intent_id"], "LIGHT-DEMO-001")
             self.assertEqual(len(dispatch["jobs"]), 7)
             self.assertEqual(qa_index["expected_jobs"], 7)
             self.assertEqual(review_index["expected_banner_reviews"], 7)
             self.assertTrue(review_index["design_qa_attached"])
+            self.assertEqual(review_index["campaign_design_system_id"], "CDS-DEMO-001")
 
             first_spec = json.loads((root / "dispatch" / "render-specs" / f"{matrix['banner_matrix'][0]['job_id']}.json").read_text(encoding="utf-8"))
-            self.assertEqual(first_spec["provenance"]["preproduction_freeze_sha256"], creative_freeze["preproduction_freeze_sha256"])
+            for key, expected in (
+                ("preproduction_freeze_sha256", creative_freeze["preproduction_freeze_sha256"]),
+                ("campaign_design_system_id", "CDS-DEMO-001"),
+                ("idea_architecture_id", "IDEA-DEMO-001"),
+                ("visual_character_signature_id", "VC-DEMO-001"),
+                ("lighting_intent_id", "LIGHT-DEMO-001"),
+            ):
+                self.assertEqual(first_spec["provenance"][key], expected)
 
             expected_sizes = {(row["width"], row["height"]) for row in matrix["banner_matrix"]}
             actual_sizes = set()
@@ -98,7 +123,10 @@ class DemoEndToEndTests(unittest.TestCase):
                     actual_sizes.add(image.size)
                 self.assertEqual(item["status"], "PASS")
                 self.assertEqual(item["art_direction_id"], "AD-DEMO-CLEAN-PREMIUM")
-                self.assertIn("art_direction_binding", item["checks"])
+                self.assertEqual(item["campaign_design_system_id"], "CDS-DEMO-001")
+                self.assertEqual(item["lighting_intent_id"], "LIGHT-DEMO-001")
+                self.assertIn("campaign_design_system_binding", item["checks"])
+                self.assertIn("idea_character_lighting_binding", item["checks"])
                 self.assertRegex(item["sha256"], r"^[0-9a-f]{64}$")
                 qa_job = next(job for job in qa_index["jobs"] if job["job_id"] == item["job_id"])
                 self.assertEqual(qa_job["source_sha256"], item["sha256"])
