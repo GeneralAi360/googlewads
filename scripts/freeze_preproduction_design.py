@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Freeze market research, design brief, written art direction and representative approval before scale-out."""
+"""Freeze research, idea architecture, art direction, representative proof and design system before scale-out."""
 from __future__ import annotations
 
 import argparse
@@ -91,7 +91,7 @@ def _validate_research(research: dict[str, Any], allow_degraded: bool) -> str:
     return rigor
 
 
-def _matrix_axes(matrix: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str]]:
+def _matrix_axes(matrix: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], set[str]]:
     rows = matrix.get("banner_matrix")
     if not isinstance(rows, list) or not rows:
         raise PreproductionFreezeError("FAIL_MATRIX", "banner_matrix must be non-empty")
@@ -99,7 +99,8 @@ def _matrix_axes(matrix: dict[str, Any]) -> tuple[set[str], set[str], set[str], 
     variants = {str(row.get("variant_id")) for row in rows}
     languages = {str(row.get("language")) for row in rows}
     sizes = {row.get("dimension") or f"{row.get('width')}x{row.get('height')}" for row in rows}
-    return concepts, variants, languages, sizes
+    layout_families = {str(row.get("layout_family")) for row in rows if row.get("layout_family")}
+    return concepts, variants, languages, sizes, layout_families
 
 
 def _validate_design_locks(design_brief: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
@@ -149,6 +150,171 @@ def _validate_design_locks(design_brief: dict[str, Any]) -> tuple[dict[str, Any]
     return commercial_lock, brand_lock, required_assets
 
 
+def _validate_idea_character_lighting(design_brief: dict[str, Any]) -> tuple[str, str, str]:
+    idea = design_brief.get("idea_architecture")
+    if not isinstance(idea, dict):
+        raise PreproductionFreezeError("IDEA_ARCHITECTURE_MISSING", "design brief idea_architecture is required")
+    idea_id = _require_text(idea.get("idea_architecture_id"), "idea_architecture.idea_architecture_id")
+    for key in ("core_idea", "single_takeaway", "creative_tension", "why_this_visual"):
+        _require_text(idea.get(key), f"idea_architecture.{key}")
+    if idea.get("presentation_mode") not in {
+        "PRODUCT_PROOF", "OUTCOME_VISUALIZATION", "PAIN_VISUALIZATION", "EXPLAINER", "BEFORE_AFTER",
+        "WORKFLOW", "HUMAN_CONTEXT", "CHARACTER", "VISUAL_METAPHOR", "VISUAL_PARADOX",
+        "EDITORIAL_STATEMENT", "SOCIAL_PROOF", "PROMOTION_LED", "OTHER",
+    }:
+        raise PreproductionFreezeError("IDEA_ARCHITECTURE_INVALID", "unsupported presentation_mode")
+    emotional = idea.get("emotional_target") or {}
+    primary_emotion = _require_text(emotional.get("primary"), "idea_architecture.emotional_target.primary")
+    if emotional.get("intensity") not in {"RESTRAINED", "MODERATE", "HIGH"}:
+        raise PreproductionFreezeError("IDEA_ARCHITECTURE_INVALID", "emotional intensity must be RESTRAINED/MODERATE/HIGH")
+    if idea.get("disruption_level") not in {"LOW", "MEDIUM", "HIGH"}:
+        raise PreproductionFreezeError("IDEA_ARCHITECTURE_INVALID", "disruption_level must be LOW/MEDIUM/HIGH")
+
+    visual = design_brief.get("visual_character")
+    if not isinstance(visual, dict):
+        raise PreproductionFreezeError("VISUAL_CHARACTER_MISSING", "design brief visual_character is required")
+    visual_id = _require_text(visual.get("signature_id"), "visual_character.signature_id")
+    _require_text(visual.get("primary_character"), "visual_character.primary_character")
+    _require_text(visual.get("rationale"), "visual_character.rationale")
+    for key in ("order_to_virality", "aesthetics_to_innovation"):
+        value = visual.get(key)
+        if not isinstance(value, (int, float)) or not 0 <= float(value) <= 1:
+            raise PreproductionFreezeError("VISUAL_CHARACTER_INVALID", f"visual_character.{key} must be 0..1")
+    if not isinstance(visual.get("style_tags"), list) or not visual["style_tags"]:
+        raise PreproductionFreezeError("VISUAL_CHARACTER_INVALID", "visual_character.style_tags cannot be empty")
+
+    focus = design_brief.get("focus_budget")
+    if not isinstance(focus, dict):
+        raise PreproductionFreezeError("FOCUS_BUDGET_MISSING", "design brief focus_budget is required")
+    deviation = str(focus.get("deviation_rationale") or "").strip()
+    default_exceeded = any(int(focus.get(key, 0)) > 1 for key in (
+        "primary_idea_count", "primary_hero_count", "primary_emotion_count", "primary_visual_language_count"
+    )) or int(focus.get("accent_detail_max", 0)) > 3
+    if default_exceeded and not deviation:
+        raise PreproductionFreezeError("FOCUS_BUDGET_UNJUSTIFIED", "focus budget exceeds default heuristic without deviation_rationale")
+
+    forbidden = design_brief.get("forbidden_visuals")
+    if not isinstance(forbidden, dict) or not all(isinstance(forbidden.get(key), list) for key in ("global", "brand", "concept")):
+        raise PreproductionFreezeError("FORBIDDEN_VISUALS_MISSING", "global/brand/concept forbidden_visuals lists are required")
+
+    chaos = design_brief.get("creative_chaos_audit")
+    if not isinstance(chaos, dict) or chaos.get("status") != "PASS" or chaos.get("blockers"):
+        raise PreproductionFreezeError("CREATIVE_CHAOS_AUDIT_FAILED", "creative chaos audit must PASS with zero blockers")
+    required_true = (
+        "core_idea_clear", "single_takeaway_clear", "presentation_mode_resolved", "emotional_target_resolved",
+        "visual_character_coherent", "lighting_supports_idea", "composition_intentional",
+        "forbidden_list_present", "platform_adaptation_planned",
+    )
+    if any(chaos.get(key) is not True for key in required_true) or chaos.get("information_overload") is not False or chaos.get("first_generation_is_final") is not False:
+        raise PreproductionFreezeError("CREATIVE_CHAOS_AUDIT_FAILED", "creative chaos audit contains a failed strategy check")
+
+    image_strategy = design_brief.get("image_strategy") or {}
+    source_mode = image_strategy.get("source_mode")
+    if source_mode not in {"REAL_ASSET", "GENERATED", "HYBRID", "NONE"}:
+        raise PreproductionFreezeError("IMAGE_STRATEGY_INVALID", "image_strategy.source_mode is required")
+    if source_mode in {"GENERATED", "HYBRID"} and image_strategy.get("hero_generation_spec_required") is not True:
+        raise PreproductionFreezeError("HERO_GENERATION_SPEC_REQUIRED", "generated/hybrid hero strategy requires hero_generation_spec")
+
+    lighting = design_brief.get("lighting_intent")
+    if not isinstance(lighting, dict):
+        raise PreproductionFreezeError("LIGHTING_INTENT_MISSING", "design brief lighting_intent is required")
+    lighting_id = _require_text(lighting.get("lighting_intent_id"), "lighting_intent.lighting_intent_id")
+    for key in ("relationship_to_idea", "primary_aoi_role", "emotional_function", "visual_character_alignment"):
+        _require_text(lighting.get(key), f"lighting_intent.{key}")
+    scene = lighting.get("scene_lighting") or {}
+    scene_mode = scene.get("mode")
+    scheme_ids = scene.get("candidate_scheme_ids")
+    if scene_mode not in {"REQUIRED", "OPTIONAL", "NOT_APPLICABLE"} or not isinstance(scheme_ids, list):
+        raise PreproductionFreezeError("LIGHTING_INTENT_INVALID", "scene lighting mode/candidate_scheme_ids invalid")
+    if scene_mode == "REQUIRED" and not scheme_ids:
+        raise PreproductionFreezeError("LIGHTING_INTENT_INVALID", "required scene lighting needs at least one candidate scheme")
+    if scene_mode == "NOT_APPLICABLE" and scheme_ids:
+        raise PreproductionFreezeError("LIGHTING_INTENT_INVALID", "NOT_APPLICABLE scene lighting cannot carry scheme candidates")
+    if any(not isinstance(item, int) or not 1 <= item <= 30 for item in scheme_ids) or len(scheme_ids) != len(set(scheme_ids)):
+        raise PreproductionFreezeError("LIGHTING_INTENT_INVALID", "scene lighting scheme IDs must be unique integers 1..30")
+    _require_text(scene.get("rationale"), "lighting_intent.scene_lighting.rationale")
+
+    composition = lighting.get("composition_lighting") or {}
+    comp_mode = composition.get("mode")
+    primitives = composition.get("allowed_primitives")
+    valid_primitives = {"hero_edge_glow", "spotlight", "copy_scrim", "vignette", "text_plate"}
+    if comp_mode not in {"REQUIRED", "OPTIONAL", "NOT_APPLICABLE"} or not isinstance(primitives, list):
+        raise PreproductionFreezeError("LIGHTING_INTENT_INVALID", "composition lighting mode/allowed_primitives invalid")
+    if any(item not in valid_primitives for item in primitives) or len(primitives) != len(set(primitives)):
+        raise PreproductionFreezeError("LIGHTING_INTENT_INVALID", "composition lighting primitives are invalid/duplicate")
+    if comp_mode == "REQUIRED" and not primitives:
+        raise PreproductionFreezeError("LIGHTING_INTENT_INVALID", "required composition lighting needs an allowed primitive")
+    if comp_mode == "NOT_APPLICABLE" and primitives:
+        raise PreproductionFreezeError("LIGHTING_INTENT_INVALID", "NOT_APPLICABLE composition lighting cannot allow primitives")
+    for key in ("copy_safe_zone_strategy", "focal_priority", "rationale"):
+        _require_text(composition.get(key), f"lighting_intent.composition_lighting.{key}")
+    if not isinstance(lighting.get("forbidden_behaviors"), list) or not lighting["forbidden_behaviors"]:
+        raise PreproductionFreezeError("LIGHTING_INTENT_INVALID", "lighting_intent.forbidden_behaviors cannot be empty")
+
+    if primary_emotion.lower() not in str(lighting.get("emotional_function") or "").lower():
+        # Advisory semantics are free text; require only that the lighting function explicitly addresses the primary emotion.
+        raise PreproductionFreezeError("LIGHTING_EMOTION_MISMATCH", "lighting emotional_function must explicitly reference the primary emotional target")
+    return idea_id, visual_id, lighting_id
+
+
+def _validate_campaign_design_system(
+    system: dict[str, Any],
+    *,
+    design_brief: dict[str, Any],
+    design_sha: str,
+    art_approval: dict[str, Any],
+    art_sha: str,
+    representative_approval: dict[str, Any],
+    representative_sha: str,
+    art_direction_id: str,
+    idea_id: str,
+    visual_id: str,
+    lighting_id: str,
+    layout_families: set[str],
+) -> str:
+    if system.get("status") != "APPROVED":
+        raise PreproductionFreezeError("CAMPAIGN_DESIGN_SYSTEM_NOT_APPROVED", "campaign design system must be APPROVED")
+    if system.get("design_brief_id") != design_brief.get("design_brief_id") or system.get("design_brief_sha256") != design_sha:
+        raise PreproductionFreezeError("CAMPAIGN_DESIGN_SYSTEM_STALE", "campaign design system design-brief binding is stale")
+    if system.get("art_direction_approval_id") != art_approval.get("approval_id") or system.get("art_direction_approval_sha256") != art_sha:
+        raise PreproductionFreezeError("CAMPAIGN_DESIGN_SYSTEM_STALE", "campaign design system art-direction binding is stale")
+    if system.get("representative_approval_id") != representative_approval.get("approval_id") or system.get("representative_approval_sha256") != representative_sha:
+        raise PreproductionFreezeError("CAMPAIGN_DESIGN_SYSTEM_STALE", "campaign design system representative binding is stale")
+    expected = {
+        "art_direction_id": art_direction_id,
+        "idea_architecture_id": idea_id,
+        "visual_character_signature_id": visual_id,
+        "lighting_intent_id": lighting_id,
+    }
+    for key, value in expected.items():
+        if system.get(key) != value:
+            raise PreproductionFreezeError("CAMPAIGN_DESIGN_SYSTEM_MISMATCH", f"campaign design system {key} differs from approved preproduction")
+    for key in (
+        "campaign_design_system_id", "grid_logic", "headline_behavior", "offer_behavior", "cta_behavior",
+        "brand_anchor_behavior", "hero_treatment", "crop_language", "background_system", "accent_system",
+        "whitespace_character",
+    ):
+        _require_text(system.get(key), f"campaign_design_system.{key}")
+    if not system.get("forbidden_patterns"):
+        raise PreproductionFreezeError("CAMPAIGN_DESIGN_SYSTEM_INCOMPLETE", "campaign design system forbidden_patterns cannot be empty")
+    adaptation = system.get("format_adaptation_rules")
+    if not isinstance(adaptation, dict):
+        raise PreproductionFreezeError("CAMPAIGN_DESIGN_SYSTEM_INCOMPLETE", "format_adaptation_rules are required")
+    missing_families = sorted(family for family in layout_families if not str(adaptation.get(family) or "").strip())
+    if missing_families:
+        raise PreproductionFreezeError("CAMPAIGN_DESIGN_SYSTEM_INCOMPLETE", "missing format adaptation rules: " + ", ".join(missing_families))
+    lighting_system = system.get("lighting_system") or {}
+    allowed = lighting_system.get("allowed_primitives")
+    brief_allowed = set((design_brief.get("lighting_intent") or {}).get("composition_lighting", {}).get("allowed_primitives") or [])
+    if not isinstance(allowed, list) or not set(allowed) <= brief_allowed:
+        raise PreproductionFreezeError("CAMPAIGN_LIGHTING_SYSTEM_MISMATCH", "campaign lighting primitives exceed lighting_intent")
+    for key in ("scene_policy", "composition_policy", "focal_priority", "copy_safe_policy"):
+        _require_text(lighting_system.get(key), f"campaign_design_system.lighting_system.{key}")
+    if not lighting_system.get("forbidden_behaviors"):
+        raise PreproductionFreezeError("CAMPAIGN_LIGHTING_SYSTEM_MISMATCH", "campaign lighting forbidden_behaviors cannot be empty")
+    return _require_text(system.get("campaign_design_system_id"), "campaign_design_system_id")
+
+
 def freeze_preproduction(
     matrix: dict[str, Any],
     research: dict[str, Any],
@@ -156,6 +322,7 @@ def freeze_preproduction(
     design_brief: dict[str, Any],
     art_approval: dict[str, Any],
     representative_approval: dict[str, Any],
+    campaign_design_system: dict[str, Any],
     out_path: Path,
     *,
     research_path: Path,
@@ -163,6 +330,7 @@ def freeze_preproduction(
     design_brief_path: Path,
     art_approval_path: Path,
     representative_approval_path: Path,
+    campaign_design_system_path: Path,
     allow_degraded_research: bool = False,
 ) -> dict[str, Any]:
     if out_path.exists():
@@ -191,19 +359,17 @@ def freeze_preproduction(
         raise PreproductionFreezeError("DESIGN_BRIEF_STALE", "design brief category-map binding is stale/mismatched")
 
     commercial_lock, brand_lock, required_assets = _validate_design_locks(design_brief)
+    idea_id, visual_id, lighting_id = _validate_idea_character_lighting(design_brief)
 
     quality = design_brief.get("asset_quality_policy") or {}
     for key in (
-        "reject_low_resolution_assets",
-        "reject_generic_ai_clipart",
-        "reject_unapproved_toy_clay_style",
-        "reject_style_mismatch",
-        "require_professional_category_fit",
+        "reject_low_resolution_assets", "reject_generic_ai_clipart", "reject_unapproved_toy_clay_style",
+        "reject_style_mismatch", "require_professional_category_fit",
     ):
         if quality.get(key) is not True:
             raise PreproductionFreezeError("ASSET_QUALITY_POLICY_MISSING", f"design brief must enforce {key}=true")
 
-    concepts, variants, languages, sizes = _matrix_axes(matrix)
+    concepts, variants, languages, sizes, layout_families = _matrix_axes(matrix)
     outputs = design_brief.get("outputs") or {}
     rows = matrix["banner_matrix"]
     expected = int(matrix.get("expected_output_files", len(rows)))
@@ -237,6 +403,16 @@ def freeze_preproduction(
     )
     for key in required_direction_fields:
         _require_text(direction.get(key), f"selected_direction.{key}")
+    if direction.get("idea_architecture_id") != idea_id:
+        raise PreproductionFreezeError("ART_DIRECTION_IDEA_MISMATCH", "approved direction does not inherit the frozen idea architecture")
+    if direction.get("visual_character_signature_id") != visual_id:
+        raise PreproductionFreezeError("ART_DIRECTION_CHARACTER_MISMATCH", "approved direction does not inherit the visual-character signature")
+    if direction.get("lighting_intent_id") != lighting_id:
+        raise PreproductionFreezeError("ART_DIRECTION_LIGHTING_MISMATCH", "approved direction does not inherit lighting_intent")
+    if direction.get("presentation_mode") != (design_brief.get("idea_architecture") or {}).get("presentation_mode"):
+        raise PreproductionFreezeError("ART_DIRECTION_IDEA_MISMATCH", "approved direction presentation_mode differs from idea architecture")
+    if str(direction.get("emotional_target") or "").strip().lower() != str((design_brief.get("idea_architecture") or {}).get("emotional_target", {}).get("primary") or "").strip().lower():
+        raise PreproductionFreezeError("ART_DIRECTION_EMOTION_MISMATCH", "approved direction primary emotion differs from idea architecture")
     if not direction.get("anti_patterns"):
         raise PreproductionFreezeError("ART_DIRECTION_INCOMPLETE", "selected direction requires anti_patterns")
     candidates = direction.get("candidate_ids") or []
@@ -273,8 +449,24 @@ def freeze_preproduction(
             raise PreproductionFreezeError("REPRESENTATIVE_FORMAT_MISMATCH", f"approved representative {actual_format} != brief {representative_format}")
 
     rep_approval_sha = canonical_sha(representative_approval)
+    campaign_system_id = _validate_campaign_design_system(
+        campaign_design_system,
+        design_brief=design_brief,
+        design_sha=design_sha,
+        art_approval=art_approval,
+        art_sha=art_sha,
+        representative_approval=representative_approval,
+        representative_sha=rep_approval_sha,
+        art_direction_id=art_direction_id,
+        idea_id=idea_id,
+        visual_id=visual_id,
+        lighting_id=lighting_id,
+        layout_families=layout_families,
+    )
+    campaign_system_sha = canonical_sha(campaign_design_system)
+
     matrix_sha = canonical_sha(matrix)
-    fingerprint = hashlib.sha256((matrix_sha + research_sha + category_sha + design_sha + art_sha + rep_approval_sha + artifact_sha).encode("utf-8")).hexdigest()
+    fingerprint = hashlib.sha256((matrix_sha + research_sha + category_sha + design_sha + art_sha + rep_approval_sha + artifact_sha + campaign_system_sha).encode("utf-8")).hexdigest()
     result = {
         "status": "PREPRODUCTION_FROZEN",
         "freeze_id": f"PPF-{fingerprint[:16]}",
@@ -287,8 +479,12 @@ def freeze_preproduction(
         "commercial_lock": commercial_lock,
         "brand_identity_lock": brand_lock,
         "required_asset_ids": [item["asset_id"] for item in required_assets if item.get("required")],
+        "idea_architecture_id": idea_id,
+        "visual_character_signature_id": visual_id,
+        "lighting_intent_id": lighting_id,
         "art_direction_approval": {"id": art_approval["approval_id"], "path": art_approval_path.as_posix(), "sha256": art_sha},
         "representative_design_approval": {"id": representative_approval["approval_id"], "path": representative_approval_path.as_posix(), "sha256": rep_approval_sha},
+        "campaign_design_system": {"id": campaign_system_id, "path": campaign_design_system_path.as_posix(), "sha256": campaign_system_sha},
         "selected_art_direction_id": art_direction_id,
         "representative_artifact_path": artifact_path.as_posix(),
         "representative_artifact_sha256": artifact_sha,
@@ -299,13 +495,14 @@ def freeze_preproduction(
 
 
 def main() -> int:
-    p = argparse.ArgumentParser(description="Freeze competitive research through representative design approval before banner scale-out")
+    p = argparse.ArgumentParser(description="Freeze competitive research through approved representative and campaign design system before scale-out")
     p.add_argument("--matrix", type=Path, required=True)
     p.add_argument("--competitive-research", type=Path, required=True)
     p.add_argument("--category-map", type=Path, required=True)
     p.add_argument("--design-brief", type=Path, required=True)
     p.add_argument("--art-direction-approval", type=Path, required=True)
     p.add_argument("--representative-approval", type=Path, required=True)
+    p.add_argument("--campaign-design-system", type=Path, required=True)
     p.add_argument("--allow-degraded-research", action="store_true")
     p.add_argument("--out", type=Path, required=True)
     a = p.parse_args()
@@ -317,12 +514,14 @@ def main() -> int:
             load_json(a.design_brief),
             load_json(a.art_direction_approval),
             load_json(a.representative_approval),
+            load_json(a.campaign_design_system),
             a.out,
             research_path=a.competitive_research,
             category_map_path=a.category_map,
             design_brief_path=a.design_brief,
             art_approval_path=a.art_direction_approval,
             representative_approval_path=a.representative_approval,
+            campaign_design_system_path=a.campaign_design_system,
             allow_degraded_research=a.allow_degraded_research,
         )
     except PreproductionFreezeError as exc:
