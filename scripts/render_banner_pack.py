@@ -75,17 +75,27 @@ def assert_spec_matches_row(spec: dict[str, Any], row: dict[str, Any]) -> None:
         "height": row.get("height"),
         "layout_family": row.get("layout_family"),
     }
-    mismatches = [
-        f"{key}: spec={spec.get(key)!r} matrix={expected!r}"
-        for key, expected in checks.items()
-        if spec.get(key) != expected
-    ]
+    mismatches = [f"{key}: spec={spec.get(key)!r} matrix={expected!r}" for key, expected in checks.items() if spec.get(key) != expected]
     if mismatches:
         raise PackError("FAIL_SPEC_MATRIX_MISMATCH", "; ".join(mismatches))
 
 
 def _dedupe(values: list[str] | None) -> list[str]:
     return list(dict.fromkeys(item for item in (values or []) if item))
+
+
+def _require_design_provenance(provenance: dict[str, Any]) -> None:
+    required = (
+        "preproduction_freeze_sha256",
+        "campaign_design_system_id",
+        "campaign_design_system_sha256",
+        "idea_architecture_id",
+        "visual_character_signature_id",
+        "lighting_intent_id",
+    )
+    missing = [key for key in required if provenance.get(key) in {None, ""}]
+    if missing:
+        raise PackError("FAIL_DESIGN_SYSTEM_BINDING", "production render missing frozen design provenance: " + ", ".join(missing))
 
 
 def assert_frozen_creative_binding(
@@ -107,6 +117,8 @@ def assert_frozen_creative_binding(
         return
     if not all(value not in {None, ""} for value in (contract_id, contract_path_value, contract_sha)):
         raise PackError("FAIL_CREATIVE_BINDING", "creative binding requires ID, path, and SHA-256 together")
+    if required:
+        _require_design_provenance(provenance)
 
     concept_id = row.get("concept_id")
     variant_id = row.get("variant_id")
@@ -125,13 +137,7 @@ def assert_frozen_creative_binding(
         raise PackError("FAIL_CREATIVE_BINDING", "creative contract identity/status does not match frozen matrix")
 
     try:
-        expected_copy = binding_module.variant_copy(
-            contract,
-            variant_id,
-            language,
-            row.get("layout_family"),
-            row.get("dimension"),
-        )
+        expected_copy = binding_module.variant_copy(contract, variant_id, language, row.get("layout_family"), row.get("dimension"))
     except getattr(binding_module, "CreativeBindingError", ValueError) as exc:
         raise PackError("FAIL_CREATIVE_BINDING", str(exc)) from exc
     if spec.get("copy") != expected_copy:
@@ -140,11 +146,7 @@ def assert_frozen_creative_binding(
     expected_refs = contract.get("reference_dna_ids") or []
     if provenance.get("reference_dna_ids") != expected_refs:
         raise PackError("FAIL_CREATIVE_BINDING", "render-spec reference_dna_ids differ from creative contract")
-    expected_sources = [
-        item.get("source_id")
-        for item in contract.get("source_grounding") or []
-        if isinstance(item, dict) and item.get("source_id")
-    ]
+    expected_sources = [item.get("source_id") for item in contract.get("source_grounding") or [] if isinstance(item, dict) and item.get("source_id")]
     if provenance.get("source_grounding_ids") != expected_sources:
         raise PackError("FAIL_CREATIVE_BINDING", "render-spec source grounding differs from creative contract")
     if provenance.get("brand_id") != contract.get("brand_id"):
@@ -159,13 +161,14 @@ def assert_frozen_creative_binding(
         raise PackError("FAIL_CREATIVE_BINDING", "render-spec lighting scheme differs from creative contract")
 
 
-def build_manifest(
-    matrix: dict[str, Any],
-    jobs: list[dict[str, Any]],
-    mode: str,
-    pack: str,
-    spec_snapshot_date: str | None,
-) -> dict[str, Any]:
+def _single_provenance_value(jobs: list[dict[str, Any]], key: str) -> Any:
+    values = {job.get("spec_provenance", {}).get(key) for job in jobs if job.get("status") == "PASS"}
+    if len(values) > 1:
+        raise PackError("FAIL_MANIFEST", f"pack contains inconsistent {key}: {sorted(str(value) for value in values)}")
+    return next(iter(values)) if values else None
+
+
+def build_manifest(matrix: dict[str, Any], jobs: list[dict[str, Any]], mode: str, pack: str, spec_snapshot_date: str | None) -> dict[str, Any]:
     files = []
     jobs_by_id = {job["job_id"]: job for job in jobs}
     for row in matrix["banner_matrix"]:
@@ -177,40 +180,46 @@ def build_manifest(
         output_path = Path(render["output_path"])
         provenance = job.get("spec_provenance") or {}
         reference_ids = _dedupe((provenance.get("reference_dna_ids") or []) + (row.get("reference_dna_ids") or []))
-        files.append(
-            {
-                "job_id": row["job_id"],
-                "concept_id": row.get("concept_id"),
-                "variant_id": row.get("variant_id") or row["job_id"],
-                "language": row.get("language"),
-                "dimension": row.get("dimension") or f"{row['width']}x{row['height']}",
-                "google_name": row.get("google_name"),
-                "path": render["output_path"],
-                "sha256": sha256_file(output_path),
-                "render_spec_path": job["spec_path"],
-                "render_spec_sha256": job.get("render_spec_sha256"),
-                "width": row["width"],
-                "height": row["height"],
-                "bytes": saved.get("bytes"),
-                "format": saved.get("format"),
-                "layout_family": row.get("layout_family"),
-                "brand_id": provenance.get("brand_id") or matrix.get("brand_id"),
-                "art_direction_id": provenance.get("art_direction_id"),
-                "creative_contract_id": provenance.get("creative_contract_id"),
-                "creative_contract_path": provenance.get("creative_contract_path"),
-                "creative_contract_sha256": provenance.get("creative_contract_sha256"),
-                "hero_asset_id": provenance.get("hero_asset_id") or row.get("hero_asset_id"),
-                "reference_dna_ids": reference_ids,
-                "source_grounding_ids": _dedupe(provenance.get("source_grounding_ids")),
-                "lighting_scheme_id": provenance.get("lighting_scheme_id") or row.get("lighting_scheme_id"),
-                "status": "PASS",
-                "checks": (
-                    ["creative_binding", "art_direction_binding", "deterministic_render", "google_technical_preflight"]
-                    if provenance.get("creative_contract_sha256")
-                    else ["deterministic_render", "google_technical_preflight"]
-                ),
-            }
-        )
+        files.append({
+            "job_id": row["job_id"],
+            "concept_id": row.get("concept_id"),
+            "variant_id": row.get("variant_id") or row["job_id"],
+            "language": row.get("language"),
+            "dimension": row.get("dimension") or f"{row['width']}x{row['height']}",
+            "google_name": row.get("google_name"),
+            "path": render["output_path"],
+            "sha256": sha256_file(output_path),
+            "render_spec_path": job["spec_path"],
+            "render_spec_sha256": job.get("render_spec_sha256"),
+            "width": row["width"],
+            "height": row["height"],
+            "bytes": saved.get("bytes"),
+            "format": saved.get("format"),
+            "layout_family": row.get("layout_family"),
+            "brand_id": provenance.get("brand_id") or matrix.get("brand_id"),
+            "art_direction_id": provenance.get("art_direction_id"),
+            "preproduction_freeze_sha256": provenance.get("preproduction_freeze_sha256"),
+            "campaign_design_system_id": provenance.get("campaign_design_system_id"),
+            "campaign_design_system_sha256": provenance.get("campaign_design_system_sha256"),
+            "idea_architecture_id": provenance.get("idea_architecture_id"),
+            "visual_character_signature_id": provenance.get("visual_character_signature_id"),
+            "lighting_intent_id": provenance.get("lighting_intent_id"),
+            "creative_contract_id": provenance.get("creative_contract_id"),
+            "creative_contract_path": provenance.get("creative_contract_path"),
+            "creative_contract_sha256": provenance.get("creative_contract_sha256"),
+            "hero_generation_spec_id": provenance.get("hero_generation_spec_id"),
+            "hero_generation_spec_sha256": provenance.get("hero_generation_spec_sha256"),
+            "hero_asset_id": provenance.get("hero_asset_id") or row.get("hero_asset_id"),
+            "reference_dna_ids": reference_ids,
+            "source_grounding_ids": _dedupe(provenance.get("source_grounding_ids")),
+            "lighting_scheme_id": provenance.get("lighting_scheme_id") or row.get("lighting_scheme_id"),
+            "status": "PASS",
+            "checks": (
+                ["creative_binding", "art_direction_binding", "campaign_design_system_binding", "idea_character_lighting_binding", "deterministic_render", "google_technical_preflight"]
+                if provenance.get("creative_contract_sha256")
+                else ["deterministic_render", "google_technical_preflight"]
+            ),
+        })
     return {
         "campaign_id": matrix.get("run_id") or "banner-run",
         "generated_at": utc_now_iso(),
@@ -218,6 +227,12 @@ def build_manifest(
         "google_pack": pack,
         "spec_snapshot_date": spec_snapshot_date,
         "matrix_sha256": canonical_json_sha256(matrix),
+        "preproduction_freeze_sha256": _single_provenance_value(jobs, "preproduction_freeze_sha256"),
+        "campaign_design_system_id": _single_provenance_value(jobs, "campaign_design_system_id"),
+        "campaign_design_system_sha256": _single_provenance_value(jobs, "campaign_design_system_sha256"),
+        "idea_architecture_id": _single_provenance_value(jobs, "idea_architecture_id"),
+        "visual_character_signature_id": _single_provenance_value(jobs, "visual_character_signature_id"),
+        "lighting_intent_id": _single_provenance_value(jobs, "lighting_intent_id"),
         "render_engine": "pillow-deterministic-v0.2",
         "files": files,
     }
@@ -259,16 +274,7 @@ def render_pack(
     for row in rows:
         job_id = row["job_id"]
         spec_path = spec_dir / f"{job_id}.json"
-        job = {
-            "job_id": job_id,
-            "spec_path": spec_path.as_posix(),
-            "render_spec_sha256": None,
-            "spec_provenance": {},
-            "status": "FAIL",
-            "render": None,
-            "validation": None,
-            "error": None,
-        }
+        job = {"job_id": job_id, "spec_path": spec_path.as_posix(), "render_spec_sha256": None, "spec_provenance": {}, "status": "FAIL", "render": None, "validation": None, "error": None}
         try:
             raw_spec = spec_path.read_bytes()
             job["render_spec_sha256"] = sha256_bytes(raw_spec)
@@ -277,22 +283,14 @@ def render_pack(
             except (UnicodeDecodeError, json.JSONDecodeError) as exc:
                 raise PackError("FAIL_INPUT", f"invalid render spec {spec_path}: {exc}") from exc
             assert_spec_matches_row(spec, row)
-            assert_frozen_creative_binding(
-                spec,
-                row,
-                required=require_creative_binding,
-                binding_module=binding_module,
-            )
+            assert_frozen_creative_binding(spec, row, required=require_creative_binding, binding_module=binding_module)
             job["spec_provenance"] = dict(spec.get("provenance") or {})
 
             output = dict(spec.get("output") or {})
             output["path"] = str(row["output_path"])
             output["format"] = row.get("output_format", output.get("format", "png"))
             if google_config is not None:
-                output.setdefault(
-                    "target_max_bytes",
-                    int(google_config["modes"][mode]["max_file_size_bytes_conservative"]),
-                )
+                output.setdefault("target_max_bytes", int(google_config["modes"][mode]["max_file_size_bytes_conservative"]))
             spec["output"] = output
 
             render_report = renderer.render_banner(spec)
@@ -301,10 +299,7 @@ def render_pack(
             job["render"] = render_report
             job["validation"] = validation
             if validation.get("status") != "PASS":
-                raise PackError(
-                    "FAIL_TECHNICAL_PREFLIGHT",
-                    "; ".join(validation.get("errors") or ["technical validation failed"]),
-                )
+                raise PackError("FAIL_TECHNICAL_PREFLIGHT", "; ".join(validation.get("errors") or ["technical validation failed"]))
             job["status"] = "PASS"
             passed_files.append(output_path)
         except (OSError, PackError, getattr(renderer, "RenderError", ValueError)) as exc:
@@ -320,14 +315,7 @@ def render_pack(
         sheet.build_contact_sheet(passed_files, contact_sheet)
         contact = contact_sheet.as_posix()
 
-    failures = [
-        {
-            "job_id": job["job_id"],
-            **(job["error"] or {"code": "FAIL_JOB", "message": "unknown failure"}),
-        }
-        for job in jobs
-        if job["status"] != "PASS"
-    ]
+    failures = [{"job_id": job["job_id"], **(job["error"] or {"code": "FAIL_JOB", "message": "unknown failure"})} for job in jobs if job["status"] != "PASS"]
 
     manifest = None
     manifest_sha256 = None
@@ -362,21 +350,13 @@ def main() -> int:
     parser.add_argument("--pack", default="core")
     parser.add_argument("--contact-sheet", type=Path)
     parser.add_argument("--manifest", type=Path)
-    parser.add_argument(
-        "--allow-unbound-creative",
-        action="store_true",
-        help="Development/legacy only: permit render specs without a frozen creative contract",
-    )
+    parser.add_argument("--allow-unbound-creative", action="store_true", help="Development/legacy only: permit render specs without a frozen creative/design-system contract")
     parser.add_argument("--report", required=True, type=Path)
     args = parser.parse_args()
     try:
         result = render_pack(
-            load_json(args.matrix),
-            args.spec_dir,
-            mode=args.mode,
-            pack=args.pack,
-            contact_sheet=args.contact_sheet,
-            manifest_path=args.manifest,
+            load_json(args.matrix), args.spec_dir, mode=args.mode, pack=args.pack,
+            contact_sheet=args.contact_sheet, manifest_path=args.manifest,
             require_creative_binding=not args.allow_unbound_creative,
         )
     except PackError as exc:
