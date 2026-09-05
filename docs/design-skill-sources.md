@@ -1,81 +1,90 @@
-# Public GitHub Design Skills Reviewed for v0.2
+# Design-skill and methodology sources
 
-This document records public skill/repository patterns reviewed while strengthening banner design craft. These repositories are implementation/design-method inspirations, not scientific authorities.
+This repository separates **useful design process ideas** from **scientific/performance evidence**. Public skills, practitioner presentations and creative tools may contribute production heuristics or vocabulary, but they do not become conversion laws merely because they look authoritative.
 
-## `vanducng/skills` — `marketing-design`
+## Public design skills reviewed
 
-Useful patterns retained:
-- banner workflow explicitly asks purpose, platform, content, brand, style and quantity;
-- broad art-direction vocabulary instead of one generic AI aesthetic;
-- exact-size HTML/CSS/screenshot thinking for banner output;
-- separate imagery generation from layout/composition.
+### `caorachel-lab/frontend-posters`
+Useful patterns:
+- fixed-canvas thinking;
+- multiple materially distinct directions before selection;
+- thumbnail inspection;
+- rendered-output QA.
 
 Not imported as universal rules:
-- CTA always bottom-right;
-- universal central 70–80% safe zone;
-- universal 20% text maximum;
-- universal font-size thresholds;
-- unsupported “highest CTR” labels.
+- fixed CTA position;
+- fixed text/fill ratio;
+- one mandatory poster layout.
 
-## `caorachel-lab/frontend-posters`
-
-Strongest transferable craft patterns:
-- fixed canvas at authored target dimensions;
-- if direction is unresolved, create three real previews rather than verbal mood boards;
-- keep actual content/assets stable across preview directions so the user compares design systems;
-- compose hook/image masses before details;
-- inspect full-size artifact and reduced thumbnail;
-- automated bounds/overflow/collision QA plus visual inspection;
-- avoid app/dashboard/card UI habits in graphic-design artifacts.
-
-Adapted into this repository as art-direction preview modes, aspect-ratio recomposition, actual-size review and thumbnail diagnostics.
-
-## `rahamanbinujit/claude-design-engine`
-
-Useful patterns retained:
-- hierarchy as relative visual contrast rather than decoration;
+### `rahamanbinujit/claude-design-engine`
+Useful patterns:
 - squint test;
-- grayscale diagnostic;
-- self-review before delivery;
-- research/reference-first mindset;
-- explicit anti-generic design concern.
+- grayscale hierarchy check;
+- self-review / hierarchy debugging;
+- anti-template thinking.
 
-Not imported as laws:
-- exact 4:1 headline/body ratio;
-- “exactly four hierarchy levels”;
-- one accent color universally;
-- prohibition on pure black/white;
-- any aesthetic score as a performance prediction.
+### `vanducng/skills` — marketing design
+Useful patterns:
+- art-direction vocabulary;
+- campaign-oriented visual thinking;
+- explicit design choices rather than generic rendering.
 
-## `social-media-skills/skills`
+### `social-media-skills` / thumbnail-oriented workflows
+Useful patterns:
+- small-view legibility;
+- persistent design grammar;
+- strong focal hierarchy.
 
-### `design-and-templates`
-Useful: persistent brand kit, small reusable design grammar, consistency across related assets, safe-zone/mobile-legibility mindset.
+## User-supplied practitioner methodology — `ВИЗУАЛ И УПАКОВКА`
 
-### `thumbnail-design`
-Useful: one primary focal point, small-view legibility, meaningful A/B variants, title/visual complementarity, gaze only when relevant.
+The 38-page presentation contributed a **meaning-first visual-development methodology**. It is not treated as peer-reviewed research or proof of advertising performance.
 
-Performance percentages and universal engagement claims from external skills are not promoted into this repository without stronger evidence.
+Transferred as production heuristics:
+- “idea first, visual second”;
+- task → idea → presentation → emotion → style/character → prompt/generation → selection → refinement → adaptation → final;
+- separate semantic idea from visual embodiment;
+- presentation modes chosen by communication task rather than what merely looks interesting;
+- one clear focal idea/hero/emotion/visual language as a default complexity heuristic;
+- negative/forbidden list as a first-class creative constraint;
+- first generation is a draft, not the final design;
+- campaign/system thinking instead of one-off images;
+- visual-character matrix rather than a rigid list of styles;
+- optional disruptive devices such as paradox, pain visualization, genre masks or personification as test hypotheses.
 
-## `AgriciDaniel/claude-ads` — creative audit
+Implemented in:
+- `references/idea-architecture-visual-character.md`;
+- `references/creative-disruption-library.md`;
+- `schemas/design-brief.schema.json`;
+- `schemas/hero-generation-spec.schema.json`;
+- `schemas/campaign-design-system.schema.json`;
+- `scripts/freeze_preproduction_design.py`.
 
-Useful principle: keep creative quality, platform compliance and measured performance as separate judgments. A good-looking banner is not automatically compliant; a compliant banner is not automatically good; neither implies performance without campaign data.
+The style vocabulary is intentionally extensible because the user plans to provide additional banner-style examples. Those examples should enrich `VISUAL_CHARACTER`, `style_tags`, reference DNA, and possibly evaluation cases — not create a closed list of compulsory templates.
 
-## `Salah-XD/equipt` — ad creative brief
+## User-supplied lighting methodology — `СВЕТ — 30 схем освещения`
 
-Useful: explicit gate for product/offer, platform, objective, audience, brand, quantity and format before detailed production; separate messaging angles from finished executions.
+The 30 practical lighting patterns remain a production vocabulary, not performance evidence.
 
-Social-platform generalizations from that skill are not treated as Google display laws.
+The important architectural change is that lighting is no longer selected independently. It is downstream of meaning:
 
-## Resulting v0.2 additions
+`CORE IDEA → PRESENTATION MODE → EMOTIONAL TARGET → VISUAL CHARACTER → PRIMARY AOI → LIGHTING INTENT → SCENE/COMPOSITION LIGHTING`
 
-The review above directly informed:
-- `references/art-direction-and-design-craft.md`;
-- three-mode art-direction resolution;
-- frozen `art_direction_id` provenance;
-- anti-template / anti-generic-AI checks;
-- silhouette-first hierarchy;
-- aspect-ratio crop recomposition;
-- actual-size + thumbnail + grayscale + squint review views;
-- campaign-level design grammar in pack review;
-- explicit evidence discipline for imported heuristics.
+Implemented in:
+- `references/lighting-intelligence.md`;
+- `config/lighting-schemes.json`;
+- `lighting_intent` in `design-brief.json`;
+- campaign lighting inside `campaign-design-system.json`;
+- representative/banner/pack review fidelity checks.
+
+## Evidence discipline
+
+Do not import these statements as universal facts:
+- “brightest object is always seen first”;
+- “emotion always sells better”;
+- “visual paradox increases CTR”;
+- “CTA should always be bottom-right”;
+- “text should always occupy less than N%”;
+- “one lighting scheme is best for a category”;
+- “one visual style is inherently high-converting.”
+
+Use them only as testable hypotheses when appropriate.
