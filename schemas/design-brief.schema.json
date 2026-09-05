@@ -16,6 +16,11 @@
     "audience",
     "brand_context",
     "brand_identity_lock",
+    "idea_architecture",
+    "visual_character",
+    "focus_budget",
+    "forbidden_visuals",
+    "creative_chaos_audit",
     "art_direction_strategy",
     "visual_hierarchy",
     "image_strategy",
@@ -25,6 +30,7 @@
     "color",
     "layout",
     "lighting",
+    "lighting_intent",
     "information_density",
     "small_format_policy",
     "outputs",
@@ -65,6 +71,109 @@
       }
     },
     "references": {"type": "object"},
+    "idea_architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["idea_architecture_id", "core_idea", "single_takeaway", "presentation_mode", "emotional_target", "creative_tension", "why_this_visual", "disruption_level"],
+      "properties": {
+        "idea_architecture_id": {"type": "string", "minLength": 1},
+        "core_idea": {"type": "string", "minLength": 1},
+        "single_takeaway": {"type": "string", "minLength": 1},
+        "presentation_mode": {
+          "enum": [
+            "PRODUCT_PROOF",
+            "OUTCOME_VISUALIZATION",
+            "PAIN_VISUALIZATION",
+            "EXPLAINER",
+            "BEFORE_AFTER",
+            "WORKFLOW",
+            "HUMAN_CONTEXT",
+            "CHARACTER",
+            "VISUAL_METAPHOR",
+            "VISUAL_PARADOX",
+            "EDITORIAL_STATEMENT",
+            "SOCIAL_PROOF",
+            "PROMOTION_LED",
+            "OTHER"
+          ]
+        },
+        "secondary_presentation_mode": {
+          "type": ["string", "null"],
+          "enum": [null, "PRODUCT_PROOF", "OUTCOME_VISUALIZATION", "PAIN_VISUALIZATION", "EXPLAINER", "BEFORE_AFTER", "WORKFLOW", "HUMAN_CONTEXT", "CHARACTER", "VISUAL_METAPHOR", "VISUAL_PARADOX", "EDITORIAL_STATEMENT", "SOCIAL_PROOF", "PROMOTION_LED", "OTHER"]
+        },
+        "emotional_target": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primary", "secondary", "avoid", "intensity"],
+          "properties": {
+            "primary": {"type": "string", "minLength": 1},
+            "secondary": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+            "avoid": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+            "intensity": {"enum": ["RESTRAINED", "MODERATE", "HIGH"]}
+          }
+        },
+        "creative_tension": {"type": "string", "minLength": 1},
+        "why_this_visual": {"type": "string", "minLength": 1},
+        "disruption_level": {"enum": ["LOW", "MEDIUM", "HIGH"]}
+      }
+    },
+    "visual_character": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signature_id", "primary_character", "order_to_virality", "aesthetics_to_innovation", "style_tags", "rationale"],
+      "properties": {
+        "signature_id": {"type": "string", "minLength": 1},
+        "primary_character": {"type": "string", "minLength": 1},
+        "secondary_character": {"type": ["string", "null"]},
+        "order_to_virality": {"type": "number", "minimum": 0, "maximum": 1},
+        "aesthetics_to_innovation": {"type": "number", "minimum": 0, "maximum": 1},
+        "style_tags": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "rationale": {"type": "string", "minLength": 1}
+      }
+    },
+    "focus_budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_idea_count", "primary_hero_count", "primary_emotion_count", "primary_visual_language_count", "accent_detail_max", "deviation_rationale"],
+      "properties": {
+        "primary_idea_count": {"type": "integer", "minimum": 1},
+        "primary_hero_count": {"type": "integer", "minimum": 0},
+        "primary_emotion_count": {"type": "integer", "minimum": 1},
+        "primary_visual_language_count": {"type": "integer", "minimum": 1},
+        "accent_detail_max": {"type": "integer", "minimum": 0},
+        "deviation_rationale": {"type": ["string", "null"]}
+      }
+    },
+    "forbidden_visuals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["global", "brand", "concept"],
+      "properties": {
+        "global": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "brand": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "concept": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "creative_chaos_audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "core_idea_clear", "single_takeaway_clear", "presentation_mode_resolved", "emotional_target_resolved", "visual_character_coherent", "lighting_supports_idea", "information_overload", "composition_intentional", "forbidden_list_present", "platform_adaptation_planned", "first_generation_is_final", "blockers"],
+      "properties": {
+        "status": {"const": "PASS"},
+        "core_idea_clear": {"const": true},
+        "single_takeaway_clear": {"const": true},
+        "presentation_mode_resolved": {"const": true},
+        "emotional_target_resolved": {"const": true},
+        "visual_character_coherent": {"const": true},
+        "lighting_supports_idea": {"const": true},
+        "information_overload": {"const": false},
+        "composition_intentional": {"const": true},
+        "forbidden_list_present": {"const": true},
+        "platform_adaptation_planned": {"const": true},
+        "first_generation_is_final": {"const": false},
+        "blockers": {"type": "array", "maxItems": 0}
+      }
+    },
     "art_direction_strategy": {
       "type": "object",
       "additionalProperties": false,
@@ -90,11 +199,13 @@
     "image_strategy": {
       "type": "object",
       "additionalProperties": true,
-      "required": ["hero_type", "product_scale", "copy_safe_area_required"],
+      "required": ["hero_type", "product_scale", "copy_safe_area_required", "source_mode", "hero_generation_spec_required"],
       "properties": {
         "hero_type": {"type": "string", "minLength": 1},
         "product_scale": {"type": "string", "minLength": 1},
-        "copy_safe_area_required": {"type": "boolean"}
+        "copy_safe_area_required": {"type": "boolean"},
+        "source_mode": {"enum": ["REAL_ASSET", "GENERATED", "HYBRID", "NONE"]},
+        "hero_generation_spec_required": {"type": "boolean"}
       }
     },
     "required_assets": {
@@ -134,6 +245,42 @@
     "color": {"type": "object", "minProperties": 1},
     "layout": {"type": "object", "minProperties": 1},
     "lighting": {"type": "object", "minProperties": 1},
+    "lighting_intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lighting_intent_id", "relationship_to_idea", "primary_aoi_role", "emotional_function", "visual_character_alignment", "scene_lighting", "composition_lighting", "forbidden_behaviors"],
+      "properties": {
+        "lighting_intent_id": {"type": "string", "minLength": 1},
+        "relationship_to_idea": {"type": "string", "minLength": 1},
+        "primary_aoi_role": {"type": "string", "minLength": 1},
+        "emotional_function": {"type": "string", "minLength": 1},
+        "visual_character_alignment": {"type": "string", "minLength": 1},
+        "scene_lighting": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "candidate_scheme_ids", "rationale"],
+          "properties": {
+            "mode": {"enum": ["REQUIRED", "OPTIONAL", "NOT_APPLICABLE"]},
+            "candidate_scheme_ids": {"type": "array", "uniqueItems": true, "items": {"type": "integer", "minimum": 1, "maximum": 30}},
+            "rationale": {"type": "string", "minLength": 1},
+            "material_context": {"type": ["string", "null"]}
+          }
+        },
+        "composition_lighting": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "allowed_primitives", "copy_safe_zone_strategy", "focal_priority", "rationale"],
+          "properties": {
+            "mode": {"enum": ["REQUIRED", "OPTIONAL", "NOT_APPLICABLE"]},
+            "allowed_primitives": {"type": "array", "uniqueItems": true, "items": {"enum": ["hero_edge_glow", "spotlight", "copy_scrim", "vignette", "text_plate"]}},
+            "copy_safe_zone_strategy": {"type": "string", "minLength": 1},
+            "focal_priority": {"type": "string", "minLength": 1},
+            "rationale": {"type": "string", "minLength": 1}
+          }
+        },
+        "forbidden_behaviors": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
     "information_density": {"type": "object", "minProperties": 1},
     "small_format_policy": {"type": "object", "minProperties": 1},
     "outputs": {
@@ -151,11 +298,14 @@
     "review_requirements": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["actual_size", "asset_quality", "professional_category_fit", "thumbnail", "grayscale", "squint"],
+      "required": ["actual_size", "asset_quality", "professional_category_fit", "idea_fidelity", "emotional_fidelity", "lighting_intent_fidelity", "thumbnail", "grayscale", "squint"],
       "properties": {
         "actual_size": {"const": true},
         "asset_quality": {"const": true},
         "professional_category_fit": {"const": true},
+        "idea_fidelity": {"const": true},
+        "emotional_fidelity": {"const": true},
+        "lighting_intent_fidelity": {"const": true},
         "thumbnail": {"const": true},
         "grayscale": {"const": true},
         "squint": {"const": true}
