@@ -4,14 +4,7 @@
   "title": "Independent Banner Pack Review",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "reviewer_role",
-    "independent_context",
-    "manifest_sha256",
-    "status",
-    "checks",
-    "findings"
-  ],
+  "required": ["reviewer_role", "independent_context", "manifest_sha256", "status", "checks", "findings"],
   "properties": {
     "reviewer_role": {"const": "PACK_REVIEWER"},
     "reviewer_thread_id": {"type": ["string", "null"]},
@@ -26,9 +19,14 @@
         "all_expected_files_present",
         "no_unintended_duplicates",
         "cross_size_concept_consistency",
+        "idea_consistency",
+        "emotional_consistency",
+        "visual_character_consistency",
+        "campaign_design_system_consistency",
         "brand_consistency",
         "professional_category_consistency",
         "asset_quality_consistency",
+        "cross_size_lighting_intent_consistency",
         "intentional_layout_adaptation",
         "small_format_simplification",
         "contact_sheet_review"
@@ -37,9 +35,14 @@
         "all_expected_files_present": {"$ref": "#/$defs/check"},
         "no_unintended_duplicates": {"$ref": "#/$defs/check"},
         "cross_size_concept_consistency": {"$ref": "#/$defs/check"},
+        "idea_consistency": {"$ref": "#/$defs/check"},
+        "emotional_consistency": {"$ref": "#/$defs/check"},
+        "visual_character_consistency": {"$ref": "#/$defs/check"},
+        "campaign_design_system_consistency": {"$ref": "#/$defs/check"},
         "brand_consistency": {"$ref": "#/$defs/check"},
         "professional_category_consistency": {"$ref": "#/$defs/check"},
         "asset_quality_consistency": {"$ref": "#/$defs/check"},
+        "cross_size_lighting_intent_consistency": {"$ref": "#/$defs/check"},
         "intentional_layout_adaptation": {"$ref": "#/$defs/check"},
         "small_format_simplification": {"$ref": "#/$defs/check"},
         "contact_sheet_review": {"$ref": "#/$defs/check"},
@@ -64,7 +67,5 @@
     },
     "summary": {"type": ["string", "null"]}
   },
-  "$defs": {
-    "check": {"enum": ["PASS", "FAIL", "NOT_APPLICABLE", "UNCHECKABLE"]}
-  }
+  "$defs": {"check": {"enum": ["PASS", "FAIL", "NOT_APPLICABLE", "UNCHECKABLE"]}}
 }
