@@ -252,7 +252,6 @@ def _validate_idea_character_lighting(design_brief: dict[str, Any]) -> tuple[str
         raise PreproductionFreezeError("LIGHTING_INTENT_INVALID", "lighting_intent.forbidden_behaviors cannot be empty")
 
     if primary_emotion.lower() not in str(lighting.get("emotional_function") or "").lower():
-        # Advisory semantics are free text; require only that the lighting function explicitly addresses the primary emotion.
         raise PreproductionFreezeError("LIGHTING_EMOTION_MISMATCH", "lighting emotional_function must explicitly reference the primary emotional target")
     return idea_id, visual_id, lighting_id
 
@@ -428,6 +427,7 @@ def freeze_preproduction(
         raise PreproductionFreezeError("REPRESENTATIVE_APPROVAL_STALE", "representative art_direction_id differs from approved direction")
     checks = representative_approval.get("quality_checks") or {}
     required_checks = (
+        "idea_fidelity", "emotional_fidelity", "visual_character_fidelity", "lighting_intent_fidelity",
         "asset_quality", "professional_category_fit", "hierarchy", "typography", "brand_fidelity",
         "commercial_message_fidelity", "hero_crop", "lighting_contrast", "cta_clarity", "anti_generic_ai",
     )
