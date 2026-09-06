@@ -301,6 +301,23 @@ def _strategy(candidate: dict[str, Any], lane: str, index: int) -> dict[str, Any
     }
 
 
+def _wildcard_corridor(context: dict[str, Any], candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep the wildcard distinct but semantically compatible with requested disruption."""
+    level = context["disruption_level"]
+    target = float(context["target_order_to_virality"])
+    if level == "HIGH":
+        floor, ceiling = max(0.45, target - 0.35), 1.0
+    elif level == "LOW":
+        floor, ceiling = 0.0, min(0.55, target + 0.35)
+    else:
+        floor, ceiling = max(0.2, target - 0.4), min(0.85, target + 0.4)
+    inside = [
+        item for item in candidates
+        if floor <= float(item["foundation"].get("order_to_virality", 0.5)) <= ceiling
+    ]
+    return inside or candidates
+
+
 def recommend(context: dict[str, Any], library: dict[str, Any]) -> dict[str, Any]:
     _require_context(context)
     status, current_enabled = _currentness_status(library)
@@ -330,11 +347,22 @@ def recommend(context: dict[str, Any], library: dict[str, Any]) -> dict[str, Any
     if not eligible:
         raise StyleRecommendationError("not enough distinct candidates for top-3 lanes")
 
+    eligible = _wildcard_corridor(context, eligible)
+    target_axis = float(context["target_order_to_virality"])
+    target_innovation = float(context["target_aesthetics_to_innovation"])
     safe_axis = float(safe["foundation"].get("order_to_virality", 0.5))
     current_axis = float(current["foundation"].get("order_to_virality", 0.5))
     wildcard = max(
         eligible,
-        key=lambda item: item["score_total"] + 0.08 * (abs(float(item["foundation"].get("order_to_virality", 0.5)) - safe_axis) + abs(float(item["foundation"].get("order_to_virality", 0.5)) - current_axis)),
+        key=lambda item: (
+            item["score_total"]
+            + 0.07 * _axis_score(item["foundation"].get("order_to_virality", 0.5), target_axis)
+            + 0.04 * _axis_score(item["foundation"].get("aesthetics_to_innovation", 0.5), target_innovation)
+            + 0.03 * (
+                abs(float(item["foundation"].get("order_to_virality", 0.5)) - safe_axis)
+                + abs(float(item["foundation"].get("order_to_virality", 0.5)) - current_axis)
+            )
+        ),
     )
 
     recommendations = [
