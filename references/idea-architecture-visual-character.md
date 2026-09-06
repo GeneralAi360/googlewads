@@ -1,14 +1,18 @@
-# Idea architecture, visual character, and lighting linkage
+# Idea architecture, visual character, style intelligence, and lighting linkage
 
 ## Source status
 
-This reference is adapted from the user-supplied 38-page presentation **«ВИЗУАЛ И УПАКОВКА»**. The presentation is a practitioner methodology for visual concept development, prompting, selection, refinement, and packaging. Treat its claims as **PRODUCTION HEURISTICS / creative vocabulary**, not as scientific proof of CTR/CVR lift.
+This reference is adapted from the user-supplied 38-page presentation **«ВИЗУАЛ И УПАКОВКА»** and subsequent September 2026 style-library research.
 
-The strongest transferable sequence is:
+The presentation is a practitioner methodology for visual concept development, prompting, selection, refinement, and packaging. Treat its claims as **PRODUCTION HEURISTICS / creative vocabulary**, not scientific proof of CTR/CVR lift.
 
-`TASK -> IDEA -> PRESENTATION -> EMOTION -> VISUAL CHARACTER -> LIGHTING INTENT -> PROMPT/ASSET PLAN -> GENERATE/SELECT -> REFINE -> ADAPT -> FINAL`
+Current style/trend sources are also **design/currentness signals**, not advertising-performance proof unless separately grounded by actual campaign metrics.
 
-The system must not jump from a business brief directly to a generated image.
+The canonical sequence is:
+
+`TASK -> MARKET/CATEGORY EVIDENCE -> IDEA -> PRESENTATION -> EMOTION -> VISUAL CHARACTER -> STYLE INTELLIGENCE -> ATTENTION/TYPOGRAPHY -> LIGHTING INTENT -> ART DIRECTION -> ASSET PLAN -> GENERATE/SELECT/REFINE -> REPRESENTATIVE -> CAMPAIGN DESIGN SYSTEM -> ADAPT -> REVIEW`
+
+The system must not jump from a business brief directly to a generated image or a trendy style name.
 
 ## 1. IDEA_ARCHITECTURE
 
@@ -54,23 +58,24 @@ Record:
 - emotions/tones to avoid;
 - intensity: `RESTRAINED`, `MODERATE`, or `HIGH`.
 
-Examples include control, trust, relief, ambition, urgency, energy, curiosity, status, warmth, tension, playfulness. These are not performance laws.
+Examples include control, trust, relief, ambition, urgency, energy, curiosity, status, warmth, tension and playfulness. These are not performance laws.
 
-The emotional target should constrain:
+The emotional target constrains:
 - visual character;
+- style-strategy ranking;
 - lighting;
 - color;
 - typography;
 - crop and subject treatment;
 - disruption level.
 
-Example: an enterprise CRM direction whose target is `CONTROL + TRUST` should not silently drift into playful toy lighting, chaotic neon, or ironic mascot treatment.
+Example: an enterprise CRM direction whose target is `CONTROL + TRUST` should not silently drift into playful toy lighting, chaotic neon, surreal comedy or ironic mascot treatment.
 
 ## 3. VISUAL_CHARACTER
 
 Style names are tools, not goals. Record a visual-character signature so art-direction candidates differ structurally rather than by palette only.
 
-Use two advisory axes inspired by the presentation's character matrix:
+Use two advisory axes:
 
 ### `order_to_virality`
 - `0.0` = orderly / commercial / controlled;
@@ -86,16 +91,143 @@ Also record:
 - style tags;
 - rationale.
 
-Suggested initial character families, deliberately open for later extension with the user's banner-style examples:
-- clean / commercial;
-- bright / viral;
-- artistic / atmospheric;
-- technological / futuristic;
-- factual / characterful.
+Do not freeze a finite style list as eternal truth. New user examples and researched style libraries may extend the vocabulary without changing the underlying character coordinates.
 
-Do not freeze a 31-style list as eternal truth. New style examples may extend the vocabulary without changing the underlying character coordinates.
+## 4. STYLE_INTELLIGENCE — choose a visual strategy above the banner
 
-## 4. FOCUS_BUDGET
+Load:
+- `references/style-intelligence-2026.md`;
+- `config/style-intelligence-library.json`.
+
+Style Intelligence exists between visual character and art direction. Its job is to answer:
+
+> Given this idea, category, emotion, truth constraints, target attention path, typography needs, formats and lighting character, which visual systems are the strongest candidates now?
+
+It must not answer:
+
+> Which trendy style should we use?
+
+### A style strategy is layered
+
+A valid strategy combines:
+1. foundation grammar;
+2. optional contemporary overlay;
+3. execution language;
+4. attention profile;
+5. typography profile;
+6. lighting affinity;
+7. format resilience.
+
+Example:
+
+`Product Reality / Systems + restrained 2026 editorial overlay + real UI macro-crop + product-proof attention + enterprise variable sans + truthful low-effect lighting`
+
+This is actionable.
+
+`Modern blue SaaS` is not.
+
+### Runtime recommendation
+
+Create `style-strategy-context.json` from already resolved strategy facts, then run:
+
+```bash
+python scripts/recommend_visual_styles.py \
+  --context run/design/style-strategy-context.json \
+  --library config/style-intelligence-library.json \
+  --out run/design/style-strategy-recommendation.json
+```
+
+The system returns three materially different lanes:
+- `SAFE_STRONG` — highest low-regret fit;
+- `CURRENT_DIFFERENTIATED` — strong fit plus a subordinate current 2026 signal;
+- `CONTROLLED_WILDCARD` — a more distinctive but still semantically compatible direction.
+
+The wildcard must remain inside the requested disruption corridor. It is not permission to maximize difference for its own sake.
+
+### Currentness is deliberately weak
+
+Currentness is a tie-breaker, not the main score.
+
+A current visual direction must be down-ranked if it:
+- conflicts with brand/category trust;
+- needs fake product imagery;
+- breaks the intended attention hierarchy;
+- requires unreadable typography;
+- collapses in micro formats;
+- contradicts emotional target;
+- recreates a category cliché;
+- produces generic AI polish without a brand-specific idea.
+
+If the current-trend snapshot is stale, currentness contribution is disabled until refreshed.
+
+### Style selection provenance
+
+The written art direction must bind to the exact selected recommendation:
+- `style_strategy_id`;
+- lane;
+- exact recommendation SHA;
+- library snapshot date;
+- foundation / overlay / execution / attention / typography component IDs.
+
+Validate with:
+
+```bash
+python scripts/validate_style_strategy_gate.py \
+  --recommendation run/design/style-strategy-recommendation.json \
+  --art-direction-approval run/design/art-direction-approval.json \
+  --out run/design/style-strategy-gate.json
+```
+
+After representative approval and `campaign-design-system.json`, rerun the gate with `--campaign-design-system` so the campaign grammar cannot silently switch style strategy.
+
+Style recommendation is decision support. The approved art direction remains the creative decision.
+
+## 5. ATTENTION IS PART OF STYLE SELECTION
+
+A visual style is unsuitable if its attention behavior conflicts with the communication job.
+
+Style Intelligence must return an attention profile containing:
+- primary AOI;
+- intended scan path;
+- salience budget;
+- subordinate elements;
+- whether product/UI, offer, typography, face, proof, comparison or workflow should lead.
+
+Use `references/visual-attention.md` for evidence boundaries.
+
+Never reduce eye-tracking guidance to a universal Z-pattern, fixed CTA position or "center-left always wins" rule.
+
+The recommended hierarchy must later survive:
+- actual-size view;
+- 25% glance/thumbnail;
+- grayscale;
+- squint/blur.
+
+## 6. TYPOGRAPHY IS PART OF STYLE SELECTION
+
+Style Intelligence recommends a **typographic role profile**, not a fashionable font name.
+
+Resolve font source in this order:
+1. approved brand font;
+2. approved campaign/custom font;
+3. selected style-intelligence typography profile;
+4. verified production fallback.
+
+Any named font candidate remains provisional until runtime verifies:
+- license/usage rights;
+- local font file availability for deterministic rendering;
+- required language/script and glyph coverage;
+- Cyrillic/Belarusian quality where required;
+- weight/width availability;
+- actual-size raster readability;
+- width efficiency for small formats;
+- compression behavior.
+
+A distinctive display face may intentionally disappear in `320x50` if it cannot survive at a useful size. Campaign identity is preserved through role, hierarchy, color and graphic grammar rather than forced tiny display typography.
+
+See `references/typography-color-contrast.md`.
+
+## 7. FOCUS_BUDGET
 
 Adapt the presentation's practical “one” rule as a **PRODUCTION HEURISTIC**, not a universal law.
 
@@ -106,26 +238,30 @@ Default planning budget:
 - one primary visual language;
 - a small number of accent details.
 
-The schema allows deviations, but deviations require a rationale. Complex concepts are allowed; accidental complexity is not.
+The schema allows deviations, but deviations require rationale. Complex concepts are allowed; accidental complexity is not.
 
 Small formats should normally be stricter than large formats.
 
-## 5. CREATIVE_CHAOS_AUDIT
+## 8. CREATIVE_CHAOS_AUDIT
 
-Before art-direction approval, audit the strategy for the failure patterns emphasized by the presentation:
+Before art-direction approval, audit:
 - core idea unclear;
 - trying to fit everything into one banner;
 - mixed visual languages without purpose;
+- style selected only because it is trendy;
 - forbidden list missing/ignored;
 - no platform/aspect-ratio adaptation plan;
 - composition not deliberately controlled;
+- attention profile contradicts primary message;
+- typography role has no viable small-format plan;
+- lighting does not support the idea;
 - first generation treated as final.
 
 The audit proves process completeness, not aesthetic quality or advertising performance.
 
-## 6. FORBIDDEN_VISUALS
+## 9. FORBIDDEN_VISUALS
 
-Maintain three layers:
+Maintain three layers.
 
 ### Global
 Examples:
@@ -149,11 +285,11 @@ Examples:
 - glassmorphism;
 - random neon glow.
 
-These lists are controller-owned constraints.
+These lists are controller-owned constraints and also influence style-strategy ranking.
 
-## 7. LIGHTING_INTENT — connect meaning to light
+## 10. LIGHTING_INTENT — connect meaning and style to light
 
-Lighting must be derived from the idea architecture, emotional target, visual character, material/asset type, primary AOI, and copy-safe requirements.
+Lighting must be derived from idea architecture, emotional target, selected style strategy, visual character, material/asset type, primary AOI and copy-safe requirements.
 
 Do **not** choose a lighting scheme because it is visually impressive in isolation.
 
@@ -161,12 +297,13 @@ A lighting intent must answer:
 - What role does light play in the core idea?
 - Which AOI should it support?
 - Which emotion should it reinforce?
+- How should it align with the selected visual style strategy?
 - Does the hero require real scene lighting, composition lighting, both, or neither?
 - Which lighting schemes are candidate heuristics and why?
-- What lighting behaviors are forbidden because they would contradict the concept?
+- What lighting behaviors are forbidden because they contradict the concept/style/truth requirement?
 
 ### Scene-lighting modes
-- `REQUIRED` — the photographed/generated scene needs an explicit scheme;
+- `REQUIRED` — photographed/generated scene needs an explicit scheme;
 - `OPTIONAL` — a scheme may help but is not concept-critical;
 - `NOT_APPLICABLE` — e.g. a flat real product UI screenshot where fake scene lighting would reduce truthfulness.
 
@@ -182,57 +319,64 @@ Allowed deterministic primitives currently include:
 - `vignette`;
 - `text_plate`.
 
-Use these as hierarchy tools, not decoration presets.
+Use them as hierarchy tools, not decoration presets.
 
-### Lighting alignment examples
+### Alignment examples
 
 #### Product proof / real UI
 - scene lighting may be `NOT_APPLICABLE`;
 - composition lighting should usually be restrained;
-- no fake glow implying a fabricated UI surface;
+- no fake glow implying fabricated UI material;
 - preserve truthful product colors;
-- use tonal separation/keyline/shadow only if needed for hierarchy.
+- use tonal separation/keyline/shadow only when needed for hierarchy.
 
-#### Premium physical product
-- scene lighting may carry material definition and status;
-- candidate schemes may come from the 30-scheme lighting library;
-- strongest highlight must not destroy label/readability or copy-safe space.
+#### Neo-minimal / quiet luxury physical product
+- controlled scene light may carry material definition and status;
+- soft wrap, rim, dark-field or low-key candidates may be appropriate depending on material;
+- do not trade essential readability for atmosphere.
 
-#### Pain visualization
-- contrast/shadow may support tension;
-- it must still preserve the commercial message and not become theatrical noise.
+#### Human authentic
+- natural/window/overcast treatments are strong starting heuristics when they preserve expression and context;
+- do not convert a documentary concept into glossy stock aesthetics.
 
-#### Clean commercial
-- high-key/soft wraparound/controlled neutral light may fit;
-- do not infer that high-key converts better.
+#### Bold poster
+- scene lighting may be unnecessary;
+- a hard graphic shadow or high-contrast product treatment may support the poster grammar;
+- the lighting effect must remain subordinate to message/offer.
 
-## 8. HERO GENERATION SPEC
+#### Controlled maximalism
+- allow one expressive lighting/device relationship at most unless the approved direction explicitly budgets more;
+- do not let every surface glow.
+
+## 11. HERO GENERATION SPEC
 
 When a hero is generated, generation receives a structured spec rather than a loose prompt:
 
-`FORMAT + SUBJECT + STATE/ACTION + ENVIRONMENT + COMPOSITION + CAMERA/CROP + LIGHTING + VISUAL CHARACTER + EMOTION + DETAILS + FORBIDDEN ELEMENTS`
+`FORMAT + SUBJECT + STATE/ACTION + ENVIRONMENT + COMPOSITION + CAMERA/CROP + LIGHTING + VISUAL CHARACTER/STYLE STRATEGY + EMOTION + DETAILS + FORBIDDEN ELEMENTS`
 
-Critical text, CTA, legal copy, and logos remain deterministic whenever possible.
+Critical text, CTA, legal copy and logos remain deterministic whenever possible.
 
 A generated asset is a source/hero candidate, not a finished banner.
 
-## 9. GENERATION IS NOT FINAL
+## 12. GENERATION IS NOT FINAL
 
-Use the presentation's iterative logic:
+Use the iterative logic:
 
 `RAW GENERATION -> SELECT -> REMOVE EXCESS -> COMPOSITION REFINEMENT -> DETERMINISTIC TYPE/BRAND/CTA -> QUALITY PASS -> REPRESENTATIVE REVIEW`
 
 Do not treat first generation as final output.
 
-## 10. CAMPAIGN DESIGN SYSTEM AFTER REPRESENTATIVE APPROVAL
+## 13. CAMPAIGN DESIGN SYSTEM AFTER REPRESENTATIVE APPROVAL
 
-After one high-fidelity representative passes, freeze the design grammar before scale-out.
+After one high-fidelity representative passes, freeze design grammar before scale-out.
 
 The campaign design system should preserve:
 - idea architecture;
+- selected style-strategy identity and exact recommendation SHA;
 - visual-character signature;
 - art-direction identity;
-- hierarchy intent;
+- attention/hierarchy intent;
+- typography roles;
 - grid/alignment logic;
 - headline/offer/CTA behavior;
 - brand-anchor behavior;
@@ -242,6 +386,8 @@ The campaign design system should preserve:
 - whitespace character;
 - format-adaptation rules;
 - forbidden patterns.
+
+Run `validate_style_strategy_gate.py` again with the campaign system before scale-out.
 
 Workers adapt composition per layout family while remaining inside this system.
 
