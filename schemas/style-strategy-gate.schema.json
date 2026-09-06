@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/style-strategy-gate.schema.json",
+  "title": "Style Strategy Binding Gate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status","style_strategy_id","style_strategy_lane","recommendation_sha256","library_snapshot_date","art_direction_id","campaign_system_checked","checks"],
+  "properties": {
+    "status": {"const":"STYLE_STRATEGY_FROZEN"},
+    "style_strategy_id": {"type":"string","minLength":1},
+    "style_strategy_lane": {"enum":["SAFE_STRONG","CURRENT_DIFFERENTIATED","CONTROLLED_WILDCARD"]},
+    "recommendation_sha256": {"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "library_snapshot_date": {"type":"string","pattern":"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "art_direction_id": {"type":"string","minLength":1},
+    "campaign_system_checked": {"type":"boolean"},
+    "campaign_design_system_id": {"type":["string","null"]},
+    "checks": {
+      "type":"object",
+      "additionalProperties": false,
+      "required":["recommendation_integrity","selected_strategy_exists","lane_match","component_match","snapshot_match","no_performance_prediction","campaign_binding"],
+      "properties": {
+        "recommendation_integrity":{"const":"PASS"},
+        "selected_strategy_exists":{"const":"PASS"},
+        "lane_match":{"const":"PASS"},
+        "component_match":{"const":"PASS"},
+        "snapshot_match":{"const":"PASS"},
+        "no_performance_prediction":{"const":"PASS"},
+        "campaign_binding":{"enum":["PASS","NOT_APPLICABLE"]}
+      }
+    }
+  }
+}
