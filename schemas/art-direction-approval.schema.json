@@ -1,14 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/GeneralAi360/googlewads/schemas/art-direction-approval.schema.json",
-  "title": "Written Art Direction Approval",
+  "title": "Internal Written Art Direction Freeze",
+  "description": "Internal preproduction selection/freeze. It is not the user's visual approval and cannot unlock full production without an approved rendered representative visual concept.",
   "type": "object",
   "additionalProperties": false,
   "required": ["approval_id", "status", "approved_by", "design_brief_id", "design_brief_sha256", "selected_direction"],
   "properties": {
     "approval_id": {"type": "string", "minLength": 1},
     "status": {"const": "APPROVED"},
-    "approved_by": {"enum": ["USER", "BRAND_SYSTEM", "ART_DIRECTOR_REVIEWER"]},
+    "approved_by": {"enum": ["BRAND_SYSTEM", "ART_DIRECTOR_REVIEWER"]},
     "approved_at": {"type": ["string", "null"]},
     "design_brief_id": {"type": "string", "minLength": 1},
     "design_brief_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
