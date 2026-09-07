@@ -66,6 +66,27 @@ class RealWorldFailureTests(unittest.TestCase):
         self.assertIn("RENDER_READINESS", regressions)
         self.assertIn("orchestration order", case["performance_claim_policy"])
 
+    def test_real_04_requires_user_approval_of_rendered_visual_concept(self):
+        case = self.load_cases()["REAL-04"]
+        expected = set(case["expected_findings"])
+        for code in (
+            "TEXT_ONLY_APPROVAL_INSUFFICIENT",
+            "VISUAL_CONCEPT_MUST_BE_PRIMARY_APPROVAL_ARTIFACT",
+            "USER_VISUAL_APPROVAL_REQUIRED_BEFORE_SCALEOUT",
+            "REVISE_REQUIRES_NEW_VISUAL_VERSION",
+            "REJECT_MUST_RETURN_UPSTREAM",
+            "FULL_PACK_BLOCKED_BEFORE_VISUAL_APPROVAL",
+        ):
+            self.assertIn(code, expected)
+        regressions = "\n".join(case["required_regressions"])
+        self.assertIn("internal preproduction freeze", regressions)
+        self.assertIn("exact rendered representative image", regressions)
+        self.assertIn("USER decision of APPROVE", regressions)
+        self.assertIn("REVISE", regressions)
+        self.assertIn("REJECT", regressions)
+        self.assertIn("changed visual bytes invalidate", regressions)
+        self.assertIn("does not imply advertising performance", case["performance_claim_policy"])
+
 
 if __name__ == "__main__":
     unittest.main()
