@@ -1,0 +1,98 @@
+{
+  "schema_version": "0.1.0",
+  "snapshot_date": "2026-09-07",
+  "authority": "Google Advertising Policies Help Center, English enforcement text",
+  "freshness": {
+    "max_age_days_for_general_delivery": 45,
+    "restricted_vertical_requires_live_refresh": true,
+    "misleading_design_last_checked": "2026-09-07",
+    "destination_requirements_last_checked": "2026-09-07"
+  },
+  "policy_families": [
+    {
+      "id": "POL_IMAGE_AD_REQUIREMENTS",
+      "scope": "CREATIVE_POLICY",
+      "severity": "BLOCKING",
+      "source": "https://support.google.com/adspolicy/answer/176108?hl=en",
+      "notes": "Standard image-ad policy plus animation duration requirements."
+    },
+    {
+      "id": "POL_IMAGE_QUALITY",
+      "scope": "CREATIVE_POLICY",
+      "severity": "BLOCKING",
+      "source": "https://support.google.com/adspolicy/answer/14848199?hl=en",
+      "notes": "Blocks blurry/unclear/illegible, sideways/upside-down, distracting/strobing, non-full-space or encroaching image ads."
+    },
+    {
+      "id": "POL_MISLEADING_AD_DESIGN",
+      "scope": "CREATIVE_POLICY",
+      "severity": "BLOCKING",
+      "source": "https://support.google.com/adspolicy/answer/15937463?hl=en",
+      "notes": "Includes fake system/site UI, non-functional controls, download/install buttons/icons in image ads, transparent backgrounds, segmented/multi-ad visuals, misleading arrows and disproportionate/contextless standalone buttons."
+    },
+    {
+      "id": "POL_MISREPRESENTATION",
+      "scope": "CREATIVE_AND_DESTINATION",
+      "severity": "BLOCKING",
+      "source": "https://support.google.com/adspolicy/answer/6020955?hl=en",
+      "notes": "Covers misleading representation, unreliable claims, unclear relevance, unavailable offers and misleading design."
+    },
+    {
+      "id": "POL_UNRELIABLE_CLAIMS",
+      "scope": "CREATIVE_AND_DESTINATION",
+      "severity": "BLOCKING",
+      "source": "https://support.google.com/adspolicy/answer/15936857?hl=en",
+      "notes": "Inaccurate or improbable results presented as likely outcomes are not allowed."
+    },
+    {
+      "id": "POL_UNCLEAR_RELEVANCE",
+      "scope": "CREATIVE_AND_DESTINATION",
+      "severity": "BLOCKING",
+      "source": "https://support.google.com/adspolicy/answer/15936964?hl=en",
+      "notes": "Promotion must accurately describe and be relevant to destination content."
+    },
+    {
+      "id": "POL_UNAVAILABLE_OFFERS",
+      "scope": "CREATIVE_AND_DESTINATION",
+      "severity": "BLOCKING",
+      "source": "https://support.google.com/adspolicy/answer/15937063?hl=en",
+      "notes": "Advertised offer/price/CTA must be available and easy to find/use at the destination."
+    },
+    {
+      "id": "POL_DESTINATION_REQUIREMENTS",
+      "scope": "DESTINATION_POLICY",
+      "severity": "BLOCKING",
+      "source": "https://support.google.com/adspolicy/answer/6368661?hl=en",
+      "notes": "Destination working, accessible, crawlable, matched, useful and sufficiently original."
+    },
+    {
+      "id": "POL_TRADEMARKS",
+      "scope": "CREATIVE_AND_DESTINATION",
+      "severity": "CONTEXTUAL",
+      "source": "https://support.google.com/adspolicy/answer/6118?hl=en",
+      "notes": "Trademark use may be restricted after complaint, especially direct-competitor or misleading use; reseller/informational use has contextual criteria."
+    },
+    {
+      "id": "POL_INAPPROPRIATE_CONTENT",
+      "scope": "CREATIVE_AND_DESTINATION",
+      "severity": "BLOCKING",
+      "source": "https://support.google.com/adspolicy/answer/6015406?hl=en",
+      "notes": "Includes dangerous/derogatory, sexual, shocking and other prohibited content."
+    },
+    {
+      "id": "POL_RESTRICTED_VERTICAL",
+      "scope": "VERTICAL_CERTIFICATION",
+      "severity": "CONTEXTUAL",
+      "source": "https://support.google.com/adspolicy/",
+      "notes": "Healthcare, alcohol, gambling, financial services, politics and other restricted categories require live policy/geography/certification resolution."
+    },
+    {
+      "id": "POL_PERSONALIZED_ADVERTISING",
+      "scope": "TARGETING_POLICY",
+      "severity": "CONTEXTUAL",
+      "source": "https://support.google.com/adspolicy/",
+      "notes": "Sensitive-interest personalization/targeting restrictions are campaign-level and separate from raster creative approval."
+    }
+  ],
+  "non_guarantee_statement": "Local preflight cannot guarantee Google approval; Google review may consider ad, destination, account, targeting, geography and third-party information."
+}
