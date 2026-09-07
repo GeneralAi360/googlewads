@@ -18,211 +18,96 @@ Status: **active release-candidate hardening in `dev/performance-banner-designer
 
 The release candidate has been strengthened through real Work acceptance failures, user-provided visual methodologies, September 2026 style/banner/typography research, and a September 7 2026 review of current official Google Advertising Policies.
 
-Source-derived design ideas and trend signals are treated as production heuristics/currentness evidence, not conversion laws. Local policy preflight is treated as risk reduction, not a guarantee of Google approval.
+Source-derived design ideas and trend signals are production heuristics/currentness evidence, not conversion laws. Local policy preflight is risk reduction, not a guarantee of Google approval.
 
 ### Core implemented foundation
 
-- 52-question structured intake and ambiguity detection;
+- structured intake and output ambiguity detection;
 - immutable run freeze and banner matrix;
 - supplied-reference / REFERENCE_DNA path;
 - Competitive Creative Intelligence and A–E performance-evidence tiers;
 - category design map;
-- commercial-message lock / CTA allowlist;
-- canonical brand-identity lock;
-- required real-asset contract and `NEEDS_ASSET` validator;
+- `IDEA_ARCHITECTURE`, presentation mode, emotional target and visual character;
+- September 2026 Style Intelligence + attention/typography strategy;
+- focus budget / forbidden visuals / Creative Chaos Audit;
+- commercial-message / CTA and brand-identity locks;
+- real-asset / `NEEDS_ASSET` gate;
+- pre-render Google policy-risk screen;
+- meaning/style/AOI-linked `LIGHTING_INTENT`;
 - written art-direction approval;
 - one high-fidelity representative before scale-out;
-- creative-contract SHA binding;
+- frozen campaign design system and preproduction/creative SHA binding;
 - one job per final output;
 - exact Pillow renderer and per-layout-family recomposition;
 - Google technical preflight;
-- Google Ads policy preflight;
-- pack-level policy report aggregation;
+- visual diagnostics / independent banner and pack review;
+- Google Ads exact-artifact policy preflight;
+- pack-level policy aggregation;
 - final local Google-ready precheck;
-- provenance manifest/contact sheet;
-- actual/grayscale/squint/thumbnail QA;
-- independent banner/pack review contracts;
-- readiness evaluator;
 - hidden-key visual-review eval harness;
 - real user-acceptance regression corpus (`REAL-01`, `REAL-02`).
 
 ### Meaning-first design layer — implemented
 
-1. **IDEA_ARCHITECTURE**
-   - core idea;
-   - single takeaway;
-   - presentation mode;
-   - emotional target / avoided tone;
-   - creative tension;
-   - rationale;
-   - disruption level.
+`IDEA_ARCHITECTURE` resolves core idea, single takeaway, presentation mode, emotional target, creative tension, rationale and disruption level before style.
 
-2. **Presentation-mode vocabulary**
-   - product proof;
-   - outcome/pain visualization;
-   - explainer/workflow/before-after;
-   - human context;
-   - character/metaphor/paradox;
-   - editorial/social-proof/promotion-led.
+`VISUAL_CHARACTER` records a flexible character signature and axes rather than a closed list of style presets.
 
-3. **VISUAL_CHARACTER**
-   - flexible primary/secondary character;
-   - `order_to_virality` axis;
-   - `aesthetics_to_innovation` axis;
-   - extensible `style_tags`.
+Focus budget, forbidden visuals and Creative Chaos Audit prevent accidental complexity and first-generation-is-final behavior.
 
-4. **Focus budget / forbidden visuals / Creative Chaos Audit**
-   - one-idea/hero/emotion/visual-language default as a heuristic;
-   - global / brand / concept exclusions;
-   - no accidental overload;
-   - first generation is not final.
+Optional Creative Disruption methods remain test hypotheses, not performance laws.
 
-5. **Optional Creative Disruption Library**
-   - pain visualization, paradox, personification, genre mask, unexpected comparison, narrative packaging etc.;
-   - always a test hypothesis, never a claimed performance law.
+### STYLE INTELLIGENCE — September 2026 implemented
 
-### STYLE INTELLIGENCE — September 2026 layer implemented
-
-Purpose: recommend a **visual strategy above the individual banner** instead of asking a model to pick a fashionable style name.
+Purpose: recommend a **visual strategy above the individual banner** rather than asking a model to pick a fashionable style name.
 
 Canonical dependency:
 
 `IDEA → PRESENTATION → EMOTION → CATEGORY → VISUAL CHARACTER → STYLE INTELLIGENCE → ATTENTION / TYPOGRAPHY → POLICY RISK → LIGHTING INTENT → ART DIRECTION`
 
-Added:
-- `config/style-intelligence-library.json` with snapshot date and refresh policy;
+Implemented:
+- `config/style-intelligence-library.json`;
 - `references/style-intelligence-2026.md`;
-- `schemas/style-strategy-context.schema.json`;
-- `schemas/style-strategy-recommendation.schema.json`;
-- `schemas/style-strategy-gate.schema.json`;
+- strategy context/recommendation/gate schemas;
 - `scripts/recommend_visual_styles.py`;
 - `scripts/validate_style_strategy_gate.py`;
-- deterministic ranking regressions in `tests/test_style_intelligence.py`.
+- style ranking/drift regressions.
 
-#### Layered strategy model
+A strategy composes foundation grammar, optional current overlay, execution language, attention profile, typography profile, lighting affinity and format resilience.
 
-A strategy is composed from:
-1. foundation grammar;
-2. optional contemporary overlay;
-3. execution language;
-4. attention profile;
-5. typography profile;
-6. lighting affinity;
-7. format resilience.
+Currentness is capped at 5%. A trend cannot rescue weak category/truth/attention/type/light/format fit. Stale trend data disables currentness until refreshed.
 
-Current foundation profiles include:
-- Clean Commercial / Swiss;
-- Product Reality / Systems;
-- Neo-Minimal / Quiet Luxury;
-- Editorial Modern;
-- Human Authentic;
-- Bold Poster / Saturated;
-- Controlled Maximalism / Dual Aesthetic;
-- Local / Cultural Vernacular.
+The recommender creates `SAFE_STRONG`, `CURRENT_DIFFERENTIATED`, and `CONTROLLED_WILDCARD`; wildcard stays inside the requested disruption corridor.
 
-The library is deliberately extensible. User-provided examples can add reusable vocabulary without turning examples into rigid templates.
+The chosen strategy, recommendation SHA and exact foundation/overlay/execution/attention/typography IDs are frozen through art direction and campaign design system.
 
-#### Current 2026 overlays
+### Attention and typography — implemented
 
-Currentness overlays include signals such as:
-- Opt-Out Era;
-- Explorecore;
-- Texture Check / tactile material;
-- Reality Warp;
-- Prompt Playground / productivity aesthetic;
-- Drama Club / cinematic;
-- Human Connection;
-- Local Flavor;
-- Dual Aesthetics;
-- Retro Futurism;
-- Saturation Revival;
-- Organic Flow.
+Attention strategy expresses intended scan path and salience budget instead of assuming a universal Z-pattern or fixed CTA location.
 
-Trend weight is capped at **5%**. Currentness can break a tie between already appropriate strategies; it cannot rescue a strategy that fails category, truth, attention, typography, lighting or format fit.
+Typography is role-based. Actual fonts require runtime verification for license, real local file, language/script, Cyrillic/Belarusian glyph quality where needed, weights/widths and exact-raster readability.
 
-If the trend snapshot is older than the configured freshness window, currentness contribution becomes zero until refreshed.
-
-#### Three recommendation lanes
-
-The recommender creates exactly three decision-support lanes:
-- `SAFE_STRONG`;
-- `CURRENT_DIFFERENTIATED`;
-- `CONTROLLED_WILDCARD`.
-
-The wildcard is constrained to the task's disruption corridor. A HIGH-disruption job cannot pick quiet minimalism simply because it is different; a LOW-disruption enterprise job cannot pick chaotic maximalism merely for novelty.
-
-#### Style selection provenance
-
-Written art direction carries:
-- exact `style_strategy_id`;
-- lane;
-- style recommendation SHA;
-- library snapshot date;
-- foundation / overlay / execution / attention / typography component IDs.
-
-`validate_style_strategy_gate.py` fails closed on stale recommendation, strategy/component/lane drift, unsupported performance claims and campaign-design-system style drift.
-
-The campaign design system carries the same style-strategy identity and exact recommendation SHA.
-
-### Attention integration — implemented
-
-Style recommendation includes an explicit attention profile rather than assuming style and hierarchy are independent.
-
-Current attention profiles include product proof, offer first, hero first, face/gaze guided, typographic statement, comparison, workflow and proof first.
-
-These define intended scan path and salience budget. Eye-tracking research remains contextual evidence; no universal Z-pattern or fixed CTA position is claimed.
-
-Final diagnostics still include actual-size, 25% thumbnail, grayscale and squint/blur views.
-
-### Typography intelligence — September 2026 implemented
-
-Current typography profiles include enterprise variable sans, editorial serif + sans, quiet-luxury serif, humanist sans, condensed promotional display, technical mono accent, controlled expressive display, soft serif/human trust and local/script-aware typography.
-
-2026 signals such as serif resurgence in technology/AI branding and mature variable-font workflows are treated as **current cultural/production signals**, not conversion rules.
-
-Font-source precedence:
-1. approved brand font;
-2. approved campaign/custom font;
-3. style-intelligence role profile;
-4. verified fallback.
-
-Every actual font candidate must still pass license, local-file, language/script, Cyrillic/Belarusian glyph, weight/width and exact-raster checks.
+2026 serif/variable-font signals are cultural/production signals, not conversion rules.
 
 ### Lighting linked to meaning and style — implemented
 
-Lighting is explicitly downstream of creative meaning and style strategy:
-
 `CORE IDEA → PRESENTATION → EMOTION → VISUAL CHARACTER → STYLE STRATEGY → PRIMARY AOI → LIGHTING INTENT → SCENE/COMPOSITION LIGHTING`
 
-Implemented:
-- `lighting_intent` inside design brief;
-- scene-light mode `REQUIRED / OPTIONAL / NOT_APPLICABLE`;
-- justified candidate scheme IDs from the 30-scheme library;
-- composition-light mode and primitive whitelist;
-- copy-safe / focal-priority policies;
-- forbidden lighting behaviors;
-- real-UI/product-proof rule where fake relighting is prohibited;
-- art direction inherits exact lighting identity;
-- campaign design system can narrow but never expand allowed lighting primitives;
-- independent reviews check lighting-intent fidelity, not just contrast.
+The 30 lighting schemes are candidate vocabulary, not a free-standing style picker.
 
-### Structured generated-hero path — implemented contract
-
-`schemas/hero-generation-spec.schema.json` binds exact design brief/art direction/idea/visual character/style/lighting/source-format/composition/crop/subject/environment/forbidden-element context.
-
-Generated critical text/logo is explicitly forbidden. Generation is a source/draft stage, not a finished banner.
+Real UI/product-proof can make scene lighting `NOT_APPLICABLE`; truthful product evidence outranks spectacle.
 
 ### Campaign Design System — implemented
 
-After representative approval, `campaign-design-system.json` freezes idea/character/style/lighting identity, art direction, grid, headline/offer/CTA/brand behavior, hero/crop language, background/accent, lighting system, whitespace, per-layout-family adaptation and forbidden patterns.
+After representative approval, `campaign-design-system.json` freezes semantic/style/lighting identity plus grid, type/offer/CTA/brand behavior, hero/crop language, background/accent, whitespace, format adaptations and forbidden patterns.
 
-The representative becomes evidence of the system, not a canvas to resize.
+The representative is evidence of the system, not a canvas to resize.
 
 ### Google Ads Policy Preflight — September 7 2026 implemented
 
-Purpose: reduce Google Ads disapproval risk **before and after** design without pretending local tooling can guarantee moderation approval.
+Purpose: reduce disapproval risk **before and after** rendering without pretending that local tooling can guarantee moderation approval.
 
-Added:
+Implemented:
 - `references/google-ads-policy-preflight.md`;
 - `config/google-ads-policy-snapshot.json`;
 - `schemas/google-policy-context.schema.json`;
@@ -230,53 +115,23 @@ Added:
 - `scripts/validate_google_policy.py`;
 - `scripts/aggregate_google_policy_reports.py`;
 - `scripts/assess_google_ready.py`;
-- policy regressions in `tests/test_google_policy_preflight.py` and `tests/test_google_policy_pack.py`.
+- policy preflight and pack aggregation regressions.
 
-#### Policy source model
+#### Pre-render policy risk
 
-Current English Google Advertising Policies remain the highest authority at execution time. The local snapshot is dated and has a freshness window; sensitive/restricted verticals require live/current resolution rather than blind reliance on a cached snapshot.
+Before art direction is finalized, resolve vertical/category, target geography, material claims/qualifiers, third-party trademark/affiliation state, destination support, certification/targeting concerns and obvious misleading-design exclusions.
 
-Local policy status is explicitly **not** an approval guarantee.
+#### Final exact-artifact policy preflight
 
-#### Two-stage policy architecture
+Each final banner policy review is bound to exact output SHA and combines exact creative/copy, advertiser identity, claims, landing page, trademark context and vertical/geo/targeting evidence.
 
-1. **Pre-render policy-risk screen**
-   - vertical/category classification;
-   - target geography;
-   - commercial claims and qualifiers;
-   - third-party brand/trademark use;
-   - affiliation/partner status;
-   - offer/landing-page consistency;
-   - certification/targeting concerns when applicable;
-   - obvious misleading-design exclusions before production.
+Explicit misleading-design checks include fake system/dialog/menu/request UI, non-functional controls, download/install UI, misleading pseudo-interactions, transparent background, segmented/multi-ad appearance and contextless/disproportionate standalone buttons.
 
-2. **Final exact-artifact + destination preflight**
-   - exact banner bytes/SHA/dimensions/format;
-   - image quality / legibility;
-   - misleading-ad-design review;
-   - business identity / affiliation;
-   - material claims;
-   - landing-page relevance and offer availability;
-   - destination working/domain/crawlability/accessibility;
-   - trademark contextual review;
-   - restricted vertical/certification/targeting separation;
-   - AI-generated/edited disclosure-review state when applicable.
+Material claims require verified evidence and destination support. Advertised offers/CTA must be available/easy to find from the destination.
 
-#### Misleading-ad-design checks
+Destination evidence covers working URL, domain/relevance, AdsBot crawlability state, target-geo accessibility, advertiser identity and useful/original content.
 
-Explicit checks include fake system/site warnings/dialogs/menus/request notifications, non-functional fields/checkboxes/radio/close controls, download/install buttons or icons in image ads, misleading arrows/pseudo-interactions, transparent-background image ads, segmented/multi-ad appearance, contextless/disproportionate standalone buttons and distracting/flashing behavior.
-
-A normal contextual CTA is not automatically disallowed.
-
-#### Claims/destination
-
-Material claims are fail-closed: local PASS requires verified evidence and destination support.
-
-The advertised offer/price/promotion/CTA must be available and easy to find/use from the destination. Unknown material destination evidence prevents local Google-ready clearance.
-
-#### Exact-artifact policy provenance
-
-Every semantic Google policy review is bound to the exact final creative SHA. Pack aggregation rejects missing/stale reports.
+Trademark and restricted-vertical decisions are contextual. Unresolved evidence returns review-required rather than invented permission.
 
 Policy statuses:
 - `GOOGLE_POLICY_PREFLIGHT_PASS`;
@@ -284,53 +139,48 @@ Policy statuses:
 - `GOOGLE_POLICY_PREFLIGHT_INCOMPLETE`;
 - `POLICY_REVIEW_REQUIRED`.
 
-Final local status is `GOOGLE_READY_PRECHECK_PASS` only when ordinary design/readiness and policy preflight pass. `google_upload_approval_guaranteed` is always false.
+Every final output must have an exact-SHA PASS report before pack policy aggregation passes.
+
+`GOOGLE_READY_PRECHECK_PASS` requires ordinary design/readiness + policy PASS and still sets `google_upload_approval_guaranteed=false`.
 
 ### Verified deterministic milestone
 
-Current verified pipeline milestone after Style Intelligence + Google Policy Preflight integration:
+Current canonical pipeline:
 - full unittest suite: **157 tests, OK**;
-- GitHub Actions checks: **PASS** on the canonical Style Intelligence + policy-integrated `SKILL.md` head.
+- canonical Style Intelligence + Google Policy `SKILL.md`: GitHub Actions **PASS**.
 
-The suite includes regressions for style selection/drift, real UI, typography runtime policy, lighting, Google misleading-design signals, PNG transparency, material claim verification, destination incompleteness, trademark review, exact policy-report SHA binding and pack aggregation.
+The suite includes style selection/drift, real-UI truth, typography runtime policy, lighting, misleading-design, PNG transparency, material claim, destination incompleteness, trademark review, policy-SHA and pack aggregation regressions.
 
 ### Current v0.2 validation work
 
 Before v0.2 can be fully validated:
 
-1. Continue the real Work MITGROUP task from the latest skill/reference set:
-   - validate commercial/brand locks;
-   - validate required real UI/logo assets;
-   - resolve IDEA_ARCHITECTURE and visual character;
-   - run Style Intelligence and inspect the three strategic lanes;
-   - confirm selected strategy becomes written art direction without component drift;
-   - resolve policy risk before render;
-   - resolve lighting intent from chosen meaning/style strategy;
-   - create one representative 300x250 only after `ASSETS_READY`;
-   - verify idea/emotion/style/character/lighting fidelity;
+1. Continue the real Work MITGROUP task:
+   - resolve exact commercial/brand/asset facts;
+   - resolve idea/visual character;
+   - run/approve Style Intelligence;
+   - run pre-render Google policy risk;
+   - derive lighting intent;
+   - render and approve one representative 300x250;
    - freeze campaign design system;
-   - rerun style-strategy gate with campaign system;
-   - only then test scale-out;
-   - run exact-artifact Google policy preflight against final MITGROUP creative(s), exact offer and real landing page;
-   - explicitly resolve Bitrix24 trademark/advertiser-role context rather than inventing official affiliation;
-   - require pack policy PASS before a Google-ready delivery claim.
-2. Incorporate the user's next creative/banner-style examples as reference DNA and reusable style-library vocabulary; evaluate whether they reveal additional gaps.
-3. Execute six hidden-key visual eval cases through genuinely fresh visual reviewer contexts and score them.
-4. Perform a genuinely independent final repository/PR review and reconcile important findings.
+   - only then scale out;
+   - run exact-artifact policy preflight against final MITGROUP banner(s), real offer/landing page and Bitrix24 trademark/advertiser-role context;
+   - require pack policy PASS before a Google-ready claim.
+2. Incorporate next user style examples as reference DNA/reusable style vocabulary.
+3. Execute six hidden-key visual evals in genuinely fresh reviewer contexts.
+4. Perform genuinely independent final repository/PR review.
 5. Merge only with explicit user approval.
-
-If fresh independent reviewer contexts are unavailable, report this as an external rigor blocker instead of fabricating reports.
 
 ## v0.3 — Motion creative: GIF / video / HTML5
 
 Planned after static v0.2 is proven:
 - shared idea/brand/claim/art-direction/style/policy contracts;
 - `MotionIntent` bridge from Matreshka Content Factory;
-- Remotion deterministic motion for code-motion ads;
+- Remotion deterministic motion;
 - GIF duration/FPS/byte optimization and validator;
-- motion-specific Google policy checks;
+- motion-specific Google technical/policy checks;
 - video matrix across aspect/duration/language/variant;
-- Content Factory bridge for footage/generated media/voice/rendered-evidence QA;
+- Content Factory bridge for footage/generated media/voice/evidence QA;
 - HTML5 display as a separate production/validation path.
 
 ## v0.4 — Automated visual QA intelligence
