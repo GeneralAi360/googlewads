@@ -46,6 +46,28 @@
         "creative freeze must reject CTA, proposition or brand IDs that differ from preproduction locks"
       ],
       "performance_claim_policy": "DEGRADED research may inform design direction only after explicit acceptance; it does not prove relative advertising performance."
+    },
+    {
+      "case_id": "REAL-03",
+      "title": "Missing representative assets prematurely stopped upstream strategy work",
+      "context": "In a later MITGROUP Work acceptance run, the asset validator correctly returned NEEDS_ASSET because the real Bitrix24 UI was missing and the available MITGROUP logo was too small. The run then incorrectly marked IDEA_ARCHITECTURE, VISUAL_CHARACTER, Style Intelligence, attention, typography, LIGHTING_INTENT and representative design brief as NOT_RUN solely because asset readiness had failed. Asset readiness should block rendering, not upstream semantic/style reasoning.",
+      "failure_stage": "GATE_ORCHESTRATION",
+      "expected_findings": [
+        "ASSET_GATE_APPLIED_TOO_EARLY",
+        "UPSTREAM_STRATEGY_SKIPPED_BY_DOWNSTREAM_GATE",
+        "IDEA_ARCHITECTURE_UNNECESSARILY_BLOCKED",
+        "STYLE_INTELLIGENCE_UNNECESSARILY_BLOCKED",
+        "LIGHTING_INTENT_UNNECESSARILY_BLOCKED",
+        "RENDER_BLOCKER_SCOPE_TOO_BROAD"
+      ],
+      "required_regressions": [
+        "NEEDS_ASSET must block representative rendering and later artifact-dependent stages, not IDEA_ARCHITECTURE, VISUAL_CHARACTER, Style Intelligence, attention, typography or LIGHTING_INTENT",
+        "required asset specifications should be derived from the selected meaning/style/art-direction strategy before the final representative asset readiness gate",
+        "missing assets may mark affected strategy fields CONDITIONAL or PENDING_ASSET_INSPECTION but must not automatically skip the whole strategic pipeline",
+        "controller prompts must not reorder a downstream asset implementation gate ahead of upstream semantic/style reasoning",
+        "preproduction reporting must separate STRATEGY_STATUS from RENDER_READINESS"
+      ],
+      "performance_claim_policy": "This regression concerns orchestration order only and creates no performance evidence."
     }
   ]
 }
