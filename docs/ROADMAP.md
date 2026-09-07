@@ -10,15 +10,15 @@ Implemented:
 - evidence hierarchy;
 - visual-attention, typography, color, contrast, density references;
 - 30-scheme lighting vocabulary;
-- static Google validator.
+- static Google technical validator.
 
-## v0.2 — Meaning-to-reviewed-pack static production system
+## v0.2 — Meaning-to-reviewed-and-policy-preflight static production system
 
 Status: **active release-candidate hardening in `dev/performance-banner-designer-v0.2`; not merged**.
 
-The release candidate has been strengthened through real Work acceptance failures, user-provided visual methodologies, and a September 2026 review of contemporary style/banner/typography sources.
+The release candidate has been strengthened through real Work acceptance failures, user-provided visual methodologies, September 2026 style/banner/typography research, and a September 7 2026 review of current official Google Advertising Policies.
 
-Source-derived design ideas and trend signals are treated as production heuristics/currentness evidence, not conversion laws.
+Source-derived design ideas and trend signals are treated as production heuristics/currentness evidence, not conversion laws. Local policy preflight is treated as risk reduction, not a guarantee of Google approval.
 
 ### Core implemented foundation
 
@@ -36,6 +36,9 @@ Source-derived design ideas and trend signals are treated as production heuristi
 - one job per final output;
 - exact Pillow renderer and per-layout-family recomposition;
 - Google technical preflight;
+- Google Ads policy preflight;
+- pack-level policy report aggregation;
+- final local Google-ready precheck;
 - provenance manifest/contact sheet;
 - actual/grayscale/squint/thumbnail QA;
 - independent banner/pack review contracts;
@@ -150,7 +153,7 @@ The wildcard is constrained to the task's disruption corridor. A HIGH-disruption
 
 #### Style selection provenance
 
-Written art direction now carries:
+Written art direction carries:
 - exact `style_strategy_id`;
 - lane;
 - style recommendation SHA;
@@ -260,11 +263,90 @@ After representative approval, `campaign-design-system.json` freezes:
 
 The representative becomes evidence of the system, not a canvas to resize.
 
+### Google Ads Policy Preflight — September 7 2026 implemented
+
+Purpose: reduce Google Ads disapproval risk **after** design/technical production without pretending that local tooling can guarantee moderation approval.
+
+Added:
+- `references/google-ads-policy-preflight.md`;
+- `config/google-ads-policy-snapshot.json`;
+- `schemas/google-policy-context.schema.json`;
+- `schemas/google-policy-report.schema.json`;
+- `scripts/validate_google_policy.py`;
+- `scripts/aggregate_google_policy_reports.py`;
+- `scripts/assess_google_ready.py`;
+- policy regressions in `tests/test_google_policy_preflight.py` and `tests/test_google_policy_pack.py`.
+
+#### Policy source model
+
+Current English Google Advertising Policies remain the highest authority at execution time. The local snapshot is dated and has a freshness window; sensitive/restricted verticals require live/current resolution rather than blind reliance on a cached snapshot.
+
+Local policy status is explicitly **not** an approval guarantee.
+
+#### Two-stage policy architecture
+
+1. **Pre-render policy-risk screen**
+   - vertical/category classification;
+   - target geography;
+   - commercial claims and qualifiers;
+   - third-party brand/trademark use;
+   - affiliation/partner status;
+   - offer/landing-page consistency;
+   - certification/targeting concerns when applicable.
+
+2. **Final exact-artifact + destination preflight**
+   - exact banner bytes/SHA/dimensions/format;
+   - image quality / legibility;
+   - misleading-ad-design review;
+   - business identity / affiliation;
+   - material claims;
+   - landing-page relevance and offer availability;
+   - destination working/domain/crawlability/accessibility;
+   - trademark contextual review;
+   - restricted vertical/certification/targeting separation;
+   - AI-generated/edited disclosure-review state when applicable.
+
+#### Misleading-ad-design checks
+
+Explicit checks include:
+- fake system/site warnings, dialogs, menus or request notifications;
+- non-functional fields/checkboxes/radio/close controls;
+- download/install buttons or icons in image ads;
+- misleading arrows/pseudo-interactions;
+- transparent-background image ads;
+- segmented/multi-ad appearance;
+- contextless or disproportionately dominant standalone button;
+- distracting/flashing behavior.
+
+A normal contextual CTA is not automatically disallowed.
+
+#### Claims/destination
+
+Material claims are fail-closed: local PASS requires verified evidence and destination support.
+
+The advertised offer/price/promotion/CTA must be available and easy to find/use from the destination. Unknown material destination evidence prevents local Google-ready clearance.
+
+#### Exact-artifact policy provenance
+
+Every policy semantic review is bound to the exact final creative SHA. Pack aggregation rejects missing/stale reports.
+
+Policy statuses:
+- `GOOGLE_POLICY_PREFLIGHT_PASS`;
+- `GOOGLE_POLICY_PREFLIGHT_BLOCKED`;
+- `GOOGLE_POLICY_PREFLIGHT_INCOMPLETE`;
+- `POLICY_REVIEW_REQUIRED`.
+
+Final local status:
+- `GOOGLE_READY_PRECHECK_PASS` only when ordinary design/readiness and policy preflight pass;
+- `GOOGLE_READY_PRECHECK_BLOCKED` otherwise.
+
+`google_upload_approval_guaranteed` is always false.
+
 ### Verified deterministic milestone
 
-Current verified pipeline milestone after Style Intelligence integration:
-- full unittest suite: **147 tests, OK**;
-- GitHub Actions push/PR checks: **PASS** on the Style Intelligence + 2026 typography integration head.
+Current verified pipeline milestone after Style Intelligence + Google Policy Preflight integration:
+- full unittest suite: **157 tests, OK**;
+- GitHub Actions push/PR checks: **PASS** on the current policy-integrated head.
 
 The suite now includes regressions for:
 - enterprise real-UI strategy selection;
@@ -276,7 +358,15 @@ The suite now includes regressions for:
 - disruption-corridor wildcard selection;
 - stale style recommendation SHA;
 - component drift;
-- campaign style drift.
+- campaign style drift;
+- transparent-background policy blocking;
+- fake-system/dialog policy blocking;
+- unverified material-claim blocking;
+- incomplete destination evidence;
+- trademark contextual review;
+- exact policy report SHA binding;
+- pack-level policy aggregation;
+- final local Google-ready gate.
 
 ### Current v0.2 validation work
 
@@ -293,7 +383,10 @@ Before v0.2 can be fully validated:
    - verify idea/emotion/style/character/lighting fidelity;
    - freeze campaign design system;
    - rerun style-strategy gate with campaign system;
-   - only then test scale-out.
+   - only then test scale-out;
+   - run exact-artifact Google policy preflight against final MITGROUP creative(s), exact offer and real landing page;
+   - explicitly resolve Bitrix24 trademark/advertiser-role context rather than inventing official affiliation;
+   - require pack policy PASS before a Google-ready delivery claim.
 2. Incorporate the user's next creative/banner-style examples as reference DNA and reusable style-library vocabulary; evaluate whether they reveal additional gaps.
 3. Execute six hidden-key visual eval cases through genuinely fresh visual reviewer contexts and score them.
 4. Perform a genuinely independent final repository/PR review and reconcile important findings.
@@ -304,10 +397,11 @@ If fresh independent reviewer contexts are unavailable, report this as an extern
 ## v0.3 — Motion creative: GIF / video / HTML5
 
 Planned after static v0.2 is proven:
-- shared idea/brand/claim/art-direction/style contracts;
+- shared idea/brand/claim/art-direction/style/policy contracts;
 - `MotionIntent` bridge from Matreshka Content Factory;
 - Remotion deterministic motion for code-motion ads;
 - GIF duration/FPS/byte optimization and validator;
+- motion-specific Google policy checks (animation, misleading interaction, media/content restrictions);
 - video matrix across aspect/duration/language/variant;
 - Content Factory bridge for footage/generated media/voice/rendered-evidence QA;
 - HTML5 display as a separate production/validation path.
