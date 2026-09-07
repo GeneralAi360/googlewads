@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/visual-concept-decision.schema.json",
+  "title": "User Visual Concept Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "decision_id",
+    "visual_concept_id",
+    "artifact_path",
+    "artifact_sha256",
+    "decided_by",
+    "decision",
+    "feedback"
+  ],
+  "properties": {
+    "decision_id": {"type": "string", "minLength": 1},
+    "visual_concept_id": {"type": "string", "minLength": 1},
+    "artifact_path": {"type": "string", "minLength": 1},
+    "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "decided_by": {"const": "USER"},
+    "decision": {"enum": ["APPROVE", "REVISE", "REJECT"]},
+    "feedback": {"type": ["string", "null"]},
+    "decided_at": {"type": ["string", "null"]},
+    "next_action": {
+      "enum": [
+        "FREEZE_CAMPAIGN_DESIGN_SYSTEM",
+        "RENDER_REVISED_VISUAL_CONCEPT",
+        "RETURN_UPSTREAM"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"decision": {"const": "APPROVE"}}},
+      "then": {"properties": {"next_action": {"const": "FREEZE_CAMPAIGN_DESIGN_SYSTEM"}}}
+    },
+    {
+      "if": {"properties": {"decision": {"const": "REVISE"}}},
+      "then": {
+        "properties": {
+          "feedback": {"type": "string", "minLength": 1},
+          "next_action": {"const": "RENDER_REVISED_VISUAL_CONCEPT"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"decision": {"const": "REJECT"}}},
+      "then": {
+        "properties": {
+          "feedback": {"type": "string", "minLength": 1},
+          "next_action": {"const": "RETURN_UPSTREAM"}
+        }
+      }
+    }
+  ]
+}
