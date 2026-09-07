@@ -1,14 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/GeneralAi360/googlewads/schemas/representative-design-approval.schema.json",
-  "title": "Representative High-Fidelity Design Approval",
+  "title": "Visual Concept / Representative User Approval",
+  "description": "Approval of the exact rendered visual concept that unlocks campaign-system freeze and full production. Text-only art direction cannot substitute for this user approval.",
   "type": "object",
   "additionalProperties": false,
   "required": ["approval_id", "status", "approved_by", "art_direction_approval_id", "art_direction_approval_sha256", "art_direction_id", "preview_id", "artifact_path", "artifact_sha256", "width", "height", "quality_checks"],
   "properties": {
     "approval_id": {"type": "string", "minLength": 1},
     "status": {"const": "APPROVED"},
-    "approved_by": {"enum": ["USER", "ART_DIRECTOR_REVIEWER"]},
+    "approved_by": {"const": "USER"},
     "approved_at": {"type": ["string", "null"]},
     "art_direction_approval_id": {"type": "string", "minLength": 1},
     "art_direction_approval_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
