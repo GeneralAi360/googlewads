@@ -1,158 +1,123 @@
-# Research and platform source registry
+# Research and evidence sources
 
-Last reviewed: 2026-09-04.
+This file records the source hierarchy used by `performance-banner-designer`.
 
-This file records provenance for the rules used by the skill. Re-check live platform pages before production because platform requirements change.
+## Source classes
 
-## Official Google Ads sources
+### PLATFORM REQUIREMENT
+Current official platform documentation. Mandatory when applicable.
 
-### Uploaded display ads specifications
-https://support.google.com/google-ads/answer/1722096
+Examples:
+- Google Ads creative dimensions/types/byte limits;
+- current animation constraints;
+- current Google Advertising Policies.
 
-Used for:
-- GIF/JPG/PNG uploaded image-ad formats;
-- 150 KB file-size limit;
-- full uploaded-display dimension table;
-- general animated GIF constraints;
-- HTML5 size references.
+At execution time, current official documentation outranks dated local snapshots.
 
-### Demand Gen — image assets and uploaded display
-https://support.google.com/google-ads/answer/17140672
+### RESEARCH EVIDENCE
+Peer-reviewed or otherwise credible empirical research used contextually.
 
-Used for:
-- current Uploaded Display support on GDN inventory within Demand Gen;
-- current seven recommended uploaded-display sizes;
-- up to 20 assets;
-- static/non-animated condition for this mode;
-- 150 KB limit.
+Examples:
+- visual-attention / eye-tracking research;
+- typography/readability research.
 
-### Responsive Display best practices
-https://support.google.com/google-ads/answer/9823397
+Research results must not be converted into universal layout or conversion laws.
 
-Used for:
-- no overlaid logos;
-- avoid overlaid text;
-- no fake overlaid buttons;
-- product/service focus;
-- blank-space guidance;
-- avoid collages/composite backgrounds.
+### PRODUCTION HEURISTIC
+Practitioner/design methodology that can improve workflow but does not prove performance.
 
-### Responsive Display specs
-https://support.google.com/google-ads/answer/17090561
+Examples:
+- lighting-scheme vocabulary;
+- squint/grayscale/thumbnail checks;
+- focus-budget heuristics;
+- current style taxonomy;
+- fixed-canvas design practices.
 
-Used for current Responsive Display text-asset limits.
+### TEST HYPOTHESIS
+A plausible creative idea that should be validated in campaign data rather than stated as a fact.
 
-### Create a Responsive Display ad
-https://support.google.com/google-ads/answer/7005917
+Examples:
+- a visual paradox may increase stopping power;
+- product-proof execution may outperform an abstract metaphor in a given category.
 
-Used for image/logo dimensions and file-size guidance.
+## Competitor-performance evidence tiers
 
-### Demand Gen campaign specs
-https://support.google.com/google-ads/answer/17091672
+- `A_VERIFIED_OWN_METRICS`;
+- `B_PUBLISHED_CASE_METRICS`;
+- `C_PLATFORM_PERFORMANCE_SIGNAL`;
+- `D_MARKET_PROXY`;
+- `E_DESIGN_REFERENCE_ONLY`.
 
-Used for:
-- 40-character Demand Gen headlines;
-- 30-character-or-shorter Display-serving note;
-- 90-character descriptions;
-- business-name limit;
-- common Demand Gen image ratios.
+Do not call a creative high-converting without appropriate conversion-related A/B evidence.
 
-### Demand Gen creative asset guidelines
-https://support.google.com/google-ads/answer/13704860
+## Current Google technical sources
 
-Used for current recommended Demand Gen image sizes and ratios.
+Primary local snapshot:
+- `references/google-platform-specs.md`;
+- `config/google-formats.json`.
 
-## Eye tracking and visual attention
+Refresh official Google documentation at execution time when possible.
 
-### Peker, Dalveren & Inal (2021)
-"The Effects of the Content Elements of Online Banner Ads on Visual Attention: Evidence from An-Eye-Tracking Study"
-Future Internet, 13(1), 18.
-https://doi.org/10.3390/fi13010018
-https://www.mdpi.com/1999-5903/13/1/18
+## Current Google Advertising Policy sources
 
-Relevant evidence:
-- image area attracted the most attention among image/brand/discount AOIs in the study;
-- middle areas were noticed first;
-- left areas tended to be noticed earlier than right;
-- discount magnitude and brand familiarity changed attention patterns.
+Primary local policy snapshot:
+- `references/google-ads-policy-preflight.md`;
+- `config/google-ads-policy-snapshot.json`.
 
-Limit: one study/context is not a universal positioning law.
+The snapshot reviewed current official English Google Advertising Policy pages on 2026-09-07, including relevant policy families for image/display advertising:
+- Image ad requirements;
+- Image quality;
+- Misrepresentation;
+- Misleading ad design;
+- Unreliable claims;
+- Unclear relevance;
+- Unavailable offers;
+- Destination requirements;
+- Trademarks;
+- Inappropriate content;
+- restricted/sensitive categories and certifications when applicable;
+- personalized advertising/targeting restrictions when applicable.
 
-### Palcu, Sudkamp & Florack (2017)
-"Judgments at Gaze Value: Gaze Cuing in Banner Advertisements, Its Effect on Attention Allocation and Product Judgments"
-Frontiers in Psychology, 8:881.
-https://doi.org/10.3389/fpsyg.2017.00881
-https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2017.00881/full
+English Google Advertising Policy text is treated as the policy enforcement source of truth. Translated/local guidance is useful to the user but must not silently override the English policy rule.
 
-Relevant evidence:
-- gaze toward product increased likelihood of looking at product;
-- gaze direction affected purchase intention in the experiment;
-- animated face banners attracted more attention than static versions.
+The local snapshot has a freshness policy. Restricted/sensitive categories require live/current policy resolution rather than assuming an old cached rule remains valid.
 
-Limit: do not infer that every banner needs a face or animation.
+## Policy evidence is not performance evidence
 
-### Visual complexity study (2023)
-"Effects of Visual Complexity of Banner Ads on Website Users’ Perceptions"
-Applied Sciences, 13(24), 13317.
-https://www.mdpi.com/2076-3417/13/24/13317
+Keep policy and conversion evidence independent.
 
-Relevant evidence:
-- high-complexity ads could be noticed slightly faster but received less sustained fixation/looking and were judged less appealing in the study;
-- supports complexity control, not sterile minimalism as a universal rule.
+`GOOGLE_POLICY_PREFLIGHT_PASS` means no unresolved blocker was found in the evidence provided to the local policy gate. It does not predict CTR/CVR and does not guarantee Google approval.
 
-## Typography
+Google policy assessment can depend on:
+- exact creative;
+- landing page/destination;
+- advertiser/business identity;
+- account verification/eligibility;
+- target geography;
+- certification;
+- targeting/personalization;
+- trademark complaints/relationship;
+- third-party information.
 
-### Arditi & Cho — Serifs and font legibility
-https://pmc.ncbi.nlm.nih.gov/articles/PMC4612630/
+Therefore never convert local policy checks into an approval probability.
 
-Relevant evidence:
-- no continuous-reading-speed effect attributable simply to serifs;
-- no universal serif/sans superiority can be claimed from category alone.
+## User-provided design methodology sources
 
-### Daxer et al. (2022)
-"Towards a standardisation of reading charts: Font effects on reading performance—Times New Roman with serifs versus the sans serif font Helvetica"
-https://pmc.ncbi.nlm.nih.gov/articles/PMC9804255/
+The user-supplied lighting guide and visual-packaging presentation are retained as practitioner methodologies with explicit production-heuristic status.
 
-Relevant evidence:
-- no significant reading-time/speed difference in the controlled comparison described;
-- actual font and layout matter.
+Their strongest reusable ideas are integrated into:
+- `references/lighting-intelligence.md`;
+- `references/idea-architecture-visual-character.md`;
+- `references/creative-disruption-library.md`.
 
-### Vecino et al. (2022)
-"How does serif vs sans serif typeface impact the usability of e-commerce websites?"
-https://pmc.ncbi.nlm.nih.gov/articles/PMC9680897/
+## September 2026 Style Intelligence sources
 
-Relevant evidence:
-- study did not find serif/sans category to determine usability/reading speed in the tested e-commerce prototype.
+Current style/currentness research is summarized in:
+- `references/style-intelligence-2026.md`;
+- `config/style-intelligence-library.json`.
 
-## Contrast / accessibility
+Currentness is intentionally a subordinate ranking factor. It must not override category fit, product truth, attention hierarchy, typography, lighting or multi-format resilience.
 
-### WCAG 2.2 — Contrast Minimum
-https://www.w3.org/TR/WCAG22/#contrast-minimum
-https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
+## Audit rule
 
-Internal QA targets derived from the standard:
-- 4.5:1 normal text;
-- 3:1 large-scale text;
-- logotype exception acknowledged.
-
-Use as readability QA guidance. Do not misrepresent it as a Google Ads raster-banner submission requirement.
-
-## External skill inspirations
-
-### coreyhaines31/marketingskills — ad-creative
-https://github.com/coreyhaines31/marketingskills/tree/main/skills/ad-creative
-
-Ideas adopted at architectural level:
-- grounded inputs;
-- concept generation before production;
-- iterative performance loop;
-- separating winning patterns from new exploration;
-- source-grounded claims.
-
-Do not copy template rankings blindly from Meta into Google Display; placement and attention context differ.
-
-### google/skills — Google Ads API quickstart
-https://github.com/google/skills/tree/main/skills/ads/google-ads-api-quickstart
-
-Architectural lesson:
-- dynamically resolve changing Google versions/specifications rather than hardcoding stale platform assumptions.
+Every significant rule used by the system should be traceable to one of these classes. If its evidence status is unclear, downgrade it to a production heuristic or test hypothesis rather than overclaiming certainty.
