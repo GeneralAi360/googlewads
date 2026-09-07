@@ -68,6 +68,29 @@
         "preproduction reporting must separate STRATEGY_STATUS from RENDER_READINESS"
       ],
       "performance_claim_policy": "This regression concerns orchestration order only and creates no performance evidence."
+    },
+    {
+      "case_id": "REAL-04",
+      "title": "User wants approval of the rendered visual concept, not a text-only art direction",
+      "context": "During acceptance refinement the user clarified the intended interaction model: the skill should ask the necessary questions, develop the strategy internally, render the first real visual concept, show that visual to the user, and only after the user's explicit approval complete the full banner task. A written art-direction description is useful internally but is not the approval artifact the user wants to approve.",
+      "failure_stage": "USER_APPROVAL_ORCHESTRATION",
+      "expected_findings": [
+        "TEXT_ONLY_APPROVAL_INSUFFICIENT",
+        "VISUAL_CONCEPT_MUST_BE_PRIMARY_APPROVAL_ARTIFACT",
+        "USER_VISUAL_APPROVAL_REQUIRED_BEFORE_SCALEOUT",
+        "REVISE_REQUIRES_NEW_VISUAL_VERSION",
+        "REJECT_MUST_RETURN_UPSTREAM",
+        "FULL_PACK_BLOCKED_BEFORE_VISUAL_APPROVAL"
+      ],
+      "required_regressions": [
+        "written art direction is an internal preproduction freeze and cannot substitute for user approval of a rendered visual concept",
+        "the primary user approval artifact must be an exact rendered representative image bound by SHA-256",
+        "only a USER decision of APPROVE may unlock campaign-design-system freeze and full production",
+        "REVISE must keep scale-out blocked and require a new rendered visual version for re-approval",
+        "REJECT must keep scale-out blocked and return to the smallest responsible upstream strategy layer",
+        "changed visual bytes invalidate the prior user decision"
+      ],
+      "performance_claim_policy": "Visual approval is a production-control gate and does not imply advertising performance."
     }
   ]
 }
