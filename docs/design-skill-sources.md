@@ -1,90 +1,158 @@
-# Design-skill and methodology sources
+# Design / creative-system source inventory
 
-This repository separates **useful design process ideas** from **scientific/performance evidence**. Public skills, practitioner presentations and creative tools may contribute production heuristics or vocabulary, but they do not become conversion laws merely because they look authoritative.
+This document records reusable design/process sources that influenced `performance-banner-designer`. It does **not** treat external design advice as conversion evidence.
 
-## Public design skills reviewed
+## GitHub / design workflow sources
 
-### `caorachel-lab/frontend-posters`
-Useful patterns:
-- fixed-canvas thinking;
-- multiple materially distinct directions before selection;
-- thumbnail inspection;
+### caorachel-lab/frontend-posters
+Useful transferable ideas:
+- fixed-canvas design workflow;
+- materially different visual directions before production;
+- thumbnail/small-view inspection;
 - rendered-output QA.
 
-Not imported as universal rules:
+Do not transfer as universal laws:
 - fixed CTA position;
-- fixed text/fill ratio;
-- one mandatory poster layout.
+- fixed text percentage;
+- any claim that one poster grammar universally converts better.
 
-### `rahamanbinujit/claude-design-engine`
-Useful patterns:
+### rahamanbinujit/claude-design-engine
+Useful transferable ideas:
 - squint test;
-- grayscale hierarchy check;
+- grayscale hierarchy test;
 - self-review / hierarchy debugging;
-- anti-template thinking.
+- anti-template craft thinking.
 
-### `vanducng/skills` — marketing design
-Useful patterns:
+These are diagnostic design heuristics, not CTR predictors.
+
+### vanducng/skills / marketing-design
+Useful transferable ideas:
 - art-direction vocabulary;
-- campaign-oriented visual thinking;
-- explicit design choices rather than generic rendering.
+- structured marketing-design workflow;
+- distinguishing creative system from one-off image generation.
 
-### `social-media-skills` / thumbnail-oriented workflows
-Useful patterns:
-- small-view legibility;
+### social-media-skills / thumbnail-design patterns
+Useful transferable ideas:
 - persistent design grammar;
-- strong focal hierarchy.
+- small-view legibility;
+- strong silhouette/hierarchy at glance size.
 
-## User-supplied practitioner methodology — `ВИЗУАЛ И УПАКОВКА`
+## User-supplied methodologies
 
-The 38-page presentation contributed a **meaning-first visual-development methodology**. It is not treated as peer-reviewed research or proof of advertising performance.
+### `СВЕТ — 30 схем освещения`
+Integrated as practical lighting vocabulary.
 
-Transferred as production heuristics:
-- “idea first, visual second”;
-- task → idea → presentation → emotion → style/character → prompt/generation → selection → refinement → adaptation → final;
-- separate semantic idea from visual embodiment;
-- presentation modes chosen by communication task rather than what merely looks interesting;
-- one clear focal idea/hero/emotion/visual language as a default complexity heuristic;
-- negative/forbidden list as a first-class creative constraint;
-- first generation is a draft, not the final design;
-- campaign/system thinking instead of one-off images;
-- visual-character matrix rather than a rigid list of styles;
-- optional disruptive devices such as paradox, pain visualization, genre masks or personification as test hypotheses.
+Important boundary:
+- the 30 schemes are production heuristics;
+- they do not prove CTR/CVR lift;
+- scheme selection is downstream of idea/emotion/style/AOI/material context;
+- real UI may make scene lighting `NOT_APPLICABLE`.
 
-Implemented in:
-- `references/idea-architecture-visual-character.md`;
-- `references/creative-disruption-library.md`;
-- `schemas/design-brief.schema.json`;
-- `schemas/hero-generation-spec.schema.json`;
-- `schemas/campaign-design-system.schema.json`;
-- `scripts/freeze_preproduction_design.py`.
+### `ВИЗУАЛ И УПАКОВКА`
+Integrated as meaning-first production methodology.
 
-The style vocabulary is intentionally extensible because the user plans to provide additional banner-style examples. Those examples should enrich `VISUAL_CHARACTER`, `style_tags`, reference DNA, and possibly evaluation cases — not create a closed list of compulsory templates.
+Strong transferable principles:
+- task → idea → presentation → emotion → visual character;
+- one clear main idea/hero/emotion/language as a default focus heuristic;
+- explicit forbidden list;
+- first generation is not final;
+- selection/refinement/adaptation before delivery;
+- system rather than one isolated image.
 
-## User-supplied lighting methodology — `СВЕТ — 30 схем освещения`
+These are production heuristics rather than scientific advertising laws.
 
-The 30 practical lighting patterns remain a production vocabulary, not performance evidence.
+## September 2026 Style Intelligence research
 
-The important architectural change is that lighting is no longer selected independently. It is downstream of meaning:
+Currentness sources are stored and interpreted in `references/style-intelligence-2026.md` and `config/style-intelligence-library.json`.
 
-`CORE IDEA → PRESENTATION MODE → EMOTIONAL TARGET → VISUAL CHARACTER → PRIMARY AOI → LIGHTING INTENT → SCENE/COMPOSITION LIGHTING`
+The library separates:
+- evergreen/foundation design grammar;
+- contemporary overlay;
+- execution language;
+- attention strategy;
+- typography role;
+- lighting affinity;
+- format resilience.
 
-Implemented in:
-- `references/lighting-intelligence.md`;
-- `config/lighting-schemes.json`;
-- `lighting_intent` in `design-brief.json`;
-- campaign lighting inside `campaign-design-system.json`;
-- representative/banner/pack review fidelity checks.
+Trend weight is deliberately subordinate to category fit, truth, attention, typography, multi-format resilience and lighting.
 
-## Evidence discipline
+Style examples never become automatically high-converting styles without verified performance data.
 
-Do not import these statements as universal facts:
-- “brightest object is always seen first”;
-- “emotion always sells better”;
-- “visual paradox increases CTR”;
-- “CTA should always be bottom-right”;
-- “text should always occupy less than N%”;
-- “one lighting scheme is best for a category”;
-- “one visual style is inherently high-converting.”
+## Visual-attention / typography evidence
 
-Use them only as testable hypotheses when appropriate.
+Research references are summarized separately in:
+- `references/visual-attention.md`;
+- `references/typography-color-contrast.md`.
+
+Important evidence boundaries:
+- center/left/right attention results are contextual, not a universal layout formula;
+- face gaze can guide attention but face use is not universally superior;
+- low visual complexity can aid sustained attention, but novelty/salience and comprehension are distinct;
+- no universal serif-vs-sans reading winner is encoded;
+- WCAG contrast is used as internal readability QA, not claimed as a Google raster-ad submission rule.
+
+## Google Ads official platform sources
+
+Technical platform requirements are maintained in:
+- `references/google-platform-specs.md`;
+- `config/google-formats.json`.
+
+Current official web documentation outranks the local snapshot at execution time.
+
+## Google Advertising Policies — September 7 2026 integration
+
+Policy sources are kept separate from design craft and performance evidence.
+
+Primary official Google Advertising Policy areas incorporated into `references/google-ads-policy-preflight.md` and `config/google-ads-policy-snapshot.json` include:
+- Image ad requirements;
+- Image quality;
+- Misrepresentation;
+- Misleading ad design;
+- Unreliable claims;
+- Unclear relevance;
+- Unavailable offers;
+- Destination requirements;
+- Trademarks;
+- Inappropriate content;
+- restricted/sensitive vertical policies and certifications when applicable;
+- personalized advertising / targeting restrictions when applicable.
+
+Important policy evidence boundary:
+- local policy preflight is a risk-reduction system;
+- only current official Google policy is authoritative at enforcement time;
+- policy can depend on the ad, landing page, advertiser/account, target country, certifications, targeting and third-party information;
+- therefore the skill never promises approval or a moderation-pass percentage.
+
+### Misleading design findings encoded
+
+The current policy preflight explicitly screens image ads for known risky/disallowed design patterns such as:
+- system/site warning or error-message mimicry;
+- messages/dialogs/menus/request notifications;
+- non-functional fields, controls or close buttons;
+- download/install buttons/icons;
+- misleading arrows/pseudo-interactions;
+- transparent background;
+- segmented or multiple-ad appearance;
+- contextless/disproportionately dominant standalone button.
+
+A normal contextual CTA is not treated as automatically prohibited.
+
+### Claims/destination/trademark handling
+
+Material claims require verified business evidence and destination support.
+
+The advertised offer/price/promotion/CTA must be available and easy to find/use at the landing page before local PASS.
+
+Trademark use is contextual rather than universally blocked; unresolved reseller/integrator/official-affiliation context returns review-required rather than invented authorization.
+
+## Internal truth model
+
+Reusable rule classification remains:
+1. `PLATFORM REQUIREMENT`;
+2. `RESEARCH EVIDENCE`;
+3. `PRODUCTION HEURISTIC`;
+4. `TEST HYPOTHESIS`.
+
+Observed competitor performance additionally uses A–E evidence tiers.
+
+Google policy uses a separate policy-evidence path because compliance is neither a style preference nor a performance hypothesis.
