@@ -1,6 +1,6 @@
 # Google Ads Performance Banner Designer
 
-A production-grade AI skill for researching, planning, designing, adapting, rendering, reviewing, validating, and iterating professional advertising banners for Google Ads.
+A production-grade AI skill for researching, planning, designing, adapting, rendering, reviewing, validating, policy-preflighting, and iterating professional advertising banners for Google Ads.
 
 The project intentionally treats banner creation as a **creative-production system**, not a single image prompt.
 
@@ -19,8 +19,7 @@ BUSINESS CONTEXT
 → VISUAL_CHARACTER
 → STYLE INTELLIGENCE
 → attention / typography strategy
-→ focus budget / forbidden list / chaos audit
-→ commercial + brand locks
+→ PRE-RENDER GOOGLE POLICY RISK
 → LIGHTING_INTENT
 → detailed design brief
 → 3 written art directions when unresolved
@@ -42,8 +41,8 @@ BUSINESS CONTEXT
 → independent banner reviews
 → pack review
 → design readiness
-→ Google Ads policy preflight
-→ policy pack aggregation
+→ FINAL GOOGLE ADS POLICY PREFLIGHT
+→ exact-SHA policy pack aggregation
 → GOOGLE_READY_PRECHECK
 → delivery
 → performance learning
@@ -101,13 +100,13 @@ The user-supplied visual-methodology presentation added a semantic design layer.
 - generation-is-not-final workflow;
 - campaign design system after representative approval.
 
-A design brief now explicitly answers what the visual means, what single takeaway should remain after a glance, how the idea is presented, which emotion/state it should create, what creative tension makes the concept non-generic, and why this mechanism fits the communication problem.
+A design brief explicitly answers what the visual means, what single takeaway should remain after a glance, how the idea is presented, which emotion/state it should create, what creative tension makes the concept non-generic, and why this mechanism fits the communication problem.
 
 ## Style Intelligence — September 2026
 
 Style is modeled as a strategy above the individual banner rather than a rigid preset or fashionable label.
 
-New machine-readable layer:
+Machine-readable layer:
 - `config/style-intelligence-library.json`;
 - `references/style-intelligence-2026.md`;
 - `schemas/style-strategy-context.schema.json`;
@@ -142,14 +141,7 @@ Style selection includes an explicit attention plan / intended scan path rather 
 
 Typography is role-based rather than selected by fashion alone. Candidate profiles include enterprise variable sans, editorial serif+sans, quiet-luxury serif, humanist sans, condensed promotional display, technical mono accent, controlled expressive display, soft-serif/human-trust and script-aware systems.
 
-Actual font files still require runtime verification for:
-- license;
-- local availability;
-- language/script support;
-- Cyrillic/Belarusian glyph quality when needed;
-- real weights/widths;
-- exact raster readability;
-- micro-format behavior.
+Actual font files still require runtime verification for license, local availability, language/script support, Cyrillic/Belarusian glyph quality when needed, real weights/widths, exact raster readability and micro-format behavior.
 
 No font family is presented as universally higher-converting.
 
@@ -198,32 +190,19 @@ Missing required real UI/logo/product asset returns `NEEDS_ASSET`.
 
 ## One representative before scale-out
 
-One high-fidelity representative must PASS:
-- idea fidelity;
-- emotional fidelity;
-- visual-character/style fidelity;
-- lighting-intent fidelity;
-- asset/category quality;
-- hierarchy/type;
-- brand/message fidelity;
-- crop;
-- lighting/contrast;
-- CTA clarity;
-- anti-generic-AI quality.
+One high-fidelity representative must PASS idea, emotion, style/character, lighting, asset/category, hierarchy/type, brand/message, crop, CTA and anti-generic-AI checks before scale-out.
 
 After representative approval, `campaign-design-system.json` freezes reusable design grammar rather than a master canvas to resize.
 
-## Deterministic rendering and technical Google preflight
+## Google technical preflight
 
 One final matrix row = one traceable banner job.
 
-The Pillow renderer owns exact approved copy/logo/fonts/layout/crop/dimensions/compression and deterministic composition lighting.
-
-Formats are recomposed per layout family rather than resized from a master canvas.
+The deterministic renderer owns exact approved copy/logo/fonts/layout/crop/dimensions/compression and composition lighting. Formats are recomposed per layout family rather than resized from a master canvas.
 
 `render_banner_pack.py` checks creative/design-system provenance and Google technical requirements before emitting the final manifest/contact sheet.
 
-**Technical Google PASS is not design PASS and is not policy PASS.**
+**Technical Google PASS is not design PASS and is not Google policy PASS.**
 
 ## Visual QA and independent review
 
@@ -239,7 +218,7 @@ Pack review checks those identities across sizes.
 
 ## Google Ads Policy Preflight — September 7 2026
 
-The repository now includes a separate policy layer based on current official Google Advertising Policies. It is designed to reduce disapproval risk, not to guarantee moderation approval.
+The repository includes a separate policy layer based on current official Google Advertising Policies. It is designed to reduce disapproval risk, not to guarantee moderation approval.
 
 Implemented:
 - `references/google-ads-policy-preflight.md`;
@@ -250,7 +229,11 @@ Implemented:
 - `scripts/aggregate_google_policy_reports.py`;
 - `scripts/assess_google_ready.py`.
 
-The final policy preflight combines:
+### Two policy stages
+
+**Pre-render policy risk** prevents expensive work on a concept that already contains unresolved restricted-vertical, affiliation, trademark, claim, destination or misleading-design risk.
+
+**Final exact-artifact policy preflight** combines:
 
 `EXACT FINAL BANNER + EXACT COPY + ADVERTISER IDENTITY + CLAIM EVIDENCE + LANDING PAGE + TRADEMARK CONTEXT + VERTICAL/GEO/TARGETING CONTEXT + GOOGLE_POLICY_REVIEWER`
 
@@ -292,7 +275,7 @@ Google may still review ad, destination, account, advertiser verification, campa
 ## Verified deterministic milestone
 
 - current full unittest suite: **157 tests, OK**;
-- current policy-integrated branch head: GitHub Actions **PASS**.
+- canonical Style Intelligence + Google Policy `SKILL.md` head: GitHub Actions **PASS**.
 
 The suite includes Style Intelligence, real-UI truth, typography, lighting, policy, destination, claim, trademark and pack-policy aggregation regressions.
 
