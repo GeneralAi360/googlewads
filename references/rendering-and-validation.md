@@ -200,6 +200,8 @@ Check separately:
 
 Do not apply the finished-banner raster pipeline blindly to asset-based ads.
 
+**Technical Google PASS is not Google policy PASS.** Run the policy preflight described below against the final artifact and destination evidence.
+
 ## 15. Visual preflight
 
 Check at 100% size:
@@ -242,3 +244,116 @@ Use explicit states such as:
 - `REVIEW_POLICY`
 
 Do not hide a failed requirement behind a generic quality score.
+
+## 18. Google Ads policy preflight is mandatory before Google-ready delivery
+
+Load:
+- `references/google-ads-policy-preflight.md`;
+- `config/google-ads-policy-snapshot.json`;
+- `schemas/google-policy-context.schema.json`;
+- `schemas/google-policy-report.schema.json`.
+
+Keep policy review separate from technical validation.
+
+The policy path is:
+
+`FINAL ARTIFACT + EXACT COPY + ADVERTISER IDENTITY + CLAIM SOURCES + LANDING PAGE + VERTICAL/GEO CONTEXT -> GOOGLE_POLICY_REVIEWER -> google-policy-context.json -> validate_google_policy.py -> google-policy-report.json`
+
+Run per final banner (or per exact artifact identity when several jobs share identical bytes/context):
+
+```bash
+python scripts/validate_google_policy.py \
+  --context run/policy/{job_id}.google-policy-context.json \
+  --snapshot config/google-ads-policy-snapshot.json \
+  --out run/policy/{job_id}.google-policy-report.json
+```
+
+Only `GOOGLE_POLICY_PREFLIGHT_PASS` counts as local policy clearance.
+
+Other statuses are blocking for a Google-ready delivery claim:
+- `GOOGLE_POLICY_PREFLIGHT_BLOCKED`;
+- `GOOGLE_POLICY_PREFLIGHT_INCOMPLETE`;
+- `POLICY_REVIEW_REQUIRED`.
+
+This validator intentionally does not use OCR or pretend that code can infer every policy issue from pixels. A fresh/read-only `GOOGLE_POLICY_REVIEWER` supplies semantic visual judgments bound to the exact final artifact SHA.
+
+## 19. Policy checks that must cover the final banner
+
+At minimum review:
+- image quality and essential-text legibility;
+- full-canvas use where required;
+- misleading system-warning/dialog/menu/request-notification mimicry;
+- non-functional text fields, checkboxes, radio controls, close controls or similar fake UI;
+- download/install buttons or icons in image ads;
+- misleading arrows/pseudo-interactions;
+- transparent-background image ads;
+- segmented/multi-ad appearance;
+- contextless or disproportionate standalone buttons;
+- distracting/strobing/flashing behavior;
+- inappropriate/prohibited content;
+- deceptive manipulated media;
+- advertiser/business identity;
+- unsupported or improbable claims;
+- false affiliation/endorsement;
+- trademark context;
+- restricted/sensitive vertical and required certifications;
+- AI-asset disclosure/label review when applicable by platform/jurisdiction.
+
+A normal contextual CTA is not automatically prohibited. The concern is misleading/non-functional design or a button whose context/function is unclear or disproportionately dominates the creative.
+
+## 20. Policy checks must include the destination
+
+The exact landing page is part of the ad policy system.
+
+Verify:
+- page works;
+- domain/final URL behavior is acceptable;
+- Google AdsBot crawlability is known;
+- target geography can access the destination;
+- advertised offer/price/promotion is available and easy to find;
+- CTA action can actually be completed/reached;
+- destination accurately represents the advertiser and promoted product/service;
+- page provides useful/original content rather than being a bridge/parked/under-construction destination.
+
+A banner cannot be called locally Google-ready when its destination checks are `UNKNOWN`.
+
+## 21. Claims and trademarks are fail-closed
+
+Material commercial claims require `VERIFIED` evidence before local policy PASS.
+
+Examples:
+- `Бесплатная настройка` must be supported by an approved business source and be available on the landing page under the stated qualifier;
+- price/discount claims must be current;
+- partner/certified/official status must be verified before it is shown or implied.
+
+Third-party trademarks are contextual, not automatically banned. If the relationship/use basis is unresolved, return `TRADEMARK_REVIEW_REQUIRED`; do not invent authorization.
+
+## 22. Restricted verticals and targeting are separate scopes
+
+Keep these independent:
+- `CREATIVE_POLICY`;
+- `DESTINATION_POLICY`;
+- `VERTICAL_CERTIFICATION`;
+- `TARGETING_POLICY`;
+- `ACCOUNT_ELIGIBILITY`.
+
+A creative may be visually acceptable while targeting or advertiser certification remains restricted. For sensitive/restricted categories, refresh the live current Google policy and target-country rules rather than relying only on the local snapshot.
+
+## 23. Final Google-ready precheck
+
+After ordinary design/readiness is complete and every required policy report passes, combine them with:
+
+```bash
+python scripts/assess_google_ready.py \
+  --readiness run/readiness.json \
+  --policy-report run/policy/google-policy-report.json \
+  --out run/google-ready-precheck.json
+```
+
+For a multi-banner pack, the controller must first ensure every required per-banner policy report is `GOOGLE_POLICY_PREFLIGHT_PASS`; a pack-level aggregation may then feed the final precheck.
+
+`GOOGLE_READY_PRECHECK_PASS` means local design, technical and policy prechecks found no unresolved blocker in the supplied evidence.
+
+It **never** means approval is guaranteed. Google may still review the ad, destination, account, advertiser verification, campaign settings, targeting, geography and third-party information.
+
+Never write `100% approved`, `guaranteed to pass moderation`, or equivalent.
