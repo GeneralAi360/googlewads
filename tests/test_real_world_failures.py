@@ -45,6 +45,27 @@ class RealWorldFailureTests(unittest.TestCase):
         self.assertIn("creative freeze must reject CTA", regressions)
         self.assertIn("DEGRADED research", case["performance_claim_policy"])
 
+    def test_real_03_scopes_needs_asset_to_render_boundary(self):
+        case = self.load_cases()["REAL-03"]
+        expected = set(case["expected_findings"])
+        for code in (
+            "ASSET_GATE_APPLIED_TOO_EARLY",
+            "UPSTREAM_STRATEGY_SKIPPED_BY_DOWNSTREAM_GATE",
+            "IDEA_ARCHITECTURE_UNNECESSARILY_BLOCKED",
+            "STYLE_INTELLIGENCE_UNNECESSARILY_BLOCKED",
+            "LIGHTING_INTENT_UNNECESSARILY_BLOCKED",
+            "RENDER_BLOCKER_SCOPE_TOO_BROAD",
+        ):
+            self.assertIn(code, expected)
+        regressions = "\n".join(case["required_regressions"])
+        self.assertIn("NEEDS_ASSET must block representative rendering", regressions)
+        self.assertIn("not IDEA_ARCHITECTURE", regressions)
+        self.assertIn("Style Intelligence", regressions)
+        self.assertIn("LIGHTING_INTENT", regressions)
+        self.assertIn("STRATEGY_STATUS", regressions)
+        self.assertIn("RENDER_READINESS", regressions)
+        self.assertIn("orchestration order", case["performance_claim_policy"])
+
 
 if __name__ == "__main__":
     unittest.main()
