@@ -19,7 +19,8 @@ Expanded:
 5. create one real high-fidelity representative visual concept, normally 300x250 unless another format is more representative;
 6. show the rendered concept to the user with a short rationale;
 7. wait for the user's explicit decision;
-8. only `APPROVE` authorizes campaign-design-system freeze and full-pack production.
+8. validate the exact user decision against the exact rendered bytes;
+9. only `APPROVE` authorizes campaign-design-system freeze and full-pack production.
 
 ## The approval artifact is visual
 
@@ -45,16 +46,36 @@ A short written rationale may accompany the image, but it supports the visual ar
 
 ## User decisions
 
+Use `schemas/visual-concept-decision.schema.json` for the exact-artifact user decision.
+
 ### APPROVE
 
 The exact visual concept is accepted by the user.
 
 Requirements:
 - exact artifact path and SHA are recorded;
-- `approved_by = USER`;
+- `decided_by = USER`;
+- representative approval also has `approved_by = USER`;
 - representative quality checks pass;
 - the campaign design system may now be frozen from this approved visual grammar;
 - full-pack scale-out may begin only after all remaining production gates pass.
+
+Before scale-out run:
+
+```bash
+python scripts/validate_visual_concept_approval.py \
+  --representative-approval run/design/representative-design-approval.json \
+  --visual-decision run/design/visual-concept-decision.json \
+  --out run/design/visual-concept-scaleout-gate.json
+```
+
+Required result:
+
+`VISUAL_CONCEPT_APPROVED`
+
+with:
+- `campaign_design_system_freeze_allowed=true`;
+- `full_production_allowed=true`.
 
 ### REVISE
 
@@ -67,6 +88,8 @@ Requirements:
 - previous approval, if any, is invalid for the changed bytes;
 - show the revised visual again for explicit user approval.
 
+Use `scripts/validate_visual_concept_decision.py` to materialize the state `VISUAL_CONCEPT_REVISE_REQUESTED`.
+
 ### REJECT
 
 The user rejects the visual direction.
@@ -75,6 +98,8 @@ Requirements:
 - do not scale out;
 - return to the smallest upstream layer responsible for the problem: art direction, style strategy, visual character, idea architecture, offer/brand, or assets;
 - do not multiply variants from the rejected visual system.
+
+Use `scripts/validate_visual_concept_decision.py` to materialize the state `VISUAL_CONCEPT_REJECTED`.
 
 ## One concept or several
 
@@ -96,7 +121,7 @@ Never produce the full banner pack before explicit approval of the visual repres
 
 The sequence is:
 
-`VISUAL CONCEPT RENDERED -> USER APPROVE -> CAMPAIGN DESIGN SYSTEM -> FULL SIZE / VARIANT MATRIX`
+`VISUAL CONCEPT RENDERED -> USER APPROVE -> SCALEOUT GATE -> CAMPAIGN DESIGN SYSTEM -> FULL SIZE / VARIANT MATRIX`
 
 Not:
 
