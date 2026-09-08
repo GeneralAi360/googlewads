@@ -2,231 +2,229 @@
 
 ## Purpose
 
-The user approves a **visual concept**, not a text-only art-direction description.
+The user approves **visible design**, not a text-only art-direction description.
 
-Written strategy, Style Intelligence, attention, typography, lighting and art-direction documents are internal preproduction contracts that prepare the visual concept. They may be reviewed internally, but they do not substitute for the user's visual approval.
+Written strategy, Style Intelligence, attention, typography, lighting and art-direction documents are internal preproduction contracts. They prepare the visual concepts but do not substitute for user visual judgment.
 
-A second principle is equally important:
+Two additional rules are permanent:
 
-> Missing production-grade assets must not leave the user with nothing visual to judge.
+1. missing production-grade assets must not leave the user with nothing visual to judge;
+2. an internal recommendation must not be treated as if the user already selected/locked a visual direction.
 
-Production asset readiness and user concept visibility are separate concerns.
+Load `references/commercial-job-and-concept-exploration.md` before first-round visual concept rendering.
 
 ## Canonical user-facing flow
 
-`QUESTIONS / INTAKE -> STRATEGY -> RENDERED VISUAL CONCEPT -> USER APPROVAL -> PRODUCTION ASSET COMPLETION IF NEEDED -> FULL PRODUCTION`
+When the direction is not explicitly user-locked:
 
-Expanded:
+`QUESTIONS / INTAKE -> COMMERCIAL JOB LOCK -> STRATEGY -> 3 RENDERED VISUAL CONCEPTS -> USER SELECTION -> REVISE/APPROVE -> PRODUCTION ASSET COMPLETION IF NEEDED -> FULL PRODUCTION`
 
-1. collect only the questions needed to create the campaign correctly;
-2. resolve business facts, scope, research/category context, idea, visual character, style strategy, attention, typography, policy risk and lighting intent;
-3. internally freeze a sufficiently detailed art-direction plan;
-4. determine which production assets are required;
-5. render one user-facing visual concept, normally 300x250 unless another format is more representative;
-6. if production assets are available, render with them;
-7. if production assets are missing, render a **concept preview** using only explicitly declared non-production surrogates/asset slots that do not fabricate the product or brand;
-8. show the rendered concept plus a short plain-language concept summary;
-9. wait for the user's explicit `APPROVE / REVISE / REJECT`;
-10. after `APPROVE`, continue automatically as far as possible; request missing production assets only when they are actually needed;
-11. after real assets replace concept-only surrogates, verify fidelity to the user-approved visual system;
-12. if the real-asset substitution causes material visual drift, show the changed concept again; otherwise no second user approval is required;
-13. only a valid exact-artifact approval path or approved-system-plus-fidelity path may unlock campaign-system freeze and full-pack production.
+When the user has explicitly locked a direction:
 
-## The user must see both the concept and the design
+`QUESTIONS / INTAKE -> COMMERCIAL JOB LOCK -> STRATEGY -> 1 RENDERED LOCKED-DIRECTION CONCEPT -> USER APPROVAL -> PRODUCTION ASSET COMPLETION IF NEEDED -> FULL PRODUCTION`
 
-Every concept presentation must contain two user-facing outputs:
+The user-facing exploration count is separate from `deliverables.concept_count`. A campaign may ultimately produce one concept while still showing three alternatives in the first visual decision round.
 
-1. **Rendered visual concept** — the primary approval artifact.
-2. **Short concept card** — a concise explanation of:
-   - core idea;
-   - primary AOI;
-   - scan path;
-   - selected style strategy;
-   - typography character;
-   - lighting behavior;
-   - how the system will adapt across formats;
-   - which visible elements are temporary concept-only surrogates, if any.
+## What counts as a user lock
 
-A long internal JSON dump does not count as presenting the concept.
-A text-only art direction does not count as presenting the concept.
-A `NEEDS_ASSET` list by itself does not count as presenting the concept.
+`SINGLE_USER_LOCKED` is allowed only when there is explicit user evidence.
 
-## Two visual-concept approval scopes
+Valid examples:
+- the user explicitly says to use a specific direction;
+- the user already approved an exact rendered concept;
+- the user supplies an approved campaign design system and asks to continue it.
 
-### 1. `EXACT_PRODUCTION_ARTIFACT`
+The following are **not** user locks:
+- Style Intelligence recommendation;
+- controller recommendation;
+- research/category recommendation;
+- previous Work recommendation;
+- `ART_DIRECTOR_REVIEWER` preference;
+- a written A/B/C recommendation never visually approved by the user.
 
-Use when all required production assets are ready and the rendered concept is already production-grade.
+Those use `direction_lock_source = INTERNAL_RECOMMENDATION` or `NONE` and still require `EXPLORE_3` on the first visual round.
 
-The exact image bytes are the approval target.
+## First-round EXPLORE_3
 
-`USER APPROVE` can proceed through the exact-artifact scale-out gate.
+Unless `USER_LOCKED` evidence exists, render exactly three materially different concepts in the same representative size, normally 300x250.
 
-### 2. `VISUAL_SYSTEM_WITH_ASSET_SLOTS`
+Every concept must share the same frozen commercial-job/message facts, but must differ in visual grammar.
 
-Use when the user should be able to judge the design now, but one or more production assets are not yet ready.
+Pairwise distinction is evaluated across:
+- hero logic;
+- composition system;
+- attention profile;
+- typography profile;
+- graphic device;
+- lighting language.
 
-The rendered concept must still show the actual design system:
-- real copy;
-- real CTA wording;
-- composition/grid;
-- headline hierarchy;
+Every pair must differ on at least three axes.
+
+Do not satisfy the requirement with:
+- palette swaps;
+- the same copy-left/image-right template with different images;
+- minor crop changes;
+- different button colors;
+- three variants of the same generic SaaS card.
+
+Create and validate `visual-concept-set.json` with `scripts/validate_visual_concept_set.py`.
+
+Before showing the concepts, an `ART_DIRECTOR_REVIEWER` must PASS every exact rendered concept for:
+- commercial-job fidelity;
+- professional category fit;
+- ad-not-presentation-slide quality;
+- hierarchy;
+- typography;
+- CTA integration;
+- visual distinctiveness;
+- anti-template quality;
+- small-format viability.
+
+This is a design-quality gate, not performance prediction.
+
+## User-facing presentation
+
+For EXPLORE_3 show:
+
+1. one comparison/contact sheet containing A, B and C;
+2. each individual rendered concept;
+3. one short concept card per concept;
+4. a simple decision request such as:
+   - `SELECT A`;
+   - `SELECT B`;
+   - `SELECT C`;
+   - `REVISE`;
+   - `REJECT ALL`.
+
+Do not lead with internal JSON dumps.
+
+Each concept card explains:
+- commercial angle;
+- core idea;
+- primary AOI;
+- scan path;
+- style strategy;
 - typography character;
-- color/background system;
-- CTA treatment;
-- whitespace/density;
-- service rails/graphic devices;
-- UI/logo slot size and position;
-- attention path;
 - lighting behavior;
-- category/premium character.
+- format adaptation;
+- any visible temporary concept-only assets.
 
-The user is approving this visible design system, not claiming that temporary asset bytes are production assets.
+## After selection
 
-Status after approval:
+Once the user selects one of the three systems, subsequent work may continue one concept at a time.
 
-`VISUAL_CONCEPT_APPROVED_ASSET_PENDING`
+Selection is not necessarily final approval. The selected concept can be revised until the user gives `APPROVE`.
 
-This permits production asset completion, but does **not** by itself permit final ad delivery or scale-out.
+Do not continue scaling all three unless the user explicitly requests several final campaign concepts.
 
-## Allowed concept-only asset modes
+## Production asset readiness versus concept visibility
 
-A concept preview may use only declared modes from `schemas/visual-concept-preview.schema.json`.
+Production asset readiness and visual concept visibility are separate concerns.
 
-### `LOW_RES_AUTHENTIC_SURROGATE`
+A `NEEDS_ASSET` state must not by itself prevent a safe rendered concept preview.
 
-Example: a real MITGROUP logo that is too small for final delivery but sufficient to communicate approximate brand placement in the concept.
+Two approval scopes exist.
 
-It must remain `production_ready=false`.
+### `EXACT_PRODUCTION_ARTIFACT`
 
-### `REFERENCE_ONLY_SURROGATE`
+Use when all required production assets are ready and the concept is already a production-ready representative.
 
-Example: an attributable official/public product screenshot used only to demonstrate the intended product aperture/crop before the advertiser supplies an approved production source.
+The user approves the exact rendered bytes.
 
-It must not be represented as a cleared final ad asset.
+### `VISUAL_SYSTEM_WITH_ASSET_SLOTS`
 
-### `STRUCTURAL_PLACEHOLDER`
+Use when the visible design can be judged now but one or more production assets are not yet ready.
 
-A neutral design block that communicates **geometry and hierarchy only**.
-
-For a real-UI concept it may show the reserved UI aperture, crop ratio, border treatment and relationship to copy, but it must not invent a fake Bitrix24 dashboard or fake controls.
-
-### `TEXT_BRAND_PLACEHOLDER`
-
-When the authentic logo is unavailable, the canonical approved display name may be typeset neutrally to show the brand-anchor location. It must not imitate or fabricate the missing logo artwork.
-
-## Forbidden even in concept preview
+Allowed concept-only asset modes:
+- `LOW_RES_AUTHENTIC_SURROGATE`;
+- `REFERENCE_ONLY_SURROGATE`;
+- `STRUCTURAL_PLACEHOLDER`;
+- `TEXT_BRAND_PLACEHOLDER`.
 
 Never use:
 - generated fake Bitrix24 UI;
 - invented product screens presented as authentic;
-- generated/fabricated logo artwork;
+- generated/fabricated logos;
 - invented trademark/partner badges;
 - fabricated client data;
-- unsupported claims;
-- a surrogate preview as a final Google Ads file.
+- unsupported claims.
 
-Any preview containing non-production surrogates must be:
+A surrogate preview must remain:
 - `approval_scope = VISUAL_SYSTEM_WITH_ASSET_SLOTS`;
 - `production_asset_readiness = NEEDS_ASSET`;
 - `not_for_delivery = true`.
 
-Validate with:
+Validate each preview with:
 
 ```bash
 python scripts/validate_visual_concept_preview.py \
-  --preview run/design/visual-concept-preview.json \
-  --out run/design/visual-concept-preview-gate.json
+  --preview run/design/{visual_concept_id}.visual-concept-preview.json \
+  --out run/design/{visual_concept_id}.visual-concept-preview-gate.json
 ```
 
-Required user-facing state:
+Each preview is bound to the current `commercial_job_id` so a stale implementation concept cannot survive a switch to license purchase/renewal.
 
-`VISUAL_CONCEPT_AWAITING_USER_APPROVAL`
-
-## User decisions
+## User decisions on the selected concept
 
 Use `schemas/visual-concept-decision.schema.json`.
 
 ### APPROVE — exact production artifact
 
-For `approval_scope = EXACT_PRODUCTION_ARTIFACT`:
-
-- exact artifact path/SHA are recorded;
+For `EXACT_PRODUCTION_ARTIFACT`:
+- exact path/SHA are recorded;
 - `decided_by = USER`;
-- full production may unlock after the ordinary representative quality/scale-out gates pass.
+- ordinary representative/scale-out gates may continue.
 
 ### APPROVE — visual system with asset slots
 
-For `approval_scope = VISUAL_SYSTEM_WITH_ASSET_SLOTS`:
-
-- the user-approved preview path/SHA are recorded;
+For `VISUAL_SYSTEM_WITH_ASSET_SLOTS`:
 - status becomes `VISUAL_CONCEPT_APPROVED_ASSET_PENDING`;
 - full production remains blocked;
-- the skill should request/resolve only the still-missing production assets;
-- when real assets arrive, it automatically materializes a production representative using the approved design system;
-- an `ART_DIRECTOR_REVIEWER` compares the production representative to the exact user-approved preview;
-- if fidelity is `PASS`, the user-rooted system-fidelity scale-out gate may continue without a second approval;
-- if fidelity is `MATERIAL_DRIFT`, the changed visual must be shown to the user again.
+- only the still-missing production assets are requested;
+- when real assets arrive, create a production representative from the approved visual system;
+- `ART_DIRECTOR_REVIEWER` checks exact approved-preview -> production fidelity;
+- fidelity `PASS` may continue without a redundant second user approval;
+- `MATERIAL_DRIFT` must be shown to the user again.
 
-The reviewer cannot approve a new direction. The reviewer may only attest that asset substitution preserved the direction already approved by the user.
-
-For the no-second-approval path run:
-
-```bash
-python scripts/validate_visual_system_scaleout.py \
-  --visual-decision run/design/visual-concept-decision.json \
-  --representative-approval run/design/representative-design-approval.json \
-  --fidelity-report run/design/visual-system-fidelity-report.json \
-  --asset-readiness run/design/representative-asset-readiness.json \
-  --out run/design/visual-system-scaleout-gate.json
-```
-
-Required result:
-
-`VISUAL_CONCEPT_APPROVED_VIA_SYSTEM_FIDELITY`
+The reviewer cannot approve a new direction. The reviewer may only attest that replacing declared temporary slots preserved the user-approved system.
 
 ### REVISE
 
-- do not scale out;
-- record the requested changes;
-- create a new rendered visual concept version;
-- show it again for explicit user approval.
+- keep scale-out blocked;
+- record feedback;
+- render the revised selected concept;
+- show the actual visual again.
 
 ### REJECT
 
-- do not scale out;
-- return to the smallest upstream layer responsible for the problem;
-- create a materially new visual concept rather than multiplying the rejected system.
-
-## One concept or several
-
-Default behavior: create **one strongest rendered visual concept** when research and user context provide a clear direction.
-
-Create 2–3 rendered alternatives only when the direction is genuinely unresolved or the user explicitly requests alternatives.
-
-Do not create three near-identical previews merely to satisfy a count.
+- keep scale-out blocked;
+- return to the smallest responsible upstream layer;
+- if all first-round concepts are rejected, produce a new materially different exploration set rather than cosmetic remixes.
 
 ## Full-production boundary
 
-Permitted paths are:
+Permitted paths:
 
-`PRODUCTION-READY VISUAL -> USER APPROVE -> EXACT SCALEOUT GATE -> FULL PRODUCTION`
+`3 CONCEPTS -> USER SELECTS -> USER APPROVES PRODUCTION-READY VISUAL -> EXACT SCALEOUT GATE -> FULL PRODUCTION`
 
 or:
 
-`CONCEPT PREVIEW WITH ASSET SLOTS -> USER APPROVE -> REAL ASSETS -> PRODUCTION REPRESENTATIVE -> FIDELITY PASS -> FULL PRODUCTION`
+`3 CONCEPTS -> USER SELECTS -> USER APPROVES VISUAL SYSTEM WITH ASSET SLOTS -> REAL ASSETS -> PRODUCTION REPRESENTATIVE -> FIDELITY PASS -> FULL PRODUCTION`
 
-Not:
+A `SINGLE_USER_LOCKED` path replaces the initial three only when explicit user lock evidence exists.
+
+Forbidden shortcuts:
+
+`INTERNAL RECOMMENDATION -> ASSUME USER LOCK -> ONE CONCEPT`
 
 `NEEDS_ASSET -> SHOW NOTHING -> WAIT`
 
-and not:
-
-`TEXT DESCRIPTION -> ASSUME APPROVAL -> FULL PACK`.
+`TEXT DESCRIPTION -> ASSUME APPROVAL -> FULL PACK`
 
 ## Completion semantics
 
-Use explicit states:
-- `VISUAL_CONCEPT_NOT_RENDERED`;
+Use explicit states such as:
+- `VISUAL_CONCEPT_SET_AWAITING_USER_SELECTION`;
 - `VISUAL_CONCEPT_AWAITING_USER_APPROVAL`;
 - `VISUAL_CONCEPT_REVISE_REQUESTED`;
 - `VISUAL_CONCEPT_REJECTED`;
@@ -237,4 +235,4 @@ Use explicit states:
 - `MATERIAL_VISUAL_DRIFT_REQUIRES_REAPPROVAL`;
 - `FULL_PRODUCTION_BLOCKED_BY_VISUAL_APPROVAL`.
 
-`NEEDS_ASSET` is a production-readiness state. It is no longer a valid reason to hide the concept from the user when a safe rendered concept preview can be produced.
+`NEEDS_ASSET` is a production-readiness state, not a reason to hide the concept. An internal recommendation is decision support, not proof that the user chose the direction.
