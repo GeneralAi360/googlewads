@@ -28,6 +28,7 @@ def complete_context():
         "business": {"product_service": "Synthetic demo product", "geography": "Minsk"},
         "campaign": {
             "objective": "lead",
+            "commercial_job": "NEW_LICENSE_PURCHASE",
             "landing_page": "https://example.invalid",
             "funnel_stage": "product-aware",
             "primary_action": "request quote",
