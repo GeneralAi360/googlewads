@@ -12,6 +12,7 @@
       "required": ["name"],
       "properties": {
         "name": {"type": "string", "minLength": 1},
+        "product_service": {"type": ["string", "null"]},
         "website": {"type": ["string", "null"]},
         "category": {"type": ["string", "null"]},
         "geography": {"type": ["string", "null"]}
@@ -23,6 +24,10 @@
       "required": ["objective"],
       "properties": {
         "objective": {"type": "string"},
+        "commercial_job": {
+          "type": ["string", "null"],
+          "enum": [null, "NEW_LICENSE_PURCHASE", "LICENSE_RENEWAL", "PURCHASE_OR_RENEWAL", "IMPLEMENTATION_SERVICE", "CONSULTATION", "OTHER"]
+        },
         "funnel_stage": {"type": ["string", "null"]},
         "primary_action": {"type": ["string", "null"]},
         "landing_page": {"type": ["string", "null"]}
