@@ -2,55 +2,56 @@
 
 This file defines the question pool and the run-freezing process used before banner production.
 
-The skill should not interrogate the user mechanically. First inspect supplied context, files, brand docs, references, campaign material, and prior decisions. Build the full question pool internally, mark resolved fields, then ask only material unresolved questions.
+The skill should not interrogate the user mechanically. First inspect supplied context, files, brand docs, references, campaign material, landing pages and prior decisions. Build the full question pool internally, mark resolved fields, then ask only material unresolved questions.
+
+A central rule from REAL-06:
+
+> Product identity is not the same as the exact commercial job of the campaign.
+
+For example, “Bitrix24” may be the product while the commercial job is license purchase, license renewal, purchase/renewal, implementation, or consultation. The skill must not silently choose among them.
+
+Load `references/commercial-job-and-concept-exploration.md` whenever the exact transaction/service job or first-round visual direction is not already user-locked.
 
 ## Question states
 
 For every question use one state:
 
 - `RESOLVED` — the answer is explicit and trustworthy.
-- `MISSING` — required before production.
+- `MISSING` — required before the relevant gate.
 - `CONDITIONAL` — ask only if the related feature is used.
 - `NOT_APPLICABLE` — irrelevant to this run.
 
-## A. Deliverable questions — mandatory
+Questions may declare `resolution = all` when several facts are jointly required. Q10 uses this so both broad product/service and exact commercial job must be known.
 
-These questions define what must actually be produced.
+## A. Deliverable questions
 
 1. What Google ad mode is required?
-   - Demand Gen image assets
-   - Responsive Display assets
-   - Uploaded Display static banners
-   - HTML5/animated planning
+2. How many materially different **final production concepts** are needed after visual-direction selection?
+3. Which exact dimensions or Google pack are needed?
+4. How many A/B variants are needed per final concept/size?
+5. Which languages/locales are required?
+6. If the user says “N banners,” does this mean total files or concepts repeated across sizes?
+7. What final raster format is needed?
+8. Is a contact sheet required? Default: yes for multi-output runs.
 
-2. How many materially different creative concepts are needed?
+### Final concept count != first-round exploration count
 
-3. Which exact dimensions are needed?
-   - explicit list, or
-   - Google core pack, or
-   - full pack
+Keep these separate:
 
-4. How many A/B variants are needed per concept/size?
+- `deliverables.concept_count` — how many concept systems will ultimately be produced/scaled;
+- `visual_exploration_count` — how many alternative visual directions the user sees before selecting the system.
 
-5. How many languages/locales are required?
+Default unlocked first round:
 
-6. Does "N banners" mean:
-   - N total files, or
-   - N concepts repeated across all sizes?
+`visual_exploration_count = 3`
 
-7. What final formats are needed?
-   - PNG
-   - JPG
-   - static GIF when supported
-   - source/editable representation if applicable
-
-8. Is a contact sheet/overview required? Default: yes for multi-banner runs.
+A campaign may end with `deliverables.concept_count = 1` after the user chooses one of those three.
 
 ## Output math
 
-Keep these quantities separate:
+Keep separate:
 
-- `C = concept_count`
+- `C = final concept_count`
 - `S = size_count`
 - `V = variant_count`
 - `L = language_count`
@@ -59,236 +60,168 @@ Expected final raster files:
 
 `TOTAL = C × S × V × L`
 
-Example:
+Exploration previews are approval artifacts and are not included in final delivery count unless explicitly requested as final concepts.
 
-- 3 concepts
-- 7 sizes
-- 2 variants
-- 1 language
+If “10 banners in 7 sizes” is ambiguous, return `OUTPUT_COUNT_AMBIGUOUS` and ask one clarifying question.
 
-`3 × 7 × 2 × 1 = 42 files`
-
-Show this number to the user before production when the run is non-trivial.
-
-If the user says "make 10 banners in 7 sizes" and the intended multiplication is unclear, return `OUTPUT_COUNT_AMBIGUOUS` and ask one clarifying question.
-
-## B. Campaign purpose — mandatory unless already known
+## B. Campaign purpose and commercial job
 
 9. What is the campaign trying to achieve?
-   - sale
-   - lead
-   - call/message
-   - registration
-   - app action
-   - awareness
-   - remarketing
-   - another measurable action
+   - sale;
+   - lead;
+   - call/message;
+   - registration;
+   - app action;
+   - awareness;
+   - remarketing;
+   - another measurable objective.
 
-10. What product/service is being promoted?
+10. What exact product/service **and commercial job** are being promoted?
 
-11. What landing page or destination is used?
+The product/service and commercial job are both required.
 
+Current normalized commercial-job examples:
+- `NEW_LICENSE_PURCHASE`;
+- `LICENSE_RENEWAL`;
+- `PURCHASE_OR_RENEWAL`;
+- `IMPLEMENTATION_SERVICE`;
+- `CONSULTATION`;
+- `OTHER`.
+
+If `PURCHASE_OR_RENEWAL`, resolve whether purchase + renewal are:
+- one `COMBINED` message; or
+- `SEPARATE_VARIANTS`.
+
+This is distinct from campaign objective and CTA.
+
+Example:
+
+```text
+PRODUCT = Bitrix24 license
+COMMERCIAL_JOB = PURCHASE_OR_RENEWAL
+CAMPAIGN_OBJECTIVE = LEAD_GENERATION
+CTA = Оставить заявку
+```
+
+11. What landing page/destination is used?
 12. Who is the target audience?
-
 13. What geography matters?
-
 14. What funnel/awareness state is this for?
-   - cold/problem-aware
-   - solution-aware
-   - product-aware
-   - remarketing
-   - existing customer
-
 15. What exact action should the user take after seeing the ad?
 
-## C. Offer and message — mandatory
+After resolving Q10, create/validate `campaign-commercial-job.json` before creative strategy.
+
+A material commercial-job correction invalidates stale idea/style/art-direction/visual-concept work instead of being treated as a copy tweak.
+
+## C. Offer and message
 
 16. What is the primary proposition?
-
-17. Is there a verified offer, price, promotion, deadline, or bonus?
-
-18. What proof can be used?
-   - factual differentiator
-   - verified number
-   - certification
-   - real review/testimonial
-   - warranty
-   - case result
-   - none
-
+17. Is there a verified price, promotion, deadline, bonus, or explicitly none?
+18. What verified proof can be used, including explicitly none?
 19. What CTA is approved?
-
 20. Are legal disclaimers or mandatory statements required?
+21. What claims/topics/phrases are forbidden?
 
-21. What claims, topics, or phrases are forbidden?
-
-Do not invent a missing proof point merely to fill visual space.
+Do not invent proof or commercial conditions merely to fill space.
 
 ## D. Brand and assets
 
-22. Is there an existing `BRAND.md`, `ДИЗАЙН.md`, `DESIGN.md`, brand guide, or design system?
-
-23. Which logo files and variants are approved?
-
-24. Which fonts are approved/available?
-
-25. Which brand colors are approved?
-
-26. Are there real product/service photos?
-
+22. Is there an existing `BRAND.md`, `ДИЗАЙН.md`, `DESIGN.md`, brand guide or design system, or explicitly none?
+23. Which logo files/variants are approved, or explicitly none?
+24. Which fonts are approved/available, or may a run-local fallback be used?
+25. Which brand colors are approved, or may a run-local palette be proposed?
+26. Are real product/service images available, including explicitly none?
 27. May AI-generated hero images be used?
-
 28. Are people/faces allowed or desired?
-
-29. Are there brand-specific button, corner-radius, icon, photography, or retouching rules?
-
+29. Are there brand-specific UI/photo/retouching rules?
 30. What visual elements must never be used?
 
-If no formal design system exists, propose a temporary run-local system rather than silently inventing a permanent brand identity.
+If no formal design system exists, propose a temporary run-local system rather than silently inventing permanent brand identity.
 
 ## E. Reference questions
 
 Ask this block only when references exist or the user wants reference-driven work.
 
 31. Which references should be analyzed?
-
-32. For each reference, what does the user like?
-   - composition
-   - lighting
-   - typography
-   - color
-   - density
-   - premium feel
-   - photography
-   - CTA
-   - overall mood
-   - another feature
-
-33. What does the user dislike or want changed?
-
+32. What does the user like in them?
+33. What should be changed/avoided?
 34. How close should the result be?
-   - mood only
-   - design principles
-   - similar composition logic
-   - close reinterpretation while preserving own brand
-
-35. Which reference is primary if references conflict?
-
+35. Which reference is primary if they conflict?
 36. Is any specific reference element mandatory?
 
-The skill must extract transferable design principles into `REFERENCE_DNA`; it must not simply imitate the source.
+Extract transferable `REFERENCE_DNA`; do not copy another brand literally.
 
 ## F. Visual and lighting questions
 
-Ask only when the visual direction is not already determined.
+Ask only when genuinely unresolved or when the user's answer materially changes the output.
 
 37. What is the hero subject?
-   - product
-   - person
-   - environment
-   - interface/screenshot
-   - abstract visual
-
 38. What mood is required?
-   - clean
-   - premium
-   - warm
-   - trustworthy
-   - energetic
-   - technological
-   - editorial
-   - natural
-   - dramatic
-   - another
-
 39. Are there material-specific lighting needs?
-   - transparent glass/liquid
-   - glossy bottle
-   - metal/jewelry
-   - matte packaging
-   - food
-   - fabric
-   - skin/beauty
-   - screen/device
-
 40. Is a specific lighting style/reference required?
+41. Should the image reserve a copy-safe zone?
+42. Are glows/neon/god rays/hard shadows/colored gels acceptable?
 
-41. Should the image reserve a copy-safe zone? Where if known?
-
-42. Are artificial glows, neon, god rays, hard shadows, or colored gels acceptable?
-
-If no preference exists, the lighting director selects a scheme from `config/lighting-schemes.json` based on product material, mood, hierarchy, and copy-safe needs.
+Do not re-ask these when the user has already supplied enough constraints for the controller to decide internally.
 
 ## G. Performance and iteration
 
-Ask this block when prior campaign data exists.
+Ask when prior campaign data exists.
 
 43. Which existing creatives are winners/losers?
-
 44. Which metric matters most?
-   - CTR
-   - conversion rate
-   - CPA/CPL
-   - ROAS/value
-   - another
-
 45. What audience/placement/context produced the result?
+46. What variables actually differed?
 
-46. What variables were actually different between creatives?
-
-Do not over-attribute performance to a visual element when multiple variables changed.
+Do not over-attribute performance to one visual element when multiple variables changed.
 
 ## H. Production constraints
 
-47. Deadline or release date?
-
+47. Deadline/release date?
 48. Naming convention?
-
-49. Required source files or only final assets?
-
-50. Any approval step before rendering the full pack?
-
-51. Any external tool/model restrictions?
-
-52. Any confidentiality or asset-use restrictions?
+49. Required source files or only finals?
+50. Is a user approval step required before the full pack? For this skill, visual approval is normally required unless the user explicitly delegates/locks a previously approved system.
+51. External tool/model restrictions?
+52. Confidentiality/asset-use restrictions?
 
 ## Recommended user-facing intake behavior
 
-### Quick run
+### Quick
 
-If the user provided almost everything, ask only the unresolved blockers, often 2-5 questions.
+If the user provided almost everything, ask only unresolved blockers, often 1–5 questions.
 
-### Standard run
+### Standard
 
-Group the unresolved questions into one concise questionnaire with sections:
-- campaign;
-- offer;
-- references/assets;
-- deliverables.
+Group unresolved material questions into one concise questionnaire.
 
-### Deep run
+### Deep
 
-Use when the user explicitly wants strategy/research or when the brief is high-risk/complex. Resolve the full applicable pool.
+Use when explicitly requested or when the brief/policy/brand context is complex.
 
-Do not ask one question at a time unless the user prefers an interview flow or a single answer determines many downstream questions.
+Do not ask one question at a time unless one answer determines many downstream branches.
 
-## Freeze gate
+## Freeze sequence
 
-Production starts only after the controller can freeze:
+Before creative strategy can be treated as current, freeze at least:
 
-- `BUSINESS_BRIEF_ID`
-- `BRAND_ID` or run-local brand state
-- `REFERENCE_DNA_ID` or `NONE`
-- Google mode/spec snapshot
-- concept count
-- size list
-- variant count
-- language count
-- total expected files
-- mandatory copy/offer/CTA
-- allowed hero asset strategy
-- output path convention
+- business/product identity;
+- exact commercial job lock;
+- campaign objective/audience/geography/landing page;
+- commercial proposition/CTA/qualifiers;
+- brand identity state;
+- Google mode/spec snapshot;
+- final concept count;
+- size list;
+- variant count;
+- languages;
+- expected final-file count;
+- asset/truth constraints.
 
-Then create the `BANNER_MATRIX`.
+Then research/strategy may proceed.
 
-A later material change returns `DESIGN_CHANGED` and requires controller reconciliation rather than silent drift.
+Before first user-facing visual round, determine direction-lock provenance:
+
+- `USER_LOCKED` -> one locked-direction visual concept may be rendered;
+- otherwise -> `EXPLORE_3` and show three materially distinct rendered concepts.
+
+A later material commercial-job change returns `COMMERCIAL_JOB_CHANGED` and invalidates stale downstream meaning/design artifacts rather than silently drifting.
