@@ -114,6 +114,31 @@
         "after real asset substitution, a fidelity gate may continue without a second user approval only when there is no material visual drift; material drift requires re-approval"
       ],
       "performance_claim_policy": "Concept visibility and asset substitution fidelity are production UX controls and create no advertising performance evidence."
+    },
+    {
+      "case_id": "REAL-06",
+      "title": "Weak single visual concept advertised implementation instead of Bitrix24 license purchase/renewal",
+      "context": "After REAL-05, Work finally rendered a 300x250 concept preview. The user rejected it as visually weak and pointed out two deeper orchestration errors: only one internally recommended A2 direction was shown, and the banner advertised 'Внедрение Битрикс24' even though the actual campaign is about buying and renewing Bitrix24 licenses. The preview also read more like a presentation slide with a pasted UI screenshot than a strong advertisement.",
+      "failure_stage": "COMMERCIAL_JOB_AND_VISUAL_EXPLORATION",
+      "expected_findings": [
+        "COMMERCIAL_JOB_DRIFT",
+        "IMPLEMENTATION_VS_LICENSE_INTENT_MISMATCH",
+        "INTERNAL_RECOMMENDATION_MISTAKEN_FOR_USER_LOCK",
+        "INSUFFICIENT_CONCEPT_EXPLORATION",
+        "WEAK_CONCEPT_QUALITY",
+        "PRESENTATION_SLIDE_FEEL",
+        "COMMERCIAL_MESSAGE_NOT_ALIGNED_TO_PURCHASE_RENEWAL"
+      ],
+      "required_regressions": [
+        "intake must resolve the exact commercial job separately from broad product/service, campaign objective and CTA wording",
+        "a change from IMPLEMENTATION_SERVICE to PURCHASE_OR_RENEWAL must invalidate stale downstream strategy and visual concepts rather than patching one line of copy",
+        "deliverables.concept_count is the final production concept count and must not be confused with first-round visual exploration count",
+        "unless the user explicitly locks a visual direction, first-round user-facing exploration defaults to exactly three materially distinct rendered concepts",
+        "an internal Style Intelligence, controller, research or art-director recommendation is not USER_LOCKED provenance",
+        "every pair of EXPLORE_3 concepts must differ materially across at least three design axes",
+        "each concept must pass a pre-show art-director quality gate including commercial-job fidelity, professional category fit, ad-not-presentation-slide, hierarchy, typography, CTA integration, distinctiveness, anti-template quality and small-format viability"
+      ],
+      "performance_claim_policy": "Commercial-job fidelity and concept-quality review are production controls; they do not prove CTR, CVR or conversion performance."
     }
   ]
 }
