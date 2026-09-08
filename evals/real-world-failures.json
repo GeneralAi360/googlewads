@@ -50,7 +50,7 @@
     {
       "case_id": "REAL-03",
       "title": "Missing representative assets prematurely stopped upstream strategy work",
-      "context": "In a later MITGROUP Work acceptance run, the asset validator correctly returned NEEDS_ASSET because the real Bitrix24 UI was missing and the available MITGROUP logo was too small. The run then incorrectly marked IDEA_ARCHITECTURE, VISUAL_CHARACTER, Style Intelligence, attention, typography, LIGHTING_INTENT and representative design brief as NOT_RUN solely because asset readiness had failed. Asset readiness should block rendering, not upstream semantic/style reasoning.",
+      "context": "In a later MITGROUP Work acceptance run, the asset validator correctly returned NEEDS_ASSET because the real Bitrix24 UI was missing and the available MITGROUP logo was too small. The run then incorrectly marked IDEA_ARCHITECTURE, VISUAL_CHARACTER, Style Intelligence, attention, typography, LIGHTING_INTENT and representative design brief as NOT_RUN solely because asset readiness had failed. Asset readiness should block production rendering, not upstream semantic/style reasoning.",
       "failure_stage": "GATE_ORCHESTRATION",
       "expected_findings": [
         "ASSET_GATE_APPLIED_TOO_EARLY",
@@ -61,18 +61,18 @@
         "RENDER_BLOCKER_SCOPE_TOO_BROAD"
       ],
       "required_regressions": [
-        "NEEDS_ASSET must block representative rendering and later artifact-dependent stages, not IDEA_ARCHITECTURE, VISUAL_CHARACTER, Style Intelligence, attention, typography or LIGHTING_INTENT",
-        "required asset specifications should be derived from the selected meaning/style/art-direction strategy before the final representative asset readiness gate",
+        "NEEDS_ASSET must block production representative rendering and later artifact-dependent stages, not IDEA_ARCHITECTURE, VISUAL_CHARACTER, Style Intelligence, attention, typography or LIGHTING_INTENT",
+        "required asset specifications should be derived from the selected meaning/style/art-direction strategy before the final production asset readiness gate",
         "missing assets may mark affected strategy fields CONDITIONAL or PENDING_ASSET_INSPECTION but must not automatically skip the whole strategic pipeline",
         "controller prompts must not reorder a downstream asset implementation gate ahead of upstream semantic/style reasoning",
-        "preproduction reporting must separate STRATEGY_STATUS from RENDER_READINESS"
+        "preproduction reporting must separate STRATEGY_STATUS from PRODUCTION_ASSET_READINESS"
       ],
       "performance_claim_policy": "This regression concerns orchestration order only and creates no performance evidence."
     },
     {
       "case_id": "REAL-04",
-      "title": "User wants approval of the rendered visual concept, not a text-only art direction",
-      "context": "During acceptance refinement the user clarified the intended interaction model: the skill should ask the necessary questions, develop the strategy internally, render the first real visual concept, show that visual to the user, and only after the user's explicit approval complete the full banner task. A written art-direction description is useful internally but is not the approval artifact the user wants to approve.",
+      "title": "User wants approval of a rendered visual concept, not a text-only art direction",
+      "context": "During acceptance refinement the user clarified the intended interaction model: the skill should ask the necessary questions, develop the strategy internally, render the first visual concept, show that visual to the user, and only after the user's explicit approval complete the full banner task. A written art-direction description is useful internally but is not the approval artifact the user wants to approve.",
       "failure_stage": "USER_APPROVAL_ORCHESTRATION",
       "expected_findings": [
         "TEXT_ONLY_APPROVAL_INSUFFICIENT",
@@ -84,13 +84,36 @@
       ],
       "required_regressions": [
         "written art direction is an internal preproduction freeze and cannot substitute for user approval of a rendered visual concept",
-        "the primary user approval artifact must be an exact rendered representative image bound by SHA-256",
-        "only a USER decision of APPROVE may unlock campaign-design-system freeze and full production",
+        "the primary user approval artifact must be a rendered visual concept image bound by SHA-256",
+        "a user APPROVE decision is always required before the approved visual system can ultimately unlock full production",
         "REVISE must keep scale-out blocked and require a new rendered visual version for re-approval",
         "REJECT must keep scale-out blocked and return to the smallest responsible upstream strategy layer",
-        "changed visual bytes invalidate the prior user decision"
+        "changed approved preview bytes invalidate the prior user decision"
       ],
       "performance_claim_policy": "Visual approval is a production-control gate and does not imply advertising performance."
+    },
+    {
+      "case_id": "REAL-05",
+      "title": "Production asset blockers hid the actual banner concept from the user",
+      "context": "The next MITGROUP Work run completed A2 strategy and correctly kept production asset readiness at NEEDS_ASSET because the real Bitrix24 UI and production logo were unavailable. However the user received only status text and an asset request: no banner concept was shown visually, and even the concept itself was not summarized in a useful user-facing way. The user therefore had nothing to evaluate despite strategy being complete.",
+      "failure_stage": "USER_FACING_CONCEPT_PRESENTATION",
+      "expected_findings": [
+        "PRODUCTION_ASSET_GATE_HID_VISUAL_CONCEPT",
+        "NO_RENDERED_CONCEPT_FOR_USER",
+        "NO_USER_FACING_CONCEPT_CARD",
+        "PRODUCTION_READINESS_CONFUSED_WITH_CONCEPT_VISIBILITY",
+        "ASSET_SURROGATE_PATH_MISSING",
+        "USER_CANNOT_APPROVE_WHAT_THEY_CANNOT_SEE"
+      ],
+      "required_regressions": [
+        "NEEDS_ASSET for final production must not by itself block rendering a safe user-facing visual concept preview",
+        "concept preview may use declared low-resolution authentic, reference-only, structural or text-brand surrogates but never generated fake UI or fake logos",
+        "a surrogate concept preview must remain NEEDS_ASSET and not_for_delivery while still being visually reviewable",
+        "every user-facing concept presentation must show the rendered image plus a short concept card explaining idea, AOI, scan path, style, typography, lighting and format adaptation",
+        "USER APPROVE on a surrogate preview approves the visual system only and keeps full production blocked until real assets are supplied",
+        "after real asset substitution, a fidelity gate may continue without a second user approval only when there is no material visual drift; material drift requires re-approval"
+      ],
+      "performance_claim_policy": "Concept visibility and asset substitution fidelity are production UX controls and create no advertising performance evidence."
     }
   ]
 }
