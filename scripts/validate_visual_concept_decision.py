@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Validate an exact-artifact user decision for a rendered visual concept."""
+"""Validate a user decision on a rendered visual concept.
+
+Two approval scopes are supported:
+- EXACT_PRODUCTION_ARTIFACT: user approved the actual production-ready representative bytes;
+- VISUAL_SYSTEM_WITH_ASSET_SLOTS: user approved the rendered composition/style system while one or more production assets are still surrogate/placeholder. This never unlocks full production by itself.
+"""
 from __future__ import annotations
 
 import argparse
@@ -45,36 +50,55 @@ def validate(decision: dict[str, Any]) -> dict[str, Any]:
     if user_decision not in {"APPROVE", "REVISE", "REJECT"}:
         raise VisualConceptDecisionError("decision must be APPROVE, REVISE, or REJECT")
 
+    scope = decision.get("approval_scope") or "EXACT_PRODUCTION_ARTIFACT"
+    if scope not in {"EXACT_PRODUCTION_ARTIFACT", "VISUAL_SYSTEM_WITH_ASSET_SLOTS"}:
+        raise VisualConceptDecisionError("unsupported approval_scope")
+
     feedback = str(decision.get("feedback") or "").strip()
-    expected_next = {
-        "APPROVE": "FREEZE_CAMPAIGN_DESIGN_SYSTEM",
-        "REVISE": "RENDER_REVISED_VISUAL_CONCEPT",
-        "REJECT": "RETURN_UPSTREAM",
-    }[user_decision]
-    if decision.get("next_action") not in {None, expected_next}:
-        raise VisualConceptDecisionError(f"next_action must be {expected_next} for {user_decision}")
     if user_decision in {"REVISE", "REJECT"} and not feedback:
         raise VisualConceptDecisionError(f"{user_decision} requires user feedback")
 
-    status = {
-        "APPROVE": "VISUAL_CONCEPT_APPROVED",
-        "REVISE": "VISUAL_CONCEPT_REVISE_REQUESTED",
-        "REJECT": "VISUAL_CONCEPT_REJECTED",
-    }[user_decision]
+    if user_decision == "APPROVE":
+        if scope == "EXACT_PRODUCTION_ARTIFACT":
+            status = "VISUAL_CONCEPT_APPROVED"
+            expected_next = "FREEZE_CAMPAIGN_DESIGN_SYSTEM"
+            full_production_allowed = True
+            production_asset_completion_allowed = True
+        else:
+            status = "VISUAL_CONCEPT_APPROVED_ASSET_PENDING"
+            expected_next = "COLLECT_PRODUCTION_ASSETS_AND_MATERIALIZE"
+            full_production_allowed = False
+            production_asset_completion_allowed = True
+    elif user_decision == "REVISE":
+        status = "VISUAL_CONCEPT_REVISE_REQUESTED"
+        expected_next = "RENDER_REVISED_VISUAL_CONCEPT"
+        full_production_allowed = False
+        production_asset_completion_allowed = False
+    else:
+        status = "VISUAL_CONCEPT_REJECTED"
+        expected_next = "RETURN_UPSTREAM"
+        full_production_allowed = False
+        production_asset_completion_allowed = False
+
+    if decision.get("next_action") not in {None, expected_next}:
+        raise VisualConceptDecisionError(f"next_action must be {expected_next} for {user_decision}/{scope}")
+
     return {
         "status": status,
         "visual_concept_id": visual_concept_id,
         "artifact_path": artifact_path.as_posix(),
         "artifact_sha256": actual_sha,
+        "approval_scope": scope,
         "decision": user_decision,
         "next_action": expected_next,
-        "full_production_allowed": user_decision == "APPROVE",
+        "full_production_allowed": full_production_allowed,
+        "production_asset_completion_allowed": production_asset_completion_allowed,
         "user_feedback": feedback or None,
     }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate explicit user decision on an exact rendered visual concept")
+    parser = argparse.ArgumentParser(description="Validate explicit user decision on a rendered visual concept")
     parser.add_argument("--decision", type=Path, required=True)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
@@ -84,6 +108,7 @@ def main() -> int:
         result = {
             "status": "VISUAL_CONCEPT_DECISION_INVALID",
             "full_production_allowed": False,
+            "production_asset_completion_allowed": False,
             "error": str(exc),
         }
     payload = json.dumps(result, ensure_ascii=False, indent=2)
@@ -92,7 +117,13 @@ def main() -> int:
         args.out.write_text(payload + "\n", encoding="utf-8")
     else:
         print(payload)
-    return 0 if result.get("status") in {"VISUAL_CONCEPT_APPROVED", "VISUAL_CONCEPT_REVISE_REQUESTED", "VISUAL_CONCEPT_REJECTED"} else 2
+    valid_statuses = {
+        "VISUAL_CONCEPT_APPROVED",
+        "VISUAL_CONCEPT_APPROVED_ASSET_PENDING",
+        "VISUAL_CONCEPT_REVISE_REQUESTED",
+        "VISUAL_CONCEPT_REJECTED",
+    }
+    return 0 if result.get("status") in valid_statuses else 2
 
 
 if __name__ == "__main__":
