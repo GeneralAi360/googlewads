@@ -40,6 +40,9 @@ def validate(preview: dict[str, Any]) -> dict[str, Any]:
     concept_id = str(preview.get("visual_concept_id") or "").strip()
     if not concept_id:
         raise VisualConceptPreviewError("visual_concept_id is required")
+    commercial_job_id = str(preview.get("commercial_job_id") or "").strip()
+    if not commercial_job_id:
+        raise VisualConceptPreviewError("commercial_job_id is required")
 
     scope = preview.get("approval_scope")
     if scope not in {"EXACT_PRODUCTION_ARTIFACT", "VISUAL_SYSTEM_WITH_ASSET_SLOTS"}:
@@ -90,7 +93,7 @@ def validate(preview: dict[str, Any]) -> dict[str, Any]:
             raise VisualConceptPreviewError("exact production preview requires ASSETS_READY")
 
     summary = preview.get("concept_summary") or {}
-    for key in ("core_idea", "primary_aoi", "style_strategy", "typography", "lighting", "adaptation_note"):
+    for key in ("core_idea", "commercial_angle", "primary_aoi", "style_strategy", "typography", "lighting", "adaptation_note"):
         if not str(summary.get(key) or "").strip():
             raise VisualConceptPreviewError(f"concept_summary.{key} is required")
     scan_path = summary.get("scan_path")
@@ -100,6 +103,7 @@ def validate(preview: dict[str, Any]) -> dict[str, Any]:
     return {
         "status": "VISUAL_CONCEPT_AWAITING_USER_APPROVAL",
         "visual_concept_id": concept_id,
+        "commercial_job_id": commercial_job_id,
         "artifact_path": artifact_path.as_posix(),
         "artifact_sha256": actual_sha,
         "approval_scope": scope,
