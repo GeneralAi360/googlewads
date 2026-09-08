@@ -45,7 +45,7 @@ class RealWorldFailureTests(unittest.TestCase):
         self.assertIn("creative freeze must reject CTA", regressions)
         self.assertIn("DEGRADED research", case["performance_claim_policy"])
 
-    def test_real_03_scopes_needs_asset_to_render_boundary(self):
+    def test_real_03_scopes_needs_asset_to_production_boundary(self):
         case = self.load_cases()["REAL-03"]
         expected = set(case["expected_findings"])
         for code in (
@@ -58,12 +58,12 @@ class RealWorldFailureTests(unittest.TestCase):
         ):
             self.assertIn(code, expected)
         regressions = "\n".join(case["required_regressions"])
-        self.assertIn("NEEDS_ASSET must block representative rendering", regressions)
+        self.assertIn("NEEDS_ASSET must block production representative rendering", regressions)
         self.assertIn("not IDEA_ARCHITECTURE", regressions)
         self.assertIn("Style Intelligence", regressions)
         self.assertIn("LIGHTING_INTENT", regressions)
         self.assertIn("STRATEGY_STATUS", regressions)
-        self.assertIn("RENDER_READINESS", regressions)
+        self.assertIn("PRODUCTION_ASSET_READINESS", regressions)
         self.assertIn("orchestration order", case["performance_claim_policy"])
 
     def test_real_04_requires_user_approval_of_rendered_visual_concept(self):
@@ -80,12 +80,33 @@ class RealWorldFailureTests(unittest.TestCase):
             self.assertIn(code, expected)
         regressions = "\n".join(case["required_regressions"])
         self.assertIn("internal preproduction freeze", regressions)
-        self.assertIn("exact rendered representative image", regressions)
-        self.assertIn("USER decision of APPROVE", regressions)
+        self.assertIn("rendered visual concept image", regressions)
+        self.assertIn("user APPROVE", regressions)
         self.assertIn("REVISE", regressions)
         self.assertIn("REJECT", regressions)
-        self.assertIn("changed visual bytes invalidate", regressions)
+        self.assertIn("changed approved preview bytes invalidate", regressions)
         self.assertIn("does not imply advertising performance", case["performance_claim_policy"])
+
+    def test_real_05_requires_visible_concept_even_when_production_assets_are_missing(self):
+        case = self.load_cases()["REAL-05"]
+        expected = set(case["expected_findings"])
+        for code in (
+            "PRODUCTION_ASSET_GATE_HID_VISUAL_CONCEPT",
+            "NO_RENDERED_CONCEPT_FOR_USER",
+            "NO_USER_FACING_CONCEPT_CARD",
+            "PRODUCTION_READINESS_CONFUSED_WITH_CONCEPT_VISIBILITY",
+            "ASSET_SURROGATE_PATH_MISSING",
+            "USER_CANNOT_APPROVE_WHAT_THEY_CANNOT_SEE",
+        ):
+            self.assertIn(code, expected)
+        regressions = "\n".join(case["required_regressions"])
+        self.assertIn("safe user-facing visual concept preview", regressions)
+        self.assertIn("never generated fake UI or fake logos", regressions)
+        self.assertIn("not_for_delivery", regressions)
+        self.assertIn("short concept card", regressions)
+        self.assertIn("visual system only", regressions)
+        self.assertIn("material visual drift", regressions)
+        self.assertIn("production UX controls", case["performance_claim_policy"])
 
 
 if __name__ == "__main__":
