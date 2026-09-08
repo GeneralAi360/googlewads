@@ -37,7 +37,7 @@ def complete_demo_context() -> dict[str, Any]:
         "formats": {"mode": "demand_gen_uploaded_display", "pack": "core"},
         "deliverables": {"concept_count": 1, "variant_count": 1, "languages": ["ru"], "output_format": "jpg"},
         "business": {"product_service": "Synthetic demo kitchens", "geography": "Minsk"},
-        "campaign": {"objective": "lead", "landing_page": "https://example.invalid/demo", "funnel_stage": "product-aware", "primary_action": "request quote"},
+        "campaign": {"objective": "lead", "commercial_job": "OTHER", "landing_page": "https://example.invalid/demo", "funnel_stage": "product-aware", "primary_action": "request quote"},
         "audience": {"primary": "Synthetic homeowners"},
         "offer": {"primary_value_proposition": "Synthetic custom-kitchen proposition", "price": None, "proof_points": [], "cta": "Рассчитать"},
         "constraints": {"legal_disclaimers": [], "prohibited_claims": []},
