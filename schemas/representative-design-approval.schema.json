@@ -1,15 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/GeneralAi360/googlewads/schemas/representative-design-approval.schema.json",
-  "title": "Visual Concept / Representative User Approval",
-  "description": "Approval of the exact rendered visual concept that unlocks campaign-system freeze and full production. Text-only art direction cannot substitute for this user approval.",
+  "title": "Production Representative Approval",
+  "description": "Approval of a production-ready representative. It may come from exact USER approval of the same artifact or from a SYSTEM_FIDELITY_GATE rooted in a prior USER approval of a rendered visual-system preview. A reviewer alone can never substitute for user visual approval.",
   "type": "object",
   "additionalProperties": false,
   "required": ["approval_id", "status", "approved_by", "art_direction_approval_id", "art_direction_approval_sha256", "art_direction_id", "preview_id", "artifact_path", "artifact_sha256", "width", "height", "quality_checks"],
   "properties": {
     "approval_id": {"type": "string", "minLength": 1},
     "status": {"const": "APPROVED"},
-    "approved_by": {"const": "USER"},
+    "approved_by": {"enum": ["USER", "SYSTEM_FIDELITY_GATE"]},
+    "approval_scope": {"enum": ["EXACT_USER_ARTIFACT", "APPROVED_VISUAL_SYSTEM_FIDELITY"]},
     "approved_at": {"type": ["string", "null"]},
     "art_direction_approval_id": {"type": "string", "minLength": 1},
     "art_direction_approval_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
@@ -19,6 +20,10 @@
     "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "width": {"type": "integer", "minimum": 1},
     "height": {"type": "integer", "minimum": 1},
+    "user_visual_decision_id": {"type": ["string", "null"]},
+    "user_visual_decision_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "visual_system_fidelity_report_id": {"type": ["string", "null"]},
+    "visual_system_fidelity_report_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
     "quality_checks": {
       "type": "object",
       "additionalProperties": false,
@@ -56,5 +61,26 @@
       }
     },
     "notes": {"type": ["string", "null"]}
-  }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"approved_by": {"const": "SYSTEM_FIDELITY_GATE"}}},
+      "then": {
+        "required": [
+          "approval_scope",
+          "user_visual_decision_id",
+          "user_visual_decision_sha256",
+          "visual_system_fidelity_report_id",
+          "visual_system_fidelity_report_sha256"
+        ],
+        "properties": {
+          "approval_scope": {"const": "APPROVED_VISUAL_SYSTEM_FIDELITY"},
+          "user_visual_decision_id": {"type": "string", "minLength": 1},
+          "user_visual_decision_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "visual_system_fidelity_report_id": {"type": "string", "minLength": 1},
+          "visual_system_fidelity_report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    }
+  ]
 }
