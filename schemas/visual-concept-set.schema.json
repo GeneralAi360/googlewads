@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/visual-concept-set.schema.json",
+  "title": "Visual Concept Exploration Set",
+  "description": "Binds first-round user-facing visual alternatives to one commercial job and enforces genuine exploration unless the direction was explicitly locked by the user.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "concept_set_id",
+    "status",
+    "commercial_job_id",
+    "commercial_job_sha256",
+    "mode",
+    "direction_lock_source",
+    "representative_size",
+    "concepts",
+    "comparison_contact_sheet_path",
+    "comparison_contact_sheet_sha256"
+  ],
+  "properties": {
+    "concept_set_id": {"type": "string", "minLength": 1},
+    "status": {"const": "VISUAL_CONCEPT_SET_RENDERED"},
+    "commercial_job_id": {"type": "string", "minLength": 1},
+    "commercial_job_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "mode": {"enum": ["EXPLORE_3", "SINGLE_USER_LOCKED"]},
+    "direction_lock_source": {"enum": ["NONE", "INTERNAL_RECOMMENDATION", "USER_LOCKED"]},
+    "user_lock_evidence": {"type": ["string", "null"]},
+    "representative_size": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"},
+    "concepts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "visual_concept_id",
+          "label",
+          "preview_contract_path",
+          "preview_contract_sha256",
+          "artifact_path",
+          "artifact_sha256",
+          "design_axes",
+          "quality_review"
+        ],
+        "properties": {
+          "visual_concept_id": {"type": "string", "minLength": 1},
+          "label": {"type": "string", "minLength": 1},
+          "preview_contract_path": {"type": "string", "minLength": 1},
+          "preview_contract_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "artifact_path": {"type": "string", "minLength": 1},
+          "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "design_axes": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["hero_logic", "composition_system", "attention_profile", "typography_profile", "graphic_device", "lighting_language"],
+            "properties": {
+              "hero_logic": {"type": "string", "minLength": 1},
+              "composition_system": {"type": "string", "minLength": 1},
+              "attention_profile": {"type": "string", "minLength": 1},
+              "typography_profile": {"type": "string", "minLength": 1},
+              "graphic_device": {"type": "string", "minLength": 1},
+              "lighting_language": {"type": "string", "minLength": 1}
+            }
+          },
+          "quality_review": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["reviewed_by", "status", "checks", "notes"],
+            "properties": {
+              "reviewed_by": {"const": "ART_DIRECTOR_REVIEWER"},
+              "status": {"enum": ["PASS", "FAIL"]},
+              "checks": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "commercial_job_fidelity",
+                  "professional_category_fit",
+                  "ad_not_presentation_slide",
+                  "hierarchy",
+                  "typography",
+                  "cta_integration",
+                  "visual_distinctiveness",
+                  "anti_template",
+                  "small_format_viability"
+                ],
+                "properties": {
+                  "commercial_job_fidelity": {"enum": ["PASS", "FAIL"]},
+                  "professional_category_fit": {"enum": ["PASS", "FAIL"]},
+                  "ad_not_presentation_slide": {"enum": ["PASS", "FAIL"]},
+                  "hierarchy": {"enum": ["PASS", "FAIL"]},
+                  "typography": {"enum": ["PASS", "FAIL"]},
+                  "cta_integration": {"enum": ["PASS", "FAIL"]},
+                  "visual_distinctiveness": {"enum": ["PASS", "FAIL"]},
+                  "anti_template": {"enum": ["PASS", "FAIL"]},
+                  "small_format_viability": {"enum": ["PASS", "FAIL"]}
+                }
+              },
+              "notes": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "comparison_contact_sheet_path": {"type": "string", "minLength": 1},
+    "comparison_contact_sheet_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"mode": {"const": "EXPLORE_3"}}},
+      "then": {
+        "properties": {
+          "concepts": {"minItems": 3, "maxItems": 3},
+          "direction_lock_source": {"enum": ["NONE", "INTERNAL_RECOMMENDATION"]}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"mode": {"const": "SINGLE_USER_LOCKED"}}},
+      "then": {
+        "required": ["user_lock_evidence"],
+        "properties": {
+          "concepts": {"minItems": 1, "maxItems": 1},
+          "direction_lock_source": {"const": "USER_LOCKED"},
+          "user_lock_evidence": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  ]
+}
