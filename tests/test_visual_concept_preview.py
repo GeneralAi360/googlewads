@@ -64,6 +64,7 @@ class VisualConceptPreviewTests(unittest.TestCase):
             not_for_delivery = False
         return {
             "visual_concept_id": "VC-001",
+            "commercial_job_id": "CJ-001",
             "status": "VISUAL_CONCEPT_RENDERED",
             "artifact_path": artifact.as_posix(),
             "artifact_sha256": self.module.sha256_file(artifact),
@@ -72,6 +73,7 @@ class VisualConceptPreviewTests(unittest.TestCase):
             "approval_scope": scope,
             "concept_summary": {
                 "core_idea": "real product proof inside a calm operational system",
+                "commercial_angle": "purchase or renewal of the product license",
                 "primary_aoi": "product UI aperture",
                 "scan_path": ["headline", "UI aperture", "CTA", "brand"],
                 "style_strategy": "Product Reality / Systems",
@@ -90,10 +92,18 @@ class VisualConceptPreviewTests(unittest.TestCase):
             preview, _ = self.preview(Path(tmp), surrogate=True)
             result = self.module.validate(preview)
             self.assertEqual(result["status"], "VISUAL_CONCEPT_AWAITING_USER_APPROVAL")
+            self.assertEqual(result["commercial_job_id"], "CJ-001")
             self.assertEqual(result["production_asset_readiness"], "NEEDS_ASSET")
             self.assertTrue(result["contains_nonproduction_surrogates"])
             self.assertTrue(result["user_can_approve_visual_system"])
             self.assertFalse(result["full_production_allowed"])
+
+    def test_commercial_job_id_is_required(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            preview, _ = self.preview(Path(tmp), surrogate=True)
+            preview.pop("commercial_job_id")
+            with self.assertRaises(self.module.VisualConceptPreviewError):
+                self.module.validate(preview)
 
     def test_generated_fake_asset_is_forbidden_even_for_preview(self):
         with tempfile.TemporaryDirectory() as tmp:
