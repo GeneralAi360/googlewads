@@ -65,7 +65,7 @@ Implemented:
 - intake Q10 requires both product/service and exact commercial job;
 - material job changes invalidate stale downstream strategy/visuals;
 - purchase/renewal campaigns resolve `COMBINED` vs `SEPARATE_VARIANTS`;
-- business-brief schema now exposes `campaign.commercial_job` and `business.product_service`.
+- business-brief schema exposes `campaign.commercial_job` and `business.product_service`.
 
 ### First-round visual exploration — implemented
 
@@ -202,11 +202,9 @@ No local gate promises actual Google moderation approval.
 
 ### Deterministic verification
 
-Latest verified full suite before the most recent schema-alignment addition:
+**202 tests — OK.**
 
-**200 tests — OK** with GitHub Actions run `34219191379` / #527 **SUCCESS** on `98e8313717082f6b78ed699ea822d1eaeba51a32`.
-
-A final-head CI run is required after all current documentation/schema alignment updates.
+GitHub Actions run `34223811999` / #541 completed **SUCCESS** after REAL-06 commercial-job / three-concept exploration hardening and business-brief schema alignment.
 
 ### Remaining v0.2 acceptance work
 
