@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/visual-concept-preview.schema.json",
+  "title": "Rendered Visual Concept Preview",
+  "description": "User-facing rendered design concept. It may use clearly declared non-production surrogate assets when production assets are missing; such a preview can be approved as a visual system but cannot be delivered as an ad.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "visual_concept_id",
+    "status",
+    "artifact_path",
+    "artifact_sha256",
+    "width",
+    "height",
+    "approval_scope",
+    "concept_summary",
+    "asset_slots",
+    "production_asset_readiness",
+    "not_for_delivery"
+  ],
+  "properties": {
+    "visual_concept_id": {"type": "string", "minLength": 1},
+    "status": {"const": "VISUAL_CONCEPT_RENDERED"},
+    "artifact_path": {"type": "string", "minLength": 1},
+    "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "width": {"type": "integer", "minimum": 1},
+    "height": {"type": "integer", "minimum": 1},
+    "approval_scope": {
+      "enum": ["EXACT_PRODUCTION_ARTIFACT", "VISUAL_SYSTEM_WITH_ASSET_SLOTS"]
+    },
+    "concept_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["core_idea", "primary_aoi", "scan_path", "style_strategy", "typography", "lighting", "adaptation_note"],
+      "properties": {
+        "core_idea": {"type": "string", "minLength": 1},
+        "primary_aoi": {"type": "string", "minLength": 1},
+        "scan_path": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "style_strategy": {"type": "string", "minLength": 1},
+        "typography": {"type": "string", "minLength": 1},
+        "lighting": {"type": "string", "minLength": 1},
+        "adaptation_note": {"type": "string", "minLength": 1}
+      }
+    },
+    "asset_slots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset_id", "role", "preview_mode", "production_ready", "generated_fake_asset", "notes"],
+        "properties": {
+          "asset_id": {"type": "string", "minLength": 1},
+          "role": {"enum": ["PRODUCT_UI", "LOGO", "HERO", "OTHER"]},
+          "preview_mode": {
+            "enum": ["PRODUCTION_ASSET", "REFERENCE_ONLY_SURROGATE", "LOW_RES_AUTHENTIC_SURROGATE", "STRUCTURAL_PLACEHOLDER", "TEXT_BRAND_PLACEHOLDER"]
+          },
+          "production_ready": {"type": "boolean"},
+          "generated_fake_asset": {"const": false},
+          "source": {"type": ["string", "null"]},
+          "notes": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "production_asset_readiness": {"enum": ["ASSETS_READY", "NEEDS_ASSET"]},
+    "not_for_delivery": {"type": "boolean"},
+    "policy_note": {"type": ["string", "null"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"approval_scope": {"const": "VISUAL_SYSTEM_WITH_ASSET_SLOTS"}}},
+      "then": {
+        "properties": {
+          "production_asset_readiness": {"const": "NEEDS_ASSET"},
+          "not_for_delivery": {"const": true}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"approval_scope": {"const": "EXACT_PRODUCTION_ARTIFACT"}}},
+      "then": {
+        "properties": {
+          "production_asset_readiness": {"const": "ASSETS_READY"}
+        }
+      }
+    }
+  ]
+}
