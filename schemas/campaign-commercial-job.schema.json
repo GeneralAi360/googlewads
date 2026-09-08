@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/campaign-commercial-job.schema.json",
+  "title": "Campaign Commercial Job Lock",
+  "description": "Freezes the exact transaction/service job advertised by the campaign independently from campaign objective and CTA wording.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "commercial_job_id",
+    "status",
+    "product_or_service",
+    "job_type",
+    "purchase_renewal_structure",
+    "target_transaction",
+    "allowed_message_scope",
+    "excluded_job_types",
+    "source_basis",
+    "change_requires_controller_reapproval"
+  ],
+  "properties": {
+    "commercial_job_id": {"type": "string", "minLength": 1},
+    "status": {"const": "COMMERCIAL_JOB_LOCKED"},
+    "product_or_service": {"type": "string", "minLength": 1},
+    "job_type": {
+      "enum": [
+        "NEW_LICENSE_PURCHASE",
+        "LICENSE_RENEWAL",
+        "PURCHASE_OR_RENEWAL",
+        "IMPLEMENTATION_SERVICE",
+        "CONSULTATION",
+        "OTHER"
+      ]
+    },
+    "purchase_renewal_structure": {
+      "enum": ["COMBINED", "SEPARATE_VARIANTS", "NOT_APPLICABLE"]
+    },
+    "target_transaction": {"type": "string", "minLength": 1},
+    "allowed_message_scope": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "excluded_job_types": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "NEW_LICENSE_PURCHASE",
+          "LICENSE_RENEWAL",
+          "PURCHASE_OR_RENEWAL",
+          "IMPLEMENTATION_SERVICE",
+          "CONSULTATION",
+          "OTHER"
+        ]
+      }
+    },
+    "source_basis": {
+      "enum": ["USER_EXPLICIT", "VERIFIED_CAMPAIGN_BRIEF", "VERIFIED_LANDING_PAGE", "OTHER"]
+    },
+    "source_note": {"type": ["string", "null"]},
+    "change_requires_controller_reapproval": {"const": true}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"job_type": {"const": "PURCHASE_OR_RENEWAL"}}},
+      "then": {
+        "properties": {
+          "purchase_renewal_structure": {"enum": ["COMBINED", "SEPARATE_VARIANTS"]}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "job_type": {
+            "enum": ["NEW_LICENSE_PURCHASE", "LICENSE_RENEWAL", "IMPLEMENTATION_SERVICE", "CONSULTATION", "OTHER"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "purchase_renewal_structure": {"const": "NOT_APPLICABLE"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"job_type": {"const": "OTHER"}}},
+      "then": {
+        "required": ["source_note"],
+        "properties": {"source_note": {"type": "string", "minLength": 1}}
+      }
+    }
+  ]
+}
