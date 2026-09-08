@@ -174,9 +174,9 @@ Draft PR: `#2`
 
 `main` remains unchanged.
 
-**200 tests — OK.**
+**202 tests — OK.**
 
-GitHub Actions run `34219191379` / #527 completed **SUCCESS** on `98e8313717082f6b78ed699ea822d1eaeba51a32` after REAL-06 hardening.
+GitHub Actions run `34223811999` / #541 completed **SUCCESS** after REAL-06 commercial-job / three-concept exploration hardening and business-brief schema alignment.
 
 Deterministic CI proves contracts/tooling, not campaign performance, independent visual excellence, or actual Google approval.
 
