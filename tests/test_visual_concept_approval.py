@@ -23,9 +23,15 @@ class VisualConceptApprovalTests(unittest.TestCase):
     def setUpClass(cls):
         cls.module = load_module()
 
-    def make_decision(self, root: Path, decision="APPROVE", decided_by="USER", feedback=None):
+    def make_decision(self, root: Path, decision="APPROVE", decided_by="USER", feedback=None, approval_scope=None):
         artifact = root / "visual-concept-300x250.png"
         artifact.write_bytes(b"exact-visual-concept")
+        scope = approval_scope or "EXACT_PRODUCTION_ARTIFACT"
+        approve_next = (
+            "COLLECT_PRODUCTION_ASSETS_AND_MATERIALIZE"
+            if scope == "VISUAL_SYSTEM_WITH_ASSET_SLOTS"
+            else "FREEZE_CAMPAIGN_DESIGN_SYSTEM"
+        )
         payload = {
             "decision_id": "VCD-001",
             "visual_concept_id": "VC-300x250-001",
@@ -36,19 +42,32 @@ class VisualConceptApprovalTests(unittest.TestCase):
             "feedback": feedback,
             "decided_at": None,
             "next_action": {
-                "APPROVE": "FREEZE_CAMPAIGN_DESIGN_SYSTEM",
+                "APPROVE": approve_next,
                 "REVISE": "RENDER_REVISED_VISUAL_CONCEPT",
                 "REJECT": "RETURN_UPSTREAM",
             }[decision],
         }
+        if approval_scope is not None:
+            payload["approval_scope"] = approval_scope
         return payload, artifact
 
-    def test_approve_unlocks_full_production(self):
+    def test_exact_approve_unlocks_full_production(self):
         with tempfile.TemporaryDirectory() as tmp:
             payload, _ = self.make_decision(Path(tmp), "APPROVE")
             result = self.module.validate(payload)
             self.assertEqual(result["status"], "VISUAL_CONCEPT_APPROVED")
             self.assertTrue(result["full_production_allowed"])
+
+    def test_visual_system_approve_keeps_full_production_blocked_until_real_assets(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload, _ = self.make_decision(
+                Path(tmp), "APPROVE", approval_scope="VISUAL_SYSTEM_WITH_ASSET_SLOTS"
+            )
+            result = self.module.validate(payload)
+            self.assertEqual(result["status"], "VISUAL_CONCEPT_APPROVED_ASSET_PENDING")
+            self.assertFalse(result["full_production_allowed"])
+            self.assertTrue(result["production_asset_completion_allowed"])
+            self.assertEqual(result["next_action"], "COLLECT_PRODUCTION_ASSETS_AND_MATERIALIZE")
 
     def test_revise_requires_feedback_and_keeps_scaleout_blocked(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -77,10 +96,14 @@ class VisualConceptApprovalTests(unittest.TestCase):
             with self.assertRaises(self.module.VisualConceptDecisionError):
                 self.module.validate(payload)
 
-    def test_representative_schema_requires_user_approval(self):
+    def test_representative_schema_allows_only_user_or_user_rooted_fidelity_gate(self):
         schema = json.loads(REP_SCHEMA.read_text(encoding="utf-8"))
-        self.assertEqual(schema["properties"]["approved_by"]["const"], "USER")
-        self.assertIn("Visual Concept", schema["title"])
+        allowed = set(schema["properties"]["approved_by"]["enum"])
+        self.assertEqual(allowed, {"USER", "SYSTEM_FIDELITY_GATE"})
+        self.assertIn("Production Representative", schema["title"])
+        text = json.dumps(schema, ensure_ascii=False)
+        self.assertIn("user_visual_decision_id", text)
+        self.assertIn("visual_system_fidelity_report_id", text)
 
     def test_written_art_direction_is_not_user_visual_approval(self):
         schema = json.loads(ART_SCHEMA.read_text(encoding="utf-8"))
