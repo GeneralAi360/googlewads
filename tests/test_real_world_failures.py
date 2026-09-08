@@ -108,6 +108,29 @@ class RealWorldFailureTests(unittest.TestCase):
         self.assertIn("material visual drift", regressions)
         self.assertIn("production UX controls", case["performance_claim_policy"])
 
+    def test_real_06_locks_exact_commercial_job_and_requires_three_way_exploration(self):
+        case = self.load_cases()["REAL-06"]
+        expected = set(case["expected_findings"])
+        for code in (
+            "COMMERCIAL_JOB_DRIFT",
+            "IMPLEMENTATION_VS_LICENSE_INTENT_MISMATCH",
+            "INTERNAL_RECOMMENDATION_MISTAKEN_FOR_USER_LOCK",
+            "INSUFFICIENT_CONCEPT_EXPLORATION",
+            "WEAK_CONCEPT_QUALITY",
+            "PRESENTATION_SLIDE_FEEL",
+            "COMMERCIAL_MESSAGE_NOT_ALIGNED_TO_PURCHASE_RENEWAL",
+        ):
+            self.assertIn(code, expected)
+        regressions = "\n".join(case["required_regressions"])
+        self.assertIn("exact commercial job", regressions)
+        self.assertIn("IMPLEMENTATION_SERVICE to PURCHASE_OR_RENEWAL", regressions)
+        self.assertIn("final production concept count", regressions)
+        self.assertIn("exactly three materially distinct rendered concepts", regressions)
+        self.assertIn("not USER_LOCKED", regressions)
+        self.assertIn("at least three design axes", regressions)
+        self.assertIn("ad-not-presentation-slide", regressions)
+        self.assertIn("do not prove CTR", case["performance_claim_policy"])
+
 
 if __name__ == "__main__":
     unittest.main()
