@@ -4,6 +4,10 @@
 The planner does not invent answers. Presence of an explicit JSON field counts
 as resolved even when its value is null/false/empty, allowing the controller to
 record deliberate answers such as "no proof" or "no formal brand system".
+
+Questions may declare resolution="all" when several facts are jointly required.
+This is used for the product + exact commercial-job question so a broad product
+name cannot silently stand in for the transaction/service being advertised.
 """
 from __future__ import annotations
 
@@ -45,6 +49,20 @@ def path_present(data: dict[str, Any], path: str) -> bool:
 
 def any_path_present(data: dict[str, Any], paths: list[str]) -> bool:
     return any(path_present(data, path) for path in paths)
+
+
+def all_paths_present(data: dict[str, Any], paths: list[str]) -> bool:
+    return bool(paths) and all(path_present(data, path) for path in paths)
+
+
+def question_paths_resolved(question: dict[str, Any], data: dict[str, Any]) -> bool:
+    resolution = question.get("resolution", "any")
+    paths = question.get("paths") or []
+    if resolution == "any":
+        return any_path_present(data, paths)
+    if resolution == "all":
+        return all_paths_present(data, paths)
+    raise IntakeError(f"unknown question resolution: {resolution}")
 
 
 def reference_items(data: dict[str, Any]) -> list[Any]:
@@ -138,14 +156,14 @@ def plan_intake(data: dict[str, Any], *, depth: str = "standard", quick_limit: i
         elif qid == "Q06" and not path_present(data, "deliverables.raw_banner_count_phrase"):
             state = "NOT_APPLICABLE"
             reason = "no_raw_count_phrase"
-        elif question.get("default") == "true_for_multi_output" and condition_active(question["condition"], data, output_math) and not any_path_present(data, question["paths"]):
+        elif question.get("default") == "true_for_multi_output" and condition_active(question["condition"], data, output_math) and not question_paths_resolved(question, data):
             state = "RESOLVED"
             reason = "default_true_for_multi_output"
             defaults.append({"path": "deliverables.contact_sheet", "value": True, "question_id": qid})
         elif not condition_active(question["condition"], data, output_math):
             state = "CONDITIONAL"
             reason = "condition_not_active"
-        elif any_path_present(data, question["paths"]):
+        elif question_paths_resolved(question, data):
             state = "RESOLVED"
             reason = "explicit_context"
         else:
