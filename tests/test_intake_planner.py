@@ -34,6 +34,7 @@ class IntakePlannerTests(unittest.TestCase):
             },
             "campaign": {
                 "objective": "lead",
+                "commercial_job": "NEW_LICENSE_PURCHASE",
                 "landing_page": "https://example.invalid",
                 "funnel_stage": "product-aware",
                 "primary_action": "request quote",
@@ -81,6 +82,24 @@ class IntakePlannerTests(unittest.TestCase):
         self.assertEqual(len(set(ids)), 52)
         self.assertEqual(ids[0], "Q01")
         self.assertEqual(ids[-1], "Q52")
+
+    def test_q10_requires_both_product_and_exact_commercial_job(self):
+        context = self.base_context()
+        del context["campaign"]["commercial_job"]
+        result = self.module.plan_intake(context)
+        q10 = next(item for item in result["questions"] if item["id"] == "Q10")
+        self.assertEqual(q10["state"], "MISSING")
+        self.assertEqual(q10["resolution"], "all")
+        context["campaign"]["commercial_job"] = "LICENSE_RENEWAL"
+        result = self.module.plan_intake(context)
+        q10 = next(item for item in result["questions"] if item["id"] == "Q10")
+        self.assertEqual(q10["state"], "RESOLVED")
+
+    def test_final_concept_count_is_worded_separately_from_visual_exploration(self):
+        pool = self.module.load_pool()
+        q02 = next(item for item in pool["questions"] if item["id"] == "Q02")
+        self.assertIn("final", q02["text"].lower())
+        self.assertIn("after visual-direction selection", q02["text"].lower())
 
     def test_core_pack_output_math_and_contact_sheet_default(self):
         result = self.module.plan_intake(self.base_context(), depth="standard")
