@@ -2,26 +2,30 @@
 
 ## Purpose
 
-The user approves **visible design**, not a text-only art-direction description.
+The user approves **visible advertising design**, not a text-only art-direction description and not a raw hero-generation output.
 
-Written strategy, Style Intelligence, attention, typography, lighting and art-direction documents are internal preproduction contracts. They prepare the visual concepts but do not substitute for user visual judgment.
+Written strategy, Style Intelligence, attention, typography, lighting and art-direction documents are internal preproduction contracts. Generated imagery, UI crops, photos, illustrations, textures and 3D objects are component assets. None of them substitute for user judgment of the complete banner.
 
-Two additional rules are permanent:
+Three permanent rules now govern visual approval:
 
 1. missing production-grade assets must not leave the user with nothing visual to judge;
-2. an internal recommendation must not be treated as if the user already selected/locked a visual direction.
+2. an internal recommendation must not be treated as if the user already selected/locked a visual direction;
+3. a `HERO_ASSET_CANDIDATE` must never be shown or reviewed as if it were the final `BANNER_COMPOSITE`.
 
-Load `references/commercial-job-and-concept-exploration.md` before first-round visual concept rendering.
+Load before first-round rendering:
+
+- `references/commercial-job-and-concept-exploration.md`;
+- `references/concept-composite-and-pre-show-quality.md`.
 
 ## Canonical user-facing flow
 
 When the direction is not explicitly user-locked:
 
-`QUESTIONS / INTAKE -> COMMERCIAL JOB LOCK -> STRATEGY -> 3 RENDERED VISUAL CONCEPTS -> USER SELECTION -> REVISE/APPROVE -> PRODUCTION ASSET COMPLETION IF NEEDED -> FULL PRODUCTION`
+`QUESTIONS / INTAKE -> COMMERCIAL JOB LOCK -> STRATEGY -> 3 COMPLETE BANNER COMPOSITES -> TWO FRESH PRE-SHOW REVIEWS EACH -> USER SELECTION -> REVISE/APPROVE -> PRODUCTION ASSET COMPLETION IF NEEDED -> FULL PRODUCTION`
 
 When the user has explicitly locked a direction:
 
-`QUESTIONS / INTAKE -> COMMERCIAL JOB LOCK -> STRATEGY -> 1 RENDERED LOCKED-DIRECTION CONCEPT -> USER APPROVAL -> PRODUCTION ASSET COMPLETION IF NEEDED -> FULL PRODUCTION`
+`QUESTIONS / INTAKE -> COMMERCIAL JOB LOCK -> STRATEGY -> 1 COMPLETE LOCKED-DIRECTION BANNER COMPOSITE -> PRE-SHOW REVIEW -> USER APPROVAL -> PRODUCTION ASSET COMPLETION IF NEEDED -> FULL PRODUCTION`
 
 The user-facing exploration count is separate from `deliverables.concept_count`. A campaign may ultimately produce one concept while still showing three alternatives in the first visual decision round.
 
@@ -67,27 +71,98 @@ Do not satisfy the requirement with:
 - different button colors;
 - three variants of the same generic SaaS card.
 
+## A hero asset is not a concept
+
+The user-facing artifact must be:
+
+`artifact_role = BANNER_COMPOSITE`
+
+and:
+
+`render_stage = USER_FACING_CONCEPT_COMPOSITE`.
+
+A generated image may first exist as `HERO_ASSET_CANDIDATE`. Before it can contribute to a visual concept, it must be composed with the campaign system.
+
+A valid banner composite must already include the visible roles needed to judge the advertisement:
+- primary message;
+- commercial-job cue;
+- CTA;
+- brand anchor;
+- hero/visual device where applicable;
+- typography hierarchy;
+- color/background system;
+- whitespace/density;
+- relevant temporary/production asset slots.
+
+The `composition_contract` in `visual-concept-preview.json` records these mandatory visible elements and all raw generated asset paths.
+
+`raw_generated_asset_is_final_artifact` must always be `false`.
+
+The preview validator decodes the actual raster and verifies that its real PNG/JPEG dimensions equal the declared representative dimensions. A raw generated asset path reused as the concept artifact is rejected.
+
+## Generated imagery behavior
+
+Image generation is optional, not mandatory.
+
+If it is used:
+
+`GENERATE COMPONENT -> SELECT -> REFINE IF NEEDED -> COMPOSE BANNER -> ADD DETERMINISTIC TYPE/CTA/BRAND -> REVIEW COMPLETE COMPOSITE`.
+
+Never:
+
+`GENERATE IMAGE -> CALL IT CONCEPT -> REVIEW PASS -> SHOW USER`.
+
+Reject/abandon a generated hero when:
+- it is generic decoration with no defensible relation to the commercial job;
+- the same object could be dropped into unrelated SaaS advertising unchanged;
+- the copy must explain what the visual supposedly means;
+- repeated generation is stalling progress without producing a semantically useful asset.
+
+When generation is low-value, return to type-led, product-led, editorial, structural or another appropriate visual strategy rather than waiting indefinitely.
+
+## Two exact-artifact pre-show reviews
+
 Create and validate `visual-concept-set.json` with `scripts/validate_visual_concept_set.py`.
 
-Before showing the concepts, an `ART_DIRECTOR_REVIEWER` must PASS every exact rendered concept for:
+Every first-round concept requires exactly **two fresh review reports** matching `schemas/pre-show-visual-review.schema.json`.
+
+Both reviewers inspect the exact `BANNER_COMPOSITE` bytes the user would see.
+
+Required independence metadata:
+- distinct `reviewer_context_id` values;
+- `fresh_context = true`;
+- `prior_review_verdict_visible = false`.
+
+A reviewer may return `PRESENTATION_READY_DESIGN` only when all required checks PASS with visible-artifact evidence:
 - commercial-job fidelity;
-- professional category fit;
-- ad-not-presentation-slide quality;
-- hierarchy;
-- typography;
-- CTA integration;
-- visual distinctiveness;
-- anti-template quality;
+- complete banner composite;
+- primary-message visibility;
+- CTA visibility and integration;
+- brand-anchor visibility;
+- hero semantic relevance;
+- advertising impact;
+- compositional confidence;
+- typographic craft;
+- visual polish;
+- category premium bar;
+- non-generic identity;
+- ad-not-presentation-slide;
 - small-format viability.
 
-This is a design-quality gate, not performance prediction.
+A bare list of PASS booleans is not enough. Each check must explain what was actually visible in the artifact.
+
+If either reviewer returns `REVISE_BEFORE_SHOW`, revise internally and repeat the review on the new exact bytes.
+
+The user must not be the first basic design QA pass.
+
+This remains a design-quality gate, not performance prediction.
 
 ## User-facing presentation
 
 For EXPLORE_3 show:
 
 1. one comparison/contact sheet containing A, B and C;
-2. each individual rendered concept;
+2. each individual **complete banner composite**;
 3. one short concept card per concept;
 4. a simple decision request such as:
    - `SELECT A`;
@@ -96,7 +171,7 @@ For EXPLORE_3 show:
    - `REVISE`;
    - `REJECT ALL`.
 
-Do not lead with internal JSON dumps.
+Do not lead with internal JSON dumps, raw image-generation galleries or hero candidate sheets.
 
 Each concept card explains:
 - commercial angle;
@@ -154,7 +229,7 @@ A surrogate preview must remain:
 - `production_asset_readiness = NEEDS_ASSET`;
 - `not_for_delivery = true`.
 
-Validate each preview with:
+Validate each complete preview with:
 
 ```bash
 python scripts/validate_visual_concept_preview.py \
@@ -205,11 +280,11 @@ The reviewer cannot approve a new direction. The reviewer may only attest that r
 
 Permitted paths:
 
-`3 CONCEPTS -> USER SELECTS -> USER APPROVES PRODUCTION-READY VISUAL -> EXACT SCALEOUT GATE -> FULL PRODUCTION`
+`3 COMPLETE BANNER COMPOSITES -> TWO REVIEWS EACH -> USER SELECTS -> USER APPROVES PRODUCTION-READY VISUAL -> EXACT SCALEOUT GATE -> FULL PRODUCTION`
 
 or:
 
-`3 CONCEPTS -> USER SELECTS -> USER APPROVES VISUAL SYSTEM WITH ASSET SLOTS -> REAL ASSETS -> PRODUCTION REPRESENTATIVE -> FIDELITY PASS -> FULL PRODUCTION`
+`3 COMPLETE BANNER COMPOSITES -> TWO REVIEWS EACH -> USER SELECTS -> USER APPROVES VISUAL SYSTEM WITH ASSET SLOTS -> REAL ASSETS -> PRODUCTION REPRESENTATIVE -> FIDELITY PASS -> FULL PRODUCTION`.
 
 A `SINGLE_USER_LOCKED` path replaces the initial three only when explicit user lock evidence exists.
 
@@ -221,9 +296,12 @@ Forbidden shortcuts:
 
 `TEXT DESCRIPTION -> ASSUME APPROVAL -> FULL PACK`
 
+`RAW HERO -> PRESENTATION_READY_DESIGN -> SHOW USER`.
+
 ## Completion semantics
 
 Use explicit states such as:
+- `HERO_ASSET_CANDIDATE`;
 - `VISUAL_CONCEPT_SET_AWAITING_USER_SELECTION`;
 - `VISUAL_CONCEPT_AWAITING_USER_APPROVAL`;
 - `VISUAL_CONCEPT_REVISE_REQUESTED`;
@@ -235,4 +313,4 @@ Use explicit states such as:
 - `MATERIAL_VISUAL_DRIFT_REQUIRES_REAPPROVAL`;
 - `FULL_PRODUCTION_BLOCKED_BY_VISUAL_APPROVAL`.
 
-`NEEDS_ASSET` is a production-readiness state, not a reason to hide the concept. An internal recommendation is decision support, not proof that the user chose the direction.
+`NEEDS_ASSET` is a production-readiness state, not a reason to hide the concept. An internal recommendation is decision support, not proof that the user chose the direction. A raw generated image is a component asset, not the banner the user is asked to approve.
