@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Validate first-round visual concept exploration and commercial-job fidelity.
+"""Validate first-round visual concept exploration.
 
-Default behavior is EXPLORE_3 unless an explicit USER_LOCKED direction exists.
-Every user-facing concept must be a complete BANNER_COMPOSITE and must pass two
-fresh-context exact-artifact pre-show art-director reviews. Raw hero assets or
-self-declared inline PASS states are insufficient.
+The concept set must bind to both the exact commercial job and an exact USER-
+approved Graphic Banner Brief. Default behavior is EXPLORE_3 unless explicit
+USER_LOCKED evidence exists. Every user-facing concept must be a complete
+BANNER_COMPOSITE and must pass two fresh-context exact-artifact pre-show
+art-director reviews. Raw hero assets, stale briefs, or self-declared PASS
+states are insufficient.
 """
 from __future__ import annotations
 
@@ -31,11 +33,14 @@ DESIGN_AXES = (
 
 PRE_SHOW_CHECKS = (
     "commercial_job_fidelity",
+    "approved_brief_fidelity",
     "banner_composite_complete",
     "primary_message_visible",
     "cta_visible_and_integrated",
     "brand_anchor_visible",
     "hero_semantic_relevance",
+    "generic_substitution_test",
+    "decorative_form_not_substituting_ad_idea",
     "advertising_impact",
     "compositional_confidence",
     "typographic_craft",
@@ -94,6 +99,48 @@ def _validate_commercial_job(lock: dict[str, Any]) -> tuple[str, str]:
     return job_id, canonical_sha(lock)
 
 
+def _validate_graphic_brief_binding(
+    concept_set: dict[str, Any],
+    *,
+    commercial_job_id: str,
+    commercial_job_sha: str,
+) -> tuple[str, str]:
+    ref = concept_set.get("graphic_banner_brief")
+    if not isinstance(ref, dict):
+        raise VisualConceptSetError("graphic_banner_brief binding is required before visual exploration")
+
+    brief_path = _require_file(ref.get("path"), ref.get("sha256"), "Graphic Banner Brief")
+    brief_sha = sha256_file(brief_path)
+    brief = load_json(brief_path)
+    if brief.get("status") != "GRAPHIC_BANNER_BRIEF_READY_FOR_USER_REVIEW":
+        raise VisualConceptSetError("Graphic Banner Brief is not in a valid user-review state")
+    brief_id = str(brief.get("brief_id") or "").strip()
+    if not brief_id or ref.get("brief_id") != brief_id:
+        raise VisualConceptSetError("Graphic Banner Brief ID binding is missing or mismatched")
+    bindings = brief.get("source_bindings") or {}
+    if bindings.get("commercial_job_id") != commercial_job_id:
+        raise VisualConceptSetError("Graphic Banner Brief belongs to a different commercial job")
+    if bindings.get("commercial_job_sha256") != commercial_job_sha:
+        raise VisualConceptSetError("Graphic Banner Brief is stale against the commercial job")
+
+    decision_path = _require_file(
+        ref.get("decision_path"),
+        ref.get("decision_sha256"),
+        "Graphic Banner Brief user decision",
+    )
+    decision = load_json(decision_path)
+    if decision.get("brief_id") != brief_id:
+        raise VisualConceptSetError("Graphic Banner Brief decision brief_id mismatch")
+    if decision.get("brief_sha256") != brief_sha:
+        raise VisualConceptSetError("Graphic Banner Brief decision is stale against current brief bytes")
+    if decision.get("decided_by") != "USER":
+        raise VisualConceptSetError("only USER may approve the Graphic Banner Brief")
+    if decision.get("decision") != "APPROVE":
+        raise VisualConceptSetError("visual exploration requires decision=APPROVE on Graphic Banner Brief")
+
+    return brief_id, brief_sha
+
+
 def _preview_contract(entry: dict[str, Any], job_id: str) -> dict[str, Any]:
     contract_path = _require_file(entry.get("preview_contract_path"), entry.get("preview_contract_sha256"), "preview contract")
     preview = load_json(contract_path)
@@ -131,6 +178,8 @@ def _validate_review_report(
     *,
     concept_id: str,
     commercial_job_id: str,
+    brief_id: str,
+    brief_sha: str,
     artifact_path: Path,
     artifact_sha: str,
 ) -> str:
@@ -148,6 +197,8 @@ def _validate_review_report(
         raise VisualConceptSetError("pre-show review visual_concept_id mismatch")
     if report.get("commercial_job_id") != commercial_job_id:
         raise VisualConceptSetError("pre-show review commercial_job_id mismatch")
+    if report.get("graphic_banner_brief_id") != brief_id or report.get("graphic_banner_brief_sha256") != brief_sha:
+        raise VisualConceptSetError("pre-show review is not bound to the exact approved Graphic Banner Brief")
     if report.get("artifact_role") != "BANNER_COMPOSITE":
         raise VisualConceptSetError("pre-show review target must be BANNER_COMPOSITE")
     if report.get("artifact_path") != artifact_path.as_posix() or report.get("artifact_sha256") != artifact_sha:
@@ -176,6 +227,8 @@ def _validate_pre_show_reviews(
     entry: dict[str, Any],
     *,
     job_id: str,
+    brief_id: str,
+    brief_sha: str,
     artifact_path: Path,
     artifact_sha: str,
 ) -> list[str]:
@@ -193,6 +246,8 @@ def _validate_pre_show_reviews(
                 report,
                 concept_id=str(entry.get("visual_concept_id")),
                 commercial_job_id=job_id,
+                brief_id=brief_id,
+                brief_sha=brief_sha,
                 artifact_path=artifact_path,
                 artifact_sha=artifact_sha,
             )
@@ -217,6 +272,12 @@ def validate(commercial_job: dict[str, Any], concept_set: dict[str, Any]) -> dic
         raise VisualConceptSetError("concept set status must be VISUAL_CONCEPT_SET_RENDERED")
     if concept_set.get("commercial_job_id") != job_id or concept_set.get("commercial_job_sha256") != job_sha:
         raise VisualConceptSetError("concept set commercial-job binding is stale or mismatched")
+
+    brief_id, brief_sha = _validate_graphic_brief_binding(
+        concept_set,
+        commercial_job_id=job_id,
+        commercial_job_sha=job_sha,
+    )
 
     mode = concept_set.get("mode")
     source = concept_set.get("direction_lock_source")
@@ -243,19 +304,31 @@ def validate(commercial_job: dict[str, Any], concept_set: dict[str, Any]) -> dic
     if len(ids) != len(concepts) or any(not item for item in ids) or len(ids) != len(set(ids)):
         raise VisualConceptSetError("visual concept IDs must be non-empty and unique")
 
+    advertising_logics: list[str] = []
     review_contexts: dict[str, list[str]] = {}
     for entry in concepts:
         if not isinstance(entry, dict):
             raise VisualConceptSetError("every concept entry must be an object")
+        logic = str(entry.get("advertising_logic") or "").strip()
+        if not logic:
+            raise VisualConceptSetError("every concept requires an advertising_logic before visual form")
+        advertising_logics.append(logic)
         _preview_contract(entry, job_id)
         artifact_path = Path(str(entry.get("artifact_path") or ""))
         artifact_sha = str(entry.get("artifact_sha256") or "")
         review_contexts[str(entry["visual_concept_id"])] = _validate_pre_show_reviews(
             entry,
             job_id=job_id,
+            brief_id=brief_id,
+            brief_sha=brief_sha,
             artifact_path=artifact_path,
             artifact_sha=artifact_sha,
         )
+
+    if mode == "EXPLORE_3":
+        normalized_logics = [value.casefold() for value in advertising_logics]
+        if len(set(normalized_logics)) != 3:
+            raise VisualConceptSetError("EXPLORE_3 requires three distinct advertising_logic values before visual-style distinction")
 
     pairwise = []
     if mode == "EXPLORE_3":
@@ -282,10 +355,13 @@ def validate(commercial_job: dict[str, Any], concept_set: dict[str, Any]) -> dic
         "concept_set_id": concept_set.get("concept_set_id"),
         "commercial_job_id": job_id,
         "commercial_job_sha256": job_sha,
+        "graphic_banner_brief_id": brief_id,
+        "graphic_banner_brief_sha256": brief_sha,
         "mode": mode,
         "direction_lock_source": source,
         "visual_exploration_count": len(concepts),
         "visual_concept_ids": ids,
+        "advertising_logics": advertising_logics,
         "pairwise_distinction": pairwise,
         "comparison_contact_sheet_path": sheet.as_posix(),
         "pre_show_review_contexts": review_contexts,
@@ -296,7 +372,7 @@ def validate(commercial_job: dict[str, Any], concept_set: dict[str, Any]) -> dic
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate commercial-job-bound visual concept exploration")
+    parser = argparse.ArgumentParser(description="Validate commercial-job + approved-Graphic-Brief-bound visual concept exploration")
     parser.add_argument("--commercial-job", type=Path, required=True)
     parser.add_argument("--concept-set", type=Path, required=True)
     parser.add_argument("--out", type=Path)
@@ -304,7 +380,12 @@ def main() -> int:
     try:
         result = validate(load_json(args.commercial_job), load_json(args.concept_set))
     except VisualConceptSetError as exc:
-        result = {"status": "VISUAL_CONCEPT_SET_BLOCKED", "presentation_ready_design": False, "full_production_allowed": False, "error": str(exc)}
+        result = {
+            "status": "VISUAL_CONCEPT_SET_BLOCKED",
+            "presentation_ready_design": False,
+            "full_production_allowed": False,
+            "error": str(exc),
+        }
     payload = json.dumps(result, ensure_ascii=False, indent=2)
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
