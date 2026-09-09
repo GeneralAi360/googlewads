@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/GeneralAi360/googlewads/schemas/visual-concept-set.schema.json",
   "title": "Visual Concept Exploration Set",
-  "description": "Binds first-round user-facing visual alternatives to one commercial job and enforces genuine exploration unless the direction was explicitly locked by the user.",
+  "description": "Binds first-round user-facing banner composites to one commercial job and enforces genuine exploration plus two fresh exact-artifact pre-show reviews per concept unless the direction was explicitly locked by the user.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -41,7 +41,7 @@
           "artifact_path",
           "artifact_sha256",
           "design_axes",
-          "quality_review"
+          "pre_show_review_reports"
         ],
         "properties": {
           "visual_concept_id": {"type": "string", "minLength": 1},
@@ -63,40 +63,18 @@
               "lighting_language": {"type": "string", "minLength": 1}
             }
           },
-          "quality_review": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["reviewed_by", "status", "checks", "notes"],
-            "properties": {
-              "reviewed_by": {"const": "ART_DIRECTOR_REVIEWER"},
-              "status": {"enum": ["PASS", "FAIL"]},
-              "checks": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "commercial_job_fidelity",
-                  "professional_category_fit",
-                  "ad_not_presentation_slide",
-                  "hierarchy",
-                  "typography",
-                  "cta_integration",
-                  "visual_distinctiveness",
-                  "anti_template",
-                  "small_format_viability"
-                ],
-                "properties": {
-                  "commercial_job_fidelity": {"enum": ["PASS", "FAIL"]},
-                  "professional_category_fit": {"enum": ["PASS", "FAIL"]},
-                  "ad_not_presentation_slide": {"enum": ["PASS", "FAIL"]},
-                  "hierarchy": {"enum": ["PASS", "FAIL"]},
-                  "typography": {"enum": ["PASS", "FAIL"]},
-                  "cta_integration": {"enum": ["PASS", "FAIL"]},
-                  "visual_distinctiveness": {"enum": ["PASS", "FAIL"]},
-                  "anti_template": {"enum": ["PASS", "FAIL"]},
-                  "small_format_viability": {"enum": ["PASS", "FAIL"]}
-                }
-              },
-              "notes": {"type": "string", "minLength": 1}
+          "pre_show_review_reports": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "sha256"],
+              "properties": {
+                "path": {"type": "string", "minLength": 1},
+                "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+              }
             }
           }
         }
