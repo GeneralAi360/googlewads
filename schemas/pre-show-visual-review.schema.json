@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/pre-show-visual-review.schema.json",
+  "title": "Pre-show Visual Concept Review",
+  "description": "Fresh-context art-director review of the exact user-facing banner composite. Raw/generated hero assets cannot receive PRESENTATION_READY_DESIGN because the review target must be the complete banner composite with message, CTA and brand anchor.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "review_id",
+    "status",
+    "reviewed_by",
+    "reviewer_context_id",
+    "independence",
+    "visual_concept_id",
+    "commercial_job_id",
+    "artifact_role",
+    "artifact_path",
+    "artifact_sha256",
+    "checks",
+    "notes"
+  ],
+  "properties": {
+    "review_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["PRESENTATION_READY_DESIGN", "REVISE_BEFORE_SHOW"]},
+    "reviewed_by": {"const": "ART_DIRECTOR_REVIEWER"},
+    "reviewer_context_id": {"type": "string", "minLength": 1},
+    "independence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fresh_context", "prior_review_verdict_visible"],
+      "properties": {
+        "fresh_context": {"const": true},
+        "prior_review_verdict_visible": {"const": false}
+      }
+    },
+    "visual_concept_id": {"type": "string", "minLength": 1},
+    "commercial_job_id": {"type": "string", "minLength": 1},
+    "artifact_role": {"const": "BANNER_COMPOSITE"},
+    "artifact_path": {"type": "string", "minLength": 1},
+    "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commercial_job_fidelity",
+        "banner_composite_complete",
+        "primary_message_visible",
+        "cta_visible_and_integrated",
+        "brand_anchor_visible",
+        "hero_semantic_relevance",
+        "advertising_impact",
+        "compositional_confidence",
+        "typographic_craft",
+        "visual_polish",
+        "category_premium_bar",
+        "non_generic_identity",
+        "ad_not_presentation_slide",
+        "small_format_viability"
+      ],
+      "properties": {
+        "commercial_job_fidelity": {"$ref": "#/$defs/check"},
+        "banner_composite_complete": {"$ref": "#/$defs/check"},
+        "primary_message_visible": {"$ref": "#/$defs/check"},
+        "cta_visible_and_integrated": {"$ref": "#/$defs/check"},
+        "brand_anchor_visible": {"$ref": "#/$defs/check"},
+        "hero_semantic_relevance": {"$ref": "#/$defs/check"},
+        "advertising_impact": {"$ref": "#/$defs/check"},
+        "compositional_confidence": {"$ref": "#/$defs/check"},
+        "typographic_craft": {"$ref": "#/$defs/check"},
+        "visual_polish": {"$ref": "#/$defs/check"},
+        "category_premium_bar": {"$ref": "#/$defs/check"},
+        "non_generic_identity": {"$ref": "#/$defs/check"},
+        "ad_not_presentation_slide": {"$ref": "#/$defs/check"},
+        "small_format_viability": {"$ref": "#/$defs/check"}
+      }
+    },
+    "notes": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "evidence"],
+      "properties": {
+        "status": {"enum": ["PASS", "FAIL"]},
+        "evidence": {"type": "string", "minLength": 1},
+        "smallest_fix": {"type": ["string", "null"]}
+      }
+    }
+  }
+}
