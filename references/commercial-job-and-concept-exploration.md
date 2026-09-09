@@ -1,14 +1,15 @@
-# Commercial Job Lock and Visual Concept Exploration
+# Commercial Job Lock, Graphic Banner Brief, and Visual Concept Exploration
 
 ## Purpose
 
-A banner can be visually polished and still be wrong if it advertises the wrong commercial action.
+A banner can be visually polished and still be wrong if it advertises the wrong commercial action or if the visual problem was never clearly defined before rendering.
 
-The controller must distinguish three separate things:
+The controller must distinguish four separate things:
 
 1. **Product / service identity** — what the business sells or supports.
 2. **Commercial job** — what this specific campaign is asking the market to do now.
 3. **Campaign objective** — what outcome the advertiser measures, such as a lead or sale.
+4. **Graphic Banner Brief** — the user-approved advertising/design problem and visual boundaries that constrain later A/B/C exploration.
 
 These are not interchangeable.
 
@@ -20,13 +21,23 @@ For example, all of the following may concern Bitrix24 but are materially differ
 - implementation service;
 - consultation.
 
-A design for `IMPLEMENTATION_SERVICE` must not silently survive when the user corrects the task to `PURCHASE_OR_RENEWAL`.
+A design for `IMPLEMENTATION_SERVICE` must not silently survive when the user corrects the task to `NEW_LICENSE_PURCHASE` or `PURCHASE_OR_RENEWAL`.
+
+Likewise, a correct commercial job must not jump directly into abstract geometry or hero generation merely because the design problem is still under-specified.
 
 ## Canonical dependency
 
-`USER BUSINESS FACTS -> COMMERCIAL JOB LOCK -> RESEARCH / STRATEGY -> VISUAL CONCEPT EXPLORATION -> USER SELECTION -> PRODUCTION`
+`USER BUSINESS FACTS`
+`-> COMMERCIAL JOB LOCK`
+`-> RESEARCH / CATEGORY EVIDENCE`
+`-> GRAPHIC BANNER BRIEF`
+`-> USER APPROVES / REVISES BRIEF`
+`-> IDEA / STYLE / ART DIRECTION`
+`-> VISUAL CONCEPT EXPLORATION`
+`-> USER SELECTION / VISUAL APPROVAL`
+`-> PRODUCTION`.
 
-The commercial job is resolved **before** idea architecture and visual concept rendering.
+The commercial job is resolved before research/meaning/style. The Graphic Banner Brief is created after relevant research/category evidence and **before first-round visual rendering**.
 
 ## Commercial job types
 
@@ -43,9 +54,9 @@ This vocabulary describes the transaction/service job. It does not replace CTA w
 
 Example:
 
-- commercial job: `PURCHASE_OR_RENEWAL`;
+- commercial job: `NEW_LICENSE_PURCHASE`;
 - campaign objective: `LEAD_GENERATION`;
-- CTA: `Оставить заявку`.
+- CTA: `Выбрать редакцию`.
 
 The three may legitimately coexist, but they must not be collapsed into one field.
 
@@ -97,6 +108,7 @@ A material job change returns `COMMERCIAL_JOB_CHANGED` and requires downstream s
 
 A material commercial-job change invalidates stale artifacts whose meaning depended on the old job, including as applicable:
 
+- Graphic Banner Brief and its user decision;
 - idea architecture;
 - commercial message hierarchy;
 - style-strategy context/recommendation;
@@ -110,6 +122,114 @@ A material commercial-job change invalidates stale artifacts whose meaning depen
 - creative contracts.
 
 Do not preserve an implementation-service concept merely by changing one line of copy to purchase/renewal.
+
+## Mandatory Graphic Banner Brief gate
+
+Load `references/graphic-banner-brief.md`.
+
+After commercial-job resolution and relevant research/category work, create `graphic-banner-brief.json` matching `schemas/graphic-banner-brief.schema.json`.
+
+The brief must make the advertising problem explicit before visual form is explored. It freezes at least:
+
+- exact commercial core / CTA / brand;
+- audience decision context;
+- first-glance takeaway;
+- primary / secondary / forbidden message semantics;
+- desired user reaction;
+- banner role and persuasion/trust mechanism;
+- visual-semantic job;
+- composition hierarchy / scan roles / CTA integration / brand anchor;
+- typography boundaries;
+- color / lighting boundaries;
+- graphic-style boundaries;
+- hard anti-failure rules;
+- first-round concept-generation rules;
+- presentation-ready quality bar.
+
+Validate:
+
+```bash
+python scripts/validate_graphic_banner_brief.py \
+  --commercial-job run/commercial/campaign-commercial-job.json \
+  --brief run/design/graphic-banner-brief.json \
+  --out run/design/graphic-banner-brief-gate.json
+```
+
+A valid brief returns:
+
+`GRAPHIC_BANNER_BRIEF_READY_FOR_USER_APPROVAL`
+
+with:
+
+- `render_allowed=false`;
+- `full_production_allowed=false`.
+
+Do not render A/B/C at this point.
+
+### User-facing brief presentation
+
+Show a concise human-readable brief first, then optionally the JSON artifact. The user should be able to judge whether the advertising/design problem is correct without imagining a visual.
+
+Ask only:
+
+- `APPROVE BRIEF`;
+- `REVISE BRIEF`.
+
+### Exact user decision
+
+Create `graphic-banner-brief-decision.json` matching `schemas/graphic-banner-brief-decision.schema.json` and validate:
+
+```bash
+python scripts/validate_graphic_banner_brief_decision.py \
+  --brief run/design/graphic-banner-brief.json \
+  --decision run/design/graphic-banner-brief-decision.json \
+  --out run/design/graphic-banner-brief-decision-gate.json
+```
+
+Only exact current brief bytes plus:
+
+- `decided_by = USER`;
+- `decision = APPROVE`;
+
+may produce:
+
+`GRAPHIC_BANNER_BRIEF_APPROVED`
+
+and unlock first-round visual exploration.
+
+`REVISE` keeps rendering blocked and requires new brief bytes/SHA followed by another user decision.
+
+No Style Intelligence recommendation, controller preference, art director or designer can approve this gate on behalf of the user.
+
+### Brief approval is not visual approval
+
+`APPROVE BRIEF` means:
+
+> The advertising problem, hierarchy, design boundaries and exploration rules are correct.
+
+It does **not** mean:
+
+> I approve a rendered design.
+
+Later visual selection/approval remains mandatory.
+
+## Graphic-brief anti-failure floor
+
+At minimum hard reject:
+
+- abstract geometry without commercial meaning;
+- decorative form substituted for advertising idea;
+- raw generated image used as a visual concept;
+- presentation-slide composition;
+- generic 3D object without task-specific meaning;
+- missing brand anchor;
+- commercial job not understandable at first glance;
+- visuals that require a long rationale to become meaningful;
+- visual novelty replacing clarity.
+
+Hero generation is optional and must not be the default first step for concept exploration.
+
+A/B/C must differ first by **advertising logic**, not merely by visual form.
 
 ## Final concept count is not exploration count
 
@@ -132,11 +252,13 @@ The user then selects one direction and only that system is scaled out.
 
 ## Default visual exploration rule
 
+Visual exploration is allowed only after `GRAPHIC_BANNER_BRIEF_APPROVED` unless an explicitly approved existing campaign design system makes a new brief unnecessary for a continuation task.
+
 Unless the visual direction is explicitly locked by the user, the first user-facing visual round defaults to:
 
 `EXPLORE_3`
 
-Create exactly three **materially different rendered concepts** in the same representative size and with the same frozen commercial job/message constraints.
+Create exactly three **materially different rendered concepts** in the same representative size and with the same frozen commercial job/message/Graphic Banner Brief constraints.
 
 An internal Style Intelligence recommendation, controller recommendation, previous Work suggestion, category-map recommendation, or art-director preference is **not** a user lock.
 
@@ -167,33 +289,17 @@ Each concept records six design axes:
 
 Every pair of concepts must differ on at least **three** axes.
 
-Examples of meaningful differences:
+Before those visual differences, the controller should also state the distinct **advertising logic** of A/B/C, such as product/evidence-led, decision/choice-led, typography/commercial-message-led, comparison-led, proof-led, or another task-specific mechanism.
 
-- product/edition selector vs renewal-continuity idea vs typographic commercial statement;
-- interface proof vs license-object/product-system framing vs editorial decision architecture;
-- type-led composition vs object-led composition vs split decision/comparison composition.
-
-Changing only background color, button color, illustration style, or crop is insufficient.
+Changing only background color, button color, illustration style, crop, or abstract-object shape is insufficient.
 
 ## Pre-show concept quality gate
 
-Before a visual concept is shown to the user, an `ART_DIRECTOR_REVIEWER` checks the actual rendered artifact.
+Before a visual concept is shown to the user, the exact complete `BANNER_COMPOSITE` follows the current pre-show review contract under `references/concept-composite-and-pre-show-quality.md`.
 
-Required PASS checks:
+A raw hero, visual asset, prompt output or written rationale cannot receive presentation-ready status.
 
-- `commercial_job_fidelity` — the visual/message actually advertise the locked transaction/service;
-- `professional_category_fit` — appropriate for the category and audience;
-- `ad_not_presentation_slide` — it reads as an advertisement, not a deck slide/dashboard screenshot pasted into a frame;
-- `hierarchy` — clear attention winner and message order;
-- `typography` — intentional, legible, crafted hierarchy;
-- `cta_integration` — action belongs to the composition instead of looking appended;
-- `visual_distinctiveness` — not interchangeable generic SaaS/template treatment;
-- `anti_template` — no obvious layout-by-habit/generic AI slop;
-- `small_format_viability` — core system can survive the requested format family.
-
-These checks are design-quality gates, not CTR/conversion predictions.
-
-A concept that fails should be revised internally before presentation. Do not make the user act as the first basic QA pass for obviously weak work.
+The user must not be the first basic QA pass for obviously weak work.
 
 ## Concept-set artifact
 
@@ -221,17 +327,16 @@ The user should receive:
 
 Once the user chooses a concept, subsequent refinement may proceed one concept at a time.
 
-The selected concept then follows the existing visual approval path:
+The selected concept then follows the visual approval path:
 
 `SELECT -> REVISE IF NEEDED -> APPROVE -> PRODUCTION ASSETS/FIDELITY -> SCALE-OUT`.
 
 Do not continue producing all three directions unless the user explicitly wants multiple final concepts.
 
-## REAL-06 rule
+## REAL-06 / REAL-08 rules
 
-The MITGROUP acceptance run exposed two coupled failures:
+REAL-06 established that exact commercial-job fidelity and genuine visual choice must precede scale-out.
 
-1. a stale `IMPLEMENTATION_SERVICE` assumption survived even though the actual campaign was for Bitrix24 license purchase/renewal;
-2. one internally recommended A2 direction was treated as if the user had already locked it, so no genuine visual choice was presented.
+REAL-08 established that a correct commercial job and even complete-banner validation are still insufficient if the skill starts drawing before the **advertising/design brief itself** is approved. Repeated abstract blue glass/metal directions exposed the missing user-approved Graphic Banner Brief boundary.
 
 Both are permanent regressions.
