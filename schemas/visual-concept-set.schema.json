@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/GeneralAi360/googlewads/schemas/visual-concept-set.schema.json",
   "title": "Visual Concept Exploration Set",
-  "description": "Binds first-round user-facing banner composites to one commercial job and enforces genuine exploration plus two fresh exact-artifact pre-show reviews per concept unless the direction was explicitly locked by the user.",
+  "description": "Binds first-round user-facing banner composites to one commercial job and one exact user-approved Graphic Banner Brief, then enforces genuine exploration plus two fresh exact-artifact pre-show reviews per concept unless the direction was explicitly locked by the user.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -10,6 +10,7 @@
     "status",
     "commercial_job_id",
     "commercial_job_sha256",
+    "graphic_banner_brief",
     "mode",
     "direction_lock_source",
     "representative_size",
@@ -22,6 +23,18 @@
     "status": {"const": "VISUAL_CONCEPT_SET_RENDERED"},
     "commercial_job_id": {"type": "string", "minLength": 1},
     "commercial_job_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "graphic_banner_brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["brief_id", "path", "sha256", "decision_path", "decision_sha256"],
+      "properties": {
+        "brief_id": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "decision_path": {"type": "string", "minLength": 1},
+        "decision_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
     "mode": {"enum": ["EXPLORE_3", "SINGLE_USER_LOCKED"]},
     "direction_lock_source": {"enum": ["NONE", "INTERNAL_RECOMMENDATION", "USER_LOCKED"]},
     "user_lock_evidence": {"type": ["string", "null"]},
@@ -36,6 +49,7 @@
         "required": [
           "visual_concept_id",
           "label",
+          "advertising_logic",
           "preview_contract_path",
           "preview_contract_sha256",
           "artifact_path",
@@ -46,6 +60,7 @@
         "properties": {
           "visual_concept_id": {"type": "string", "minLength": 1},
           "label": {"type": "string", "minLength": 1},
+          "advertising_logic": {"type": "string", "minLength": 1},
           "preview_contract_path": {"type": "string", "minLength": 1},
           "preview_contract_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
           "artifact_path": {"type": "string", "minLength": 1},
