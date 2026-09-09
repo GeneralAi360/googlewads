@@ -1,0 +1,320 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/graphic-banner-brief.schema.json",
+  "title": "Graphic Banner Brief",
+  "description": "User-reviewable advertising design brief that must be approved before first-round visual concept rendering.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "brief_id",
+    "status",
+    "approval_required",
+    "source_bindings",
+    "commercial_core",
+    "message_architecture",
+    "advertising_strategy",
+    "visual_semantics",
+    "composition_brief",
+    "typography_brief",
+    "color_and_lighting_brief",
+    "graphic_style_boundaries",
+    "anti_failure_rules",
+    "concept_generation_rules",
+    "concept_quality_bar",
+    "deliverable_scope"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "brief_id": {"type": "string", "minLength": 1},
+    "status": {"const": "GRAPHIC_BANNER_BRIEF_READY_FOR_USER_REVIEW"},
+    "approval_required": {"const": true},
+    "source_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commercial_job_id", "commercial_job_sha256", "landing_page", "research_rigor"],
+      "properties": {
+        "commercial_job_id": {"type": "string", "minLength": 1},
+        "commercial_job_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "landing_page": {"type": ["string", "null"]},
+        "research_rigor": {"enum": ["FULL", "DEGRADED", "NOT_APPLICABLE"]},
+        "competitive_research_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "category_design_map_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "commercial_lock_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "brand_identity_lock_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "commercial_core": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["brand", "product", "commercial_job", "campaign_objective", "audience", "geography", "languages", "destination", "cta", "promotional_offer", "affiliation_claim"],
+      "properties": {
+        "brand": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["display_name"],
+          "properties": {
+            "brand_id": {"type": ["string", "null"]},
+            "display_name": {"type": "string", "minLength": 1}
+          }
+        },
+        "product": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "scope"],
+          "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "scope": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+          }
+        },
+        "commercial_job": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["job_type", "plain_language"],
+          "properties": {
+            "job_type": {"enum": ["NEW_LICENSE_PURCHASE", "LICENSE_RENEWAL", "PURCHASE_OR_RENEWAL", "IMPLEMENTATION_SERVICE", "CONSULTATION", "OTHER"]},
+            "plain_language": {"type": "string", "minLength": 1}
+          }
+        },
+        "campaign_objective": {"type": "string", "minLength": 1},
+        "audience": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primary", "decision_context", "funnel_state"],
+          "properties": {
+            "primary": {"type": "string", "minLength": 1},
+            "decision_context": {"type": "string", "minLength": 1},
+            "funnel_state": {"type": "string", "minLength": 1}
+          }
+        },
+        "geography": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "languages": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "destination": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["url", "destination_job_match"],
+          "properties": {
+            "url": {"type": ["string", "null"]},
+            "destination_job_match": {"enum": ["PASS", "REVIEW_REQUIRED", "NOT_APPLICABLE"]}
+          }
+        },
+        "cta": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["text", "status"],
+          "properties": {
+            "text": {"type": "string", "minLength": 1},
+            "status": {"const": "LOCKED"}
+          }
+        },
+        "promotional_offer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status"],
+          "properties": {
+            "status": {"enum": ["NONE", "VERIFIED"]},
+            "text": {"type": ["string", "null"]}
+          }
+        },
+        "affiliation_claim": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status"],
+          "properties": {
+            "status": {"enum": ["NONE", "VERIFIED"]},
+            "text": {"type": ["string", "null"]}
+          }
+        }
+      }
+    },
+    "message_architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["first_glance_takeaway", "primary_message", "secondary_message", "cta_message", "brand_message", "mandatory_information", "optional_information", "forbidden_information", "message_priority", "max_message_complexity"],
+      "properties": {
+        "first_glance_takeaway": {"type": "string", "minLength": 1},
+        "primary_message": {"type": "string", "minLength": 1},
+        "secondary_message": {"type": ["string", "null"]},
+        "cta_message": {"type": "string", "minLength": 1},
+        "brand_message": {"type": "string", "minLength": 1},
+        "mandatory_information": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "optional_information": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "forbidden_information": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "message_priority": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "max_message_complexity": {"enum": ["LOW", "LOW_TO_MEDIUM", "MEDIUM"]}
+      }
+    },
+    "advertising_strategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["banner_role", "desired_user_reaction", "persuasion_mechanism", "trust_mechanism", "visual_should_answer", "visual_must_not_depend_on_explanation", "allowed_banner_families", "discouraged_banner_families"],
+      "properties": {
+        "banner_role": {"type": "string", "minLength": 1},
+        "desired_user_reaction": {"type": "string", "minLength": 1},
+        "persuasion_mechanism": {"type": "string", "minLength": 1},
+        "trust_mechanism": {"type": "string", "minLength": 1},
+        "visual_should_answer": {"type": "array", "minItems": 3, "items": {"type": "string", "minLength": 1}},
+        "visual_must_not_depend_on_explanation": {"const": true},
+        "allowed_banner_families": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "discouraged_banner_families": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "visual_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_visual_job", "hero_requirement", "product_ui"],
+      "properties": {
+        "primary_visual_job": {"type": "string", "minLength": 1},
+        "hero_requirement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hero_is_required", "hero_semantic_test_required", "hero_must_support_commercial_job", "generic_visual_rejection_test"],
+          "properties": {
+            "hero_is_required": {"type": "boolean"},
+            "allowed_hero_roles": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+            "hero_semantic_test_required": {"const": true},
+            "hero_must_support_commercial_job": {"const": true},
+            "generic_visual_rejection_test": {"const": true}
+          }
+        },
+        "product_ui": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required", "allowed_when_semantically_useful", "fake_ui_allowed"],
+          "properties": {
+            "required": {"type": "boolean"},
+            "allowed_when_semantically_useful": {"type": "boolean"},
+            "fake_ui_allowed": {"const": false}
+          }
+        },
+        "product_scope_representation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "must_be_visible": {"type": "boolean"},
+            "representation": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "composition_brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["representative_size", "primary_aoi", "required_scan_path_roles", "hierarchy_requirements", "negative_space", "cta_integration", "brand_anchor", "small_format_resilience"],
+      "properties": {
+        "representative_size": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"},
+        "primary_aoi": {"type": "string", "minLength": 1},
+        "required_scan_path_roles": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "hierarchy_requirements": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "negative_space": {"type": "string", "minLength": 1},
+        "cta_integration": {"type": "string", "minLength": 1},
+        "brand_anchor": {"type": "string", "minLength": 1},
+        "small_format_resilience": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "typography_brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "tone", "avoid", "font_family_count_max", "headline", "secondary_copy", "cta", "script_requirements", "craft_checks"],
+      "properties": {
+        "role": {"type": "string", "minLength": 1},
+        "tone": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "avoid": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "font_family_count_max": {"type": "integer", "minimum": 1, "maximum": 2},
+        "headline": {"type": "string", "minLength": 1},
+        "secondary_copy": {"type": "string", "minLength": 1},
+        "cta": {"type": "string", "minLength": 1},
+        "script_requirements": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "craft_checks": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "color_and_lighting_brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["palette_strategy", "contrast_priority", "lighting_purpose", "decorative_lighting_forbidden", "materiality_requires_semantic_reason"],
+      "properties": {
+        "palette_strategy": {"type": "string", "minLength": 1},
+        "contrast_priority": {"enum": ["MEDIUM", "HIGH"]},
+        "lighting_purpose": {"type": "string", "minLength": 1},
+        "decorative_lighting_forbidden": {"const": true},
+        "materiality_requires_semantic_reason": {"const": true},
+        "forbidden_behaviors": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "graphic_style_boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["desired_character", "must_not_look_like"],
+      "properties": {
+        "desired_character": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "must_not_look_like": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "anti_failure_rules": {
+      "type": "object",
+      "additionalProperties": {"enum": ["REJECT", "REVIEW_REQUIRED"]},
+      "required": [
+        "abstract_geometry_without_commercial_meaning",
+        "decorative_form_substituted_for_ad_idea",
+        "raw_generated_image_used_as_concept",
+        "presentation_slide_composition",
+        "generic_saas_template",
+        "generic_3d_object",
+        "cta_appended_after_layout",
+        "brand_missing",
+        "commercial_job_not_understood_at_first_glance",
+        "requires_long_rationale_to_understand_visual",
+        "visual_novelty_replacing_clarity"
+      ]
+    },
+    "concept_generation_rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["user_brief_approval_required_before_render", "first_round_mode", "concept_count", "representative_size", "all_concepts_same_commercial_job", "material_difference_required", "minimum_distinct_design_axes", "concepts_should_differ_by_advertising_logic", "hero_generation_is_optional", "hero_generation_must_not_be_first_default_step", "raw_generated_asset_is_never_visual_concept", "complete_banner_composite_required", "user_facing_artifact_role"],
+      "properties": {
+        "user_brief_approval_required_before_render": {"const": true},
+        "first_round_mode": {"enum": ["EXPLORE_3", "SINGLE_USER_LOCKED"]},
+        "concept_count": {"type": "integer", "minimum": 1, "maximum": 3},
+        "representative_size": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"},
+        "all_concepts_same_commercial_job": {"const": true},
+        "material_difference_required": {"const": true},
+        "minimum_distinct_design_axes": {"type": "integer", "minimum": 3, "maximum": 6},
+        "concepts_should_differ_by_advertising_logic": {"const": true},
+        "hero_generation_is_optional": {"const": true},
+        "hero_generation_must_not_be_first_default_step": {"const": true},
+        "raw_generated_asset_is_never_visual_concept": {"const": true},
+        "complete_banner_composite_required": {"const": true},
+        "user_facing_artifact_role": {"const": "BANNER_COMPOSITE"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"first_round_mode": {"const": "EXPLORE_3"}}},
+          "then": {"properties": {"concept_count": {"const": 3}}}
+        },
+        {
+          "if": {"properties": {"first_round_mode": {"const": "SINGLE_USER_LOCKED"}}},
+          "then": {"properties": {"concept_count": {"const": 1}}}
+        }
+      ]
+    },
+    "concept_quality_bar": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_status", "checks", "user_must_not_be_first_basic_qa"],
+      "properties": {
+        "required_status": {"const": "PRESENTATION_READY_DESIGN"},
+        "checks": {"type": "array", "minItems": 8, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "user_must_not_be_first_basic_qa": {"const": true}
+      }
+    },
+    "deliverable_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["brief_stage_output", "full_pack_before_visual_approval"],
+      "properties": {
+        "brief_stage_output": {"const": "NO_IMAGES"},
+        "full_pack_before_visual_approval": {"const": false}
+      }
+    }
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "schema_version": "0.2.0",
+  "purpose": "Real production failures discovered during user acceptance testing. These cases are regression requirements, not synthetic style preferences.",
+  "cases": [
+    {
+      "case_id": "REAL-01",
+      "title": "Generic childish B2B art direction produced before market/category research",
+      "context": "A Work run for a B2B cloud/Bitrix24 offer produced three 300x250 preview directions that shared nearly the same copy-left/illustration-right template and used toy-like/generic cloud illustrations. User rejected the result as low-quality and non-professional.",
+      "failure_stage": "PREPRODUCTION",
+      "expected_findings": [
+        "PREMATURE_RENDER_BEFORE_MARKET_RESEARCH",
+        "COMPETITIVE_CONTEXT_MISSING",
+        "ART_DIRECTIONS_NOT_MATERIALLY_DISTINCT",
+        "GENERIC_AI_CLIPART",
+        "B2B_CATEGORY_SIGNAL_TOO_WEAK",
+        "ASSET_QUALITY_BELOW_PRODUCTION",
+        "DESIGN_NOT_PROFESSIONAL_ENOUGH"
+      ],
+      "required_regressions": [
+        "competitive research must precede unresolved art-direction rendering",
+        "category design map must exist before detailed design brief freeze",
+        "three written art directions must be materially different before previews",
+        "written art direction must be approved before representative rendering",
+        "one high-fidelity representative design must be approved before full pack scale-out",
+        "representative approval must explicitly pass asset quality, professional category fit and anti-generic-AI checks"
+      ],
+      "performance_claim_policy": "Do not label competitor/reference creatives high-converting without verified conversion metrics."
+    },
+    {
+      "case_id": "REAL-02",
+      "title": "Improved written art direction drifted into unapproved CTA and ambiguous brand identity",
+      "context": "After REAL-01 hardening, a Work run correctly reported DEGRADED research and produced a much stronger written B2B direction based on real product UI. However the direction introduced the CTA 'Оставить заявку' without proving it was the frozen CTA and described the brand anchor as MITGROUP / MitLab, leaving identity selection to the designer. The direction also correctly identified real Bitrix24 UI as required and stated that fake/generated UI must not substitute for it.",
+      "failure_stage": "WRITTEN_ART_DIRECTION",
+      "expected_findings": [
+        "COMMERCIAL_MESSAGE_DRIFT",
+        "UNAPPROVED_CTA_INTRODUCED",
+        "BRAND_IDENTITY_UNRESOLVED",
+        "REAL_PRODUCT_ASSET_REQUIRED"
+      ],
+      "required_regressions": [
+        "design brief must freeze primary proposition and an allowlist of approved CTA strings before art direction",
+        "art direction may change CTA treatment but cannot invent CTA wording",
+        "design brief must freeze one canonical brand identity and explicit allowed alternate display names",
+        "identity-critical UI/logo assets must be represented as required assets with generated substitution disabled when real assets are required",
+        "representative rendering must return NEEDS_ASSET when a required real product UI or brand asset is missing, stale, low-resolution, privacy-unsafe or rights-unapproved",
+        "creative freeze must reject CTA, proposition or brand IDs that differ from preproduction locks"
+      ],
+      "performance_claim_policy": "DEGRADED research may inform design direction only after explicit acceptance; it does not prove relative advertising performance."
+    },
+    {
+      "case_id": "REAL-03",
+      "title": "Missing representative assets prematurely stopped upstream strategy work",
+      "context": "In a later MITGROUP Work acceptance run, the asset validator correctly returned NEEDS_ASSET because the real Bitrix24 UI was missing and the available MITGROUP logo was too small. The run then incorrectly marked IDEA_ARCHITECTURE, VISUAL_CHARACTER, Style Intelligence, attention, typography, LIGHTING_INTENT and representative design brief as NOT_RUN solely because asset readiness had failed. Asset readiness should block production rendering, not upstream semantic/style reasoning.",
+      "failure_stage": "GATE_ORCHESTRATION",
+      "expected_findings": [
+        "ASSET_GATE_APPLIED_TOO_EARLY",
+        "UPSTREAM_STRATEGY_SKIPPED_BY_DOWNSTREAM_GATE",
+        "IDEA_ARCHITECTURE_UNNECESSARILY_BLOCKED",
+        "STYLE_INTELLIGENCE_UNNECESSARILY_BLOCKED",
+        "LIGHTING_INTENT_UNNECESSARILY_BLOCKED",
+        "RENDER_BLOCKER_SCOPE_TOO_BROAD"
+      ],
+      "required_regressions": [
+        "NEEDS_ASSET must block production representative rendering and later artifact-dependent stages, not IDEA_ARCHITECTURE, VISUAL_CHARACTER, Style Intelligence, attention, typography or LIGHTING_INTENT",
+        "required asset specifications should be derived from the selected meaning/style/art-direction strategy before the final production asset readiness gate",
+        "missing assets may mark affected strategy fields CONDITIONAL or PENDING_ASSET_INSPECTION but must not automatically skip the whole strategic pipeline",
+        "controller prompts must not reorder a downstream asset implementation gate ahead of upstream semantic/style reasoning",
+        "preproduction reporting must separate STRATEGY_STATUS from PRODUCTION_ASSET_READINESS"
+      ],
+      "performance_claim_policy": "This regression concerns orchestration order only and creates no performance evidence."
+    },
+    {
+      "case_id": "REAL-04",
+      "title": "User wants approval of a rendered visual concept, not a text-only art direction",
+      "context": "During acceptance refinement the user clarified the intended interaction model: the skill should ask the necessary questions, develop the strategy internally, render the first visual concept, show that visual to the user, and only after the user's explicit approval complete the full banner task. A written art-direction description is useful internally but is not the approval artifact the user wants to approve.",
+      "failure_stage": "USER_APPROVAL_ORCHESTRATION",
+      "expected_findings": [
+        "TEXT_ONLY_APPROVAL_INSUFFICIENT",
+        "VISUAL_CONCEPT_MUST_BE_PRIMARY_APPROVAL_ARTIFACT",
+        "USER_VISUAL_APPROVAL_REQUIRED_BEFORE_SCALEOUT",
+        "REVISE_REQUIRES_NEW_VISUAL_VERSION",
+        "REJECT_MUST_RETURN_UPSTREAM",
+        "FULL_PACK_BLOCKED_BEFORE_VISUAL_APPROVAL"
+      ],
+      "required_regressions": [
+        "written art direction is an internal preproduction freeze and cannot substitute for user approval of a rendered visual concept",
+        "the primary user approval artifact must be a rendered visual concept image bound by SHA-256",
+        "a user APPROVE decision is always required before the approved visual system can ultimately unlock full production",
+        "REVISE must keep scale-out blocked and require a new rendered visual version for re-approval",
+        "REJECT must keep scale-out blocked and return to the smallest responsible upstream strategy layer",
+        "changed approved preview bytes invalidate the prior user decision"
+      ],
+      "performance_claim_policy": "Visual approval is a production-control gate and does not imply advertising performance."
+    },
+    {
+      "case_id": "REAL-05",
+      "title": "Production asset blockers hid the actual banner concept from the user",
+      "context": "The next MITGROUP Work run completed A2 strategy and correctly kept production asset readiness at NEEDS_ASSET because the real Bitrix24 UI and production logo were unavailable. However the user received only status text and an asset request: no banner concept was shown visually, and even the concept itself was not summarized in a useful user-facing way. The user therefore had nothing to evaluate despite strategy being complete.",
+      "failure_stage": "USER_FACING_CONCEPT_PRESENTATION",
+      "expected_findings": [
+        "PRODUCTION_ASSET_GATE_HID_VISUAL_CONCEPT",
+        "NO_RENDERED_CONCEPT_FOR_USER",
+        "NO_USER_FACING_CONCEPT_CARD",
+        "PRODUCTION_READINESS_CONFUSED_WITH_CONCEPT_VISIBILITY",
+        "ASSET_SURROGATE_PATH_MISSING",
+        "USER_CANNOT_APPROVE_WHAT_THEY_CANNOT_SEE"
+      ],
+      "required_regressions": [
+        "NEEDS_ASSET for final production must not by itself block rendering a safe user-facing visual concept preview",
+        "concept preview may use declared low-resolution authentic, reference-only, structural or text-brand surrogates but never generated fake UI or fake logos",
+        "a surrogate concept preview must remain NEEDS_ASSET and not_for_delivery while still being visually reviewable",
+        "every user-facing concept presentation must show the rendered image plus a short concept card explaining idea, AOI, scan path, style, typography, lighting and format adaptation",
+        "USER APPROVE on a surrogate preview approves the visual system only and keeps full production blocked until real assets are supplied",
+        "after real asset substitution, a fidelity gate may continue without a second user approval only when there is no material visual drift; material drift requires re-approval"
+      ],
+      "performance_claim_policy": "Concept visibility and asset substitution fidelity are production UX controls and create no advertising performance evidence."
+    },
+    {
+      "case_id": "REAL-06",
+      "title": "Weak single visual concept advertised implementation instead of Bitrix24 license purchase",
+      "context": "After REAL-05, Work finally rendered a 300x250 concept preview. The user rejected it as visually weak and pointed out two deeper orchestration errors: only one internally recommended A2 direction was shown, and the banner advertised 'Внедрение Битрикс24' even though the actual campaign was about buying a new Bitrix24 license. The preview also read more like a presentation slide with a pasted UI screenshot than a strong advertisement.",
+      "failure_stage": "COMMERCIAL_JOB_AND_VISUAL_EXPLORATION",
+      "expected_findings": [
+        "COMMERCIAL_JOB_DRIFT",
+        "IMPLEMENTATION_VS_LICENSE_INTENT_MISMATCH",
+        "INTERNAL_RECOMMENDATION_MISTAKEN_FOR_USER_LOCK",
+        "INSUFFICIENT_CONCEPT_EXPLORATION",
+        "WEAK_CONCEPT_QUALITY",
+        "PRESENTATION_SLIDE_FEEL",
+        "COMMERCIAL_MESSAGE_NOT_ALIGNED_TO_LICENSE_PURCHASE"
+      ],
+      "required_regressions": [
+        "intake must resolve the exact commercial job separately from broad product/service, campaign objective and CTA wording",
+        "a change from IMPLEMENTATION_SERVICE to NEW_LICENSE_PURCHASE must invalidate stale downstream strategy and visual concepts rather than patching one line of copy",
+        "deliverables.concept_count is the final production concept count and must not be confused with first-round visual exploration count",
+        "unless the user explicitly locks a visual direction, first-round user-facing exploration defaults to exactly three materially distinct rendered concepts",
+        "an internal Style Intelligence, controller, research or art-director recommendation is not USER_LOCKED provenance",
+        "every pair of EXPLORE_3 concepts must differ materially across at least three design axes",
+        "each concept must pass a pre-show art-director quality gate including commercial-job fidelity, professional category fit, ad-not-presentation-slide, hierarchy, typography, CTA integration, distinctiveness, anti-template quality and small-format viability"
+      ],
+      "performance_claim_policy": "Commercial-job fidelity and concept-quality review are production controls; they do not prove CTR, CVR or conversion performance."
+    },
+    {
+      "case_id": "REAL-07",
+      "title": "Raw generated hero imagery was treated as presentation-ready banner design",
+      "context": "In the next MITGROUP license-purchase acceptance run, Work reported two independent review passes and PRESENTATION_READY_DESIGN=PASS, then remained in image generation and surfaced generic abstract blue/metal 3D imagery. The visible artifact was a raw hero-like component rather than a complete 300x250 advertisement: the commercial purchase cue, CTA, brand anchor and composed typography were not present in the shown image. The user also judged the resulting visuals as poor. This exposed both artifact-role confusion and an art-director false positive.",
+      "failure_stage": "VISUAL_COMPOSITE_AND_PRE_SHOW_REVIEW",
+      "expected_findings": [
+        "RAW_HERO_ASSET_MISTAKEN_FOR_BANNER",
+        "IMAGE_GENERATION_STALLED_BEFORE_COMPOSITE",
+        "REVIEW_PASS_BEFORE_BANNER_COMPOSITE",
+        "ART_DIRECTOR_REVIEW_FALSE_POSITIVE",
+        "GENERIC_ABSTRACT_HERO_WITHOUT_COMMERCIAL_MEANING",
+        "BANNER_COPY_CTA_BRAND_NOT_PRESENT_AT_REVIEW_TIME",
+        "USER_FORCED_TO_REJECT_BASIC_VISUAL_QUALITY"
+      ],
+      "required_regressions": [
+        "raw generated/reference hero imagery must be classified as HERO_ASSET_CANDIDATE and cannot be the user-facing visual-concept artifact",
+        "the user-facing concept artifact must be a BANNER_COMPOSITE with explicit primary message, commercial-job cue, CTA and brand anchor before review",
+        "visual-concept preview validation must decode the actual raster, verify exact dimensions and reject raw generated asset paths reused as the final concept artifact",
+        "PRESENTATION_READY_DESIGN may be issued only against the exact BANNER_COMPOSITE bytes the user will see",
+        "each first-round concept requires two fresh reviewer contexts with distinct IDs and no visibility of the prior verdict",
+        "pre-show visual review must provide visible-artifact evidence for commercial fidelity, composite completeness, message/CTA/brand presence, hero semantic relevance, advertising impact, composition, typography, polish, premium category bar, non-generic identity, ad-not-slide and small-format viability",
+        "generic abstract imagery with no clear relation to the commercial job must fail hero_semantic_relevance even when visually polished",
+        "a stalled or low-value image-generation step must be abandoned rather than preventing completion of the composed banner concept"
+      ],
+      "performance_claim_policy": "Composite readiness and art-direction quality are production controls and do not predict CTR, CVR or Google approval."
+    }
+  ]
+}

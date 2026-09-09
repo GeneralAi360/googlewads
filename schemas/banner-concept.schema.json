@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Performance Banner Concept",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["concept_id", "angle", "core_message", "cta", "source_grounding", "intended_scan_path", "variants"],
+  "properties": {
+    "concept_id": {"type": "string", "minLength": 1},
+    "angle": {"type": "string"},
+    "audience_state": {"type": ["string", "null"]},
+    "core_message": {"type": "string"},
+    "support_message": {"type": ["string", "null"]},
+    "cta": {"type": "string"},
+    "visual_direction": {"type": ["string", "null"]},
+    "primary_aoi": {"type": ["string", "null"]},
+    "intended_scan_path": {"type": "array", "minItems": 2, "items": {"type": "string"}},
+    "source_grounding": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "supports"],
+        "properties": {
+          "source": {"type": "string"},
+          "supports": {"type": "string"}
+        }
+      }
+    },
+    "test_hypothesis": {"type": ["string", "null"]},
+    "variants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variant_id", "dimension", "layout_family"],
+        "properties": {
+          "variant_id": {"type": "string"},
+          "dimension": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"},
+          "layout_family": {"type": "string"},
+          "headline": {"type": ["string", "null"]},
+          "support": {"type": ["string", "null"]},
+          "cta": {"type": ["string", "null"]},
+          "hero_strategy": {"type": ["string", "null"]},
+          "removed_from_larger_format": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}
