@@ -25,7 +25,9 @@ class CanonicalSkillReal07FlowTests(unittest.TestCase):
         self.assertIn("artifact_role = BANNER_COMPOSITE", text)
         self.assertIn("raw_generated_asset_is_final_artifact=false", text)
         self.assertIn("Generation is optional and must not stall the run", text)
-        self.assertIn("Never:\n\n`GENERATE IMAGE -> CALL IT CONCEPT -> REVIEW PASS -> SHOW USER`", text)
+        self.assertIn("It is **not** a visual concept by itself.", text)
+        self.assertIn("A raw hero gallery, generated 3D object, UI screenshot or written rationale does not count.", text)
+        self.assertIn("Generated hero is a component candidate, not the user-facing banner.", text)
 
     def test_first_round_requires_explore3_and_two_fresh_reviews(self):
         text = self.text
