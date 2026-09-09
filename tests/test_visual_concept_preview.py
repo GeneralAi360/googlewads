@@ -3,6 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from PIL import Image
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "validate_visual_concept_preview.py"
 
@@ -22,7 +24,7 @@ class VisualConceptPreviewTests(unittest.TestCase):
 
     def preview(self, root: Path, *, surrogate=True):
         artifact = root / "concept-preview.png"
-        artifact.write_bytes(b"rendered-concept-preview")
+        Image.new("RGB", (300, 250), "white").save(artifact, "PNG")
         if surrogate:
             slots = [
                 {
@@ -66,11 +68,24 @@ class VisualConceptPreviewTests(unittest.TestCase):
             "visual_concept_id": "VC-001",
             "commercial_job_id": "CJ-001",
             "status": "VISUAL_CONCEPT_RENDERED",
+            "artifact_role": "BANNER_COMPOSITE",
+            "render_stage": "USER_FACING_CONCEPT_COMPOSITE",
             "artifact_path": artifact.as_posix(),
             "artifact_sha256": self.module.sha256_file(artifact),
             "width": 300,
             "height": 250,
             "approval_scope": scope,
+            "composition_contract": {
+                "composition_method": "IMAGE_GENERATION_PLUS_COMPOSITOR",
+                "mandatory_visible_elements": {
+                    "primary_message": "Битрикс24",
+                    "commercial_job_cue": "Новая лицензия",
+                    "cta": "Выбрать редакцию",
+                    "brand_anchor": "MITGROUP",
+                },
+                "raw_generated_asset_paths": [(root / "raw-hero.png").as_posix()],
+                "raw_generated_asset_is_final_artifact": False,
+            },
             "concept_summary": {
                 "core_idea": "real product proof inside a calm operational system",
                 "commercial_angle": "purchase or renewal of the product license",
@@ -93,6 +108,8 @@ class VisualConceptPreviewTests(unittest.TestCase):
             result = self.module.validate(preview)
             self.assertEqual(result["status"], "VISUAL_CONCEPT_AWAITING_USER_APPROVAL")
             self.assertEqual(result["commercial_job_id"], "CJ-001")
+            self.assertEqual(result["artifact_role"], "BANNER_COMPOSITE")
+            self.assertEqual((result["width"], result["height"]), (300, 250))
             self.assertEqual(result["production_asset_readiness"], "NEEDS_ASSET")
             self.assertTrue(result["contains_nonproduction_surrogates"])
             self.assertTrue(result["user_can_approve_visual_system"])
@@ -102,6 +119,28 @@ class VisualConceptPreviewTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             preview, _ = self.preview(Path(tmp), surrogate=True)
             preview.pop("commercial_job_id")
+            with self.assertRaises(self.module.VisualConceptPreviewError):
+                self.module.validate(preview)
+
+    def test_raw_generated_hero_cannot_be_final_visual_concept(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            preview, artifact = self.preview(root, surrogate=True)
+            preview["composition_contract"]["raw_generated_asset_paths"] = [artifact.as_posix()]
+            with self.assertRaises(self.module.VisualConceptPreviewError):
+                self.module.validate(preview)
+
+    def test_artifact_role_must_be_banner_composite(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            preview, _ = self.preview(Path(tmp), surrogate=True)
+            preview["artifact_role"] = "HERO_ASSET"
+            with self.assertRaises(self.module.VisualConceptPreviewError):
+                self.module.validate(preview)
+
+    def test_declared_dimensions_must_match_actual_raster(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            preview, _ = self.preview(Path(tmp), surrogate=True)
+            preview["width"] = 512
             with self.assertRaises(self.module.VisualConceptPreviewError):
                 self.module.validate(preview)
 
@@ -130,7 +169,7 @@ class VisualConceptPreviewTests(unittest.TestCase):
     def test_stale_preview_bytes_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             preview, artifact = self.preview(Path(tmp), surrogate=True)
-            artifact.write_bytes(b"changed")
+            Image.new("RGB", (300, 250), "black").save(artifact, "PNG")
             with self.assertRaises(self.module.VisualConceptPreviewError):
                 self.module.validate(preview)
 
