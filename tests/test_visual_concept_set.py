@@ -36,23 +36,49 @@ class VisualConceptSetTests(unittest.TestCase):
             "change_requires_controller_reapproval": True,
         }
 
-    def quality(self):
-        return {
+    def review_report(self, root: Path, suffix: str, reviewer_index: int, artifact: Path):
+        checks = {}
+        for key in (
+            "commercial_job_fidelity",
+            "banner_composite_complete",
+            "primary_message_visible",
+            "cta_visible_and_integrated",
+            "brand_anchor_visible",
+            "hero_semantic_relevance",
+            "advertising_impact",
+            "compositional_confidence",
+            "typographic_craft",
+            "visual_polish",
+            "category_premium_bar",
+            "non_generic_identity",
+            "ad_not_presentation_slide",
+            "small_format_viability",
+        ):
+            checks[key] = {
+                "status": "PASS",
+                "evidence": f"Synthetic visible-artifact evidence for {key}",
+                "smallest_fix": None,
+            }
+        report = {
+            "review_id": f"PSR-{suffix}-{reviewer_index}",
+            "status": "PRESENTATION_READY_DESIGN",
             "reviewed_by": "ART_DIRECTOR_REVIEWER",
-            "status": "PASS",
-            "checks": {key: "PASS" for key in (
-                "commercial_job_fidelity",
-                "professional_category_fit",
-                "ad_not_presentation_slide",
-                "hierarchy",
-                "typography",
-                "cta_integration",
-                "visual_distinctiveness",
-                "anti_template",
-                "small_format_viability",
-            )},
-            "notes": "Synthetic pre-show quality review",
+            "reviewer_context_id": f"fresh-{suffix}-{reviewer_index}",
+            "independence": {
+                "fresh_context": True,
+                "prior_review_verdict_visible": False,
+            },
+            "visual_concept_id": f"VC-{suffix}",
+            "commercial_job_id": "CJ-B24-LICENSE-001",
+            "artifact_role": "BANNER_COMPOSITE",
+            "artifact_path": artifact.as_posix(),
+            "artifact_sha256": self.module.sha256_file(artifact),
+            "checks": checks,
+            "notes": "Synthetic exact-artifact pre-show review",
         }
+        path = root / f"review-{suffix}-{reviewer_index}.json"
+        path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        return {"path": path.as_posix(), "sha256": self.module.sha256_file(path)}
 
     def concept(self, root: Path, suffix: str, axes: dict[str, str]):
         artifact = root / f"concept-{suffix}.png"
@@ -61,11 +87,24 @@ class VisualConceptSetTests(unittest.TestCase):
             "visual_concept_id": f"VC-{suffix}",
             "commercial_job_id": "CJ-B24-LICENSE-001",
             "status": "VISUAL_CONCEPT_RENDERED",
+            "artifact_role": "BANNER_COMPOSITE",
+            "render_stage": "USER_FACING_CONCEPT_COMPOSITE",
             "artifact_path": artifact.as_posix(),
             "artifact_sha256": self.module.sha256_file(artifact),
             "width": 300,
             "height": 250,
             "approval_scope": "VISUAL_SYSTEM_WITH_ASSET_SLOTS",
+            "composition_contract": {
+                "composition_method": "IMAGE_GENERATION_PLUS_COMPOSITOR",
+                "mandatory_visible_elements": {
+                    "primary_message": "Битрикс24",
+                    "commercial_job_cue": "Новая лицензия",
+                    "cta": "Выбрать редакцию",
+                    "brand_anchor": "MITGROUP",
+                },
+                "raw_generated_asset_paths": [(root / f"raw-hero-{suffix}.png").as_posix()],
+                "raw_generated_asset_is_final_artifact": False,
+            },
             "concept_summary": {
                 "core_idea": f"concept {suffix}",
                 "commercial_angle": "purchase or renewal of Bitrix24 license",
@@ -101,7 +140,10 @@ class VisualConceptSetTests(unittest.TestCase):
             "artifact_path": artifact.as_posix(),
             "artifact_sha256": self.module.sha256_file(artifact),
             "design_axes": axes,
-            "quality_review": self.quality(),
+            "pre_show_review_reports": [
+                self.review_report(root, suffix, 1, artifact),
+                self.review_report(root, suffix, 2, artifact),
+            ],
         }
 
     def concept_set(self, root: Path, *, mode="EXPLORE_3", source="INTERNAL_RECOMMENDATION"):
@@ -155,6 +197,7 @@ class VisualConceptSetTests(unittest.TestCase):
             result = self.module.validate(self.commercial_job(), self.concept_set(root))
             self.assertEqual(result["status"], "VISUAL_CONCEPT_SET_AWAITING_USER_SELECTION")
             self.assertEqual(result["visual_exploration_count"], 3)
+            self.assertTrue(result["presentation_ready_design"])
             self.assertTrue(all(item["distinct_axes"] >= 3 for item in result["pairwise_distinction"]))
             self.assertFalse(result["full_production_allowed"])
 
@@ -186,7 +229,40 @@ class VisualConceptSetTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             concept_set = self.concept_set(root)
-            concept_set["concepts"][0]["quality_review"]["checks"]["ad_not_presentation_slide"] = "FAIL"
+            ref = concept_set["concepts"][0]["pre_show_review_reports"][0]
+            report_path = Path(ref["path"])
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            report["checks"]["ad_not_presentation_slide"]["status"] = "FAIL"
+            report["status"] = "REVISE_BEFORE_SHOW"
+            report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+            ref["sha256"] = self.module.sha256_file(report_path)
+            with self.assertRaises(self.module.VisualConceptSetError):
+                self.module.validate(self.commercial_job(), concept_set)
+
+    def test_same_reviewer_context_twice_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            concept_set = self.concept_set(root)
+            refs = concept_set["concepts"][0]["pre_show_review_reports"]
+            first = json.loads(Path(refs[0]["path"]).read_text(encoding="utf-8"))
+            second_path = Path(refs[1]["path"])
+            second = json.loads(second_path.read_text(encoding="utf-8"))
+            second["reviewer_context_id"] = first["reviewer_context_id"]
+            second_path.write_text(json.dumps(second, ensure_ascii=False, indent=2), encoding="utf-8")
+            refs[1]["sha256"] = self.module.sha256_file(second_path)
+            with self.assertRaises(self.module.VisualConceptSetError):
+                self.module.validate(self.commercial_job(), concept_set)
+
+    def test_raw_hero_cannot_masquerade_as_concept_artifact(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            concept_set = self.concept_set(root)
+            entry = concept_set["concepts"][0]
+            preview_path = Path(entry["preview_contract_path"])
+            preview = json.loads(preview_path.read_text(encoding="utf-8"))
+            preview["composition_contract"]["raw_generated_asset_paths"] = [entry["artifact_path"]]
+            preview_path.write_text(json.dumps(preview, ensure_ascii=False, indent=2), encoding="utf-8")
+            entry["preview_contract_sha256"] = self.module.sha256_file(preview_path)
             with self.assertRaises(self.module.VisualConceptSetError):
                 self.module.validate(self.commercial_job(), concept_set)
 
