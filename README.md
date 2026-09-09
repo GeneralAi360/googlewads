@@ -1,16 +1,16 @@
 # Google Ads Performance Banner Designer
 
-A production-grade AI skill for researching, planning, exploring, designing, adapting, rendering, reviewing, validating and policy-preflighting professional Google Ads banners.
+A production-grade AI skill for researching, planning, visually exploring, composing, reviewing, adapting, rendering, validating and policy-preflighting professional advertising banners for Google Ads.
 
 The project treats banner creation as a **creative-production system**, not a single image prompt.
 
-## Canonical user flow
+## Canonical user-facing pipeline
 
 ```text
 BUSINESS CONTEXT
 → structured intake
 → EXACT COMMERCIAL JOB LOCK
-→ output/run freeze
+→ output envelope / matrix
 → references + competitive/category research
 → IDEA_ARCHITECTURE / presentation / emotion
 → VISUAL_CHARACTER
@@ -19,107 +19,189 @@ BUSINESS CONTEXT
 → PRE-RENDER GOOGLE POLICY RISK
 → LIGHTING_INTENT
 → internal art direction
-→ FIRST-ROUND VISUAL EXPLORATION
-→ user selects a rendered direction
-→ revise / approve selected visual
-→ production asset completion if needed
-→ production representative / fidelity
+→ first-round visual exploration
+→ optional component-asset generation
+→ COMPLETE 300x250 BANNER COMPOSITES
+→ TWO FRESH EXACT-ARTIFACT PRE-SHOW REVIEWS PER CONCEPT
+→ USER SELECTS / REVISES / APPROVES
+→ production assets / fidelity
 → CAMPAIGN_DESIGN_SYSTEM
-→ full multi-format production
+→ full format recomposition
 → GOOGLE TECHNICAL PREFLIGHT
-→ visual QA / independent review
+→ design QA / independent review
 → FINAL GOOGLE ADS POLICY PREFLIGHT
 → exact-SHA policy pack aggregation
 → GOOGLE_READY_PRECHECK
 → delivery / performance learning
 ```
 
-The system must not scale a full pack before user-rooted visual approval.
+The full pack is never scaled out before a valid user-rooted visual approval path passes.
 
-## Exact commercial job is a first-class fact
+## Current development
 
-Product identity, campaign objective, CTA, and the exact commercial transaction/service job are different facts.
+- Branch: `dev/performance-banner-designer-v0.2`
+- Draft PR: `#2`
+- `main` remains unchanged.
 
-For example, all of these may concern Bitrix24 but are different campaign jobs:
+## Real acceptance regressions
 
-- new license purchase;
-- license renewal;
-- purchase or renewal;
-- implementation service;
-- consultation.
+The current release candidate is being hardened against failures discovered in real ChatGPT Work runs:
 
-The campaign commercial job is frozen in `campaign-commercial-job.json` and validated with `scripts/validate_campaign_commercial_job.py`.
+- `REAL-01` — generic/toy-like B2B art rendered before sufficient market/category research;
+- `REAL-02` — unapproved CTA/brand drift and missing real-product asset truth;
+- `REAL-03` — production `NEEDS_ASSET` incorrectly stopped upstream semantic/style work;
+- `REAL-04` — text-only art-direction approval substituted for approval of rendered design;
+- `REAL-05` — missing production assets left the user with no visual concept to judge;
+- `REAL-06` — wrong commercial job, internal recommendation treated as a user lock, insufficient first-round exploration, presentation-slide-like work;
+- `REAL-07` — raw generated hero imagery was treated as presentation-ready banner design and pre-show review produced a false positive.
 
-A material job change invalidates meaning-dependent downstream strategy and visuals instead of preserving a stale design with a copy edit.
+Canonical cumulative regression corpus: `evals/real-world-failures.json`.
 
-See `references/commercial-job-and-concept-exploration.md`.
+## Exact commercial job
 
-## Visual exploration before selection
+Product identity, campaign objective, CTA and commercial job are different facts.
 
-Final campaign concept count and first-round exploration count are separate.
+For example, Bitrix24 may be the product while the campaign job is:
 
-A campaign can have:
+- `NEW_LICENSE_PURCHASE`;
+- `LICENSE_RENEWAL`;
+- `PURCHASE_OR_RENEWAL`;
+- `IMPLEMENTATION_SERVICE`;
+- `CONSULTATION`.
 
-- `final concept_count = 1`;
-- `visual_exploration_count = 3`.
+A material job change invalidates stale downstream creative meaning instead of patching the old design with new copy.
 
-Unless the user explicitly locked a direction, first-round visual exploration uses `EXPLORE_3`: three materially different rendered concepts in the same representative size.
+Relevant contracts:
 
-An internal Style Intelligence recommendation, category recommendation, previous Work recommendation, or reviewer preference is **not** a user lock.
+- `references/commercial-job-and-concept-exploration.md`
+- `schemas/campaign-commercial-job.schema.json`
+- `scripts/validate_campaign_commercial_job.py`
 
-Three concepts must differ materially across hero logic, composition, attention, typography, graphic device and/or lighting language; palette swaps and near-identical SaaS layouts do not count.
+## First-round visual exploration
 
-Before the user sees them, an `ART_DIRECTOR_REVIEWER` must PASS each rendered concept for:
+`deliverables.concept_count` is the final production concept count, not the number of alternatives shown before visual selection.
+
+Unless the user explicitly locked a direction, the first visual round is:
+
+`EXPLORE_3`
+
+Three concepts share the same frozen commercial facts but differ materially across visual grammar. Every pair must differ on at least three of:
+
+- hero logic;
+- composition system;
+- attention profile;
+- typography profile;
+- graphic device;
+- lighting language.
+
+An internal Style Intelligence/controller/reviewer recommendation is not `USER_LOCKED` provenance.
+
+## REAL-07: raw hero != complete banner
+
+A generated image, photograph, product/UI crop, illustration, texture or 3D object is an upstream component such as:
+
+`HERO_ASSET_CANDIDATE`.
+
+It is not the visual concept the user approves.
+
+The only valid user-facing concept role is:
+
+`BANNER_COMPOSITE`.
+
+A complete concept must already include the visible advertising system, including primary message, commercial-job cue, CTA and brand anchor.
+
+The canonical boundary is:
+
+```text
+RAW / GENERATED / REFERENCE ASSET
+→ select / refine
+→ BANNER COMPOSITION
+→ deterministic typography / CTA / brand
+→ exact representative raster
+→ pre-show review
+→ user
+```
+
+Never:
+
+```text
+image-generation output
+→ call it a banner concept
+→ reviewer PASS
+→ user approval
+```
+
+See `references/concept-composite-and-pre-show-quality.md`.
+
+## Exact concept validation
+
+`schemas/visual-concept-preview.schema.json` and `scripts/validate_visual_concept_preview.py` require:
+
+- `artifact_role = BANNER_COMPOSITE`;
+- `render_stage = USER_FACING_CONCEPT_COMPOSITE`;
+- exact commercial-job binding;
+- exact artifact SHA;
+- actual PNG/JPEG decoding;
+- actual dimensions matching declared dimensions;
+- explicit composition method;
+- mandatory message/commercial cue/CTA/brand roles;
+- all raw generated asset paths;
+- `raw_generated_asset_is_final_artifact=false`;
+- safe concept-only asset-slot semantics where production assets are pending.
+
+A raw generated asset cannot reuse the final concept path.
+
+## Two fresh pre-show art-director reviews
+
+Each first-round concept requires exactly two reports matching `schemas/pre-show-visual-review.schema.json`.
+
+Both reviewers inspect the exact complete banner bytes and must have:
+
+- different `reviewer_context_id` values;
+- `fresh_context=true`;
+- `prior_review_verdict_visible=false`.
+
+`PRESENTATION_READY_DESIGN` requires evidence-bearing PASS for:
 
 - commercial-job fidelity;
-- professional category fit;
-- ad-not-presentation-slide quality;
-- hierarchy;
-- typography;
-- CTA integration;
-- visual distinctiveness;
-- anti-template quality;
+- complete banner composite;
+- primary-message visibility;
+- CTA visibility/integration;
+- brand-anchor visibility;
+- hero semantic relevance;
+- advertising impact;
+- compositional confidence;
+- typographic craft;
+- visual polish;
+- category premium bar;
+- non-generic identity;
+- ad-not-presentation-slide;
 - small-format viability.
 
-The validated set uses:
+The user should not be the first basic visual QA pass.
 
-- `schemas/visual-concept-set.schema.json`;
-- `scripts/validate_visual_concept_set.py`.
+## Asset truth and visual approval
 
-The user should receive A/B/C together, not a hidden internal winner masquerading as an approved direction.
+Production asset readiness and concept visibility are separate concerns.
 
-## Visual approval and pending assets
+Safe concept-only modes can communicate the visual system while production remains `NEEDS_ASSET`:
 
-The user approves the **rendered visual**, not a text-only art direction.
+- `REFERENCE_ONLY_SURROGATE`;
+- `LOW_RES_AUTHENTIC_SURROGATE`;
+- `STRUCTURAL_PLACEHOLDER`;
+- `TEXT_BRAND_PLACEHOLDER`.
 
-Production asset readiness is separate from concept visibility.
+Fake/generated product UI and fake logos remain prohibited.
 
-If production assets are missing, the skill may still show a high-fidelity concept using declared safe temporary modes:
+The user selects/revises/approves the rendered design. Written art direction and raw image-generation assets cannot substitute for visual approval.
 
-- authentic low-resolution surrogate;
-- reference-only authentic/public surrogate;
-- structural placeholder;
-- text-brand placeholder.
-
-Fake/generated product UI and fake/generated logos are prohibited even in concept previews.
-
-A surrogate concept remains:
-
-- `production_asset_readiness = NEEDS_ASSET`;
-- `not_for_delivery = true`;
-- `approval_scope = VISUAL_SYSTEM_WITH_ASSET_SLOTS`.
-
-After user approval and real asset substitution, a fidelity gate may continue without redundant second approval only when there is no material visual drift. Material drift must be shown again.
-
-See `references/visual-concept-approval.md` and `references/gate-order-and-blocking-boundaries.md`.
+After approved concept-only asset slots are replaced with real assets, a fidelity gate may continue without redundant approval only when there is no material visual drift.
 
 ## Meaning / Style / Attention / Typography / Lighting
 
 The skill resolves meaning before style.
 
-Style Intelligence is a controller layer above the individual banner:
-
-`foundation grammar + optional current overlay + execution language + attention profile + typography profile + lighting affinity + format resilience`.
+Style Intelligence combines foundation grammar, optional contemporary overlay, execution language, attention profile, typography profile, lighting affinity and format resilience.
 
 It returns:
 
@@ -127,74 +209,57 @@ It returns:
 - `CURRENT_DIFFERENTIATED`;
 - `CONTROLLED_WILDCARD`.
 
-Trend/currentness is capped and cannot rescue poor category fit, product truth, attention, typography, lighting or format resilience.
+Currentness is capped at 5% and cannot override category fit, truth, attention, typography, lighting or format resilience.
 
 Lighting follows:
 
 `IDEA → PRESENTATION → EMOTION → VISUAL CHARACTER → STYLE STRATEGY → PRIMARY AOI → LIGHTING INTENT`.
 
-The 30 lighting schemes are candidate vocabulary, not a free-standing style picker. Real UI can make scene lighting `NOT_APPLICABLE`.
+Real UI may make scene lighting `NOT_APPLICABLE`.
 
 ## Google technical preflight != Google policy preflight
 
-Technical validation checks exact dimensions, bytes, file format and static-state requirements. It does not prove advertising-policy compliance.
+Technical validation checks dimensions, type, bytes and static state. It does not prove policy compliance.
 
-The separate policy layer includes:
+The separate Google Ads policy layer covers pre-render risk and final exact-artifact + destination evidence, including misleading design, image/text quality, material claims/qualifiers, advertiser identity, landing-page relevance/offer availability, trademark/affiliation context and restricted vertical/certification/targeting state where applicable.
 
-- `references/google-ads-policy-preflight.md`;
-- `config/google-ads-policy-snapshot.json`;
-- `schemas/google-policy-context.schema.json`;
-- `schemas/google-policy-report.schema.json`;
-- `scripts/validate_google_policy.py`;
-- `scripts/aggregate_google_policy_reports.py`;
-- `scripts/assess_google_ready.py`.
+`GOOGLE_READY_PRECHECK_PASS` still carries:
 
-It checks misleading design, image/text quality, commercial claims/qualifiers, destination consistency, advertiser identity, affiliation/trademark context, restricted verticals and other applicable policy evidence.
+`google_upload_approval_guaranteed = false`.
 
-`GOOGLE_READY_PRECHECK_PASS` is local risk reduction only and never guarantees Google approval.
+## Verified deterministic milestone
 
-## Real acceptance regressions
+**215 tests — OK.**
 
-The current hardening branch carries six permanent real-world regressions:
+GitHub Actions run `34327142240` / #583 completed **SUCCESS** on the canonical REAL-07 flow after the semantic-invariant test correction.
 
-- `REAL-01` — premature/generic/toy-like B2B rendering;
-- `REAL-02` — commercial/brand drift and real-asset truth;
-- `REAL-03` — downstream asset gate blocked upstream strategy;
-- `REAL-04` — text approval substituted for visual approval;
-- `REAL-05` — missing production assets hid the visual concept;
-- `REAL-06` — wrong commercial job + one weak internally-selected concept instead of genuine user-facing exploration.
+The deterministic suite checks commercial-job integrity, first-round exploration semantics, complete-banner artifact roles, raw-hero rejection, exact raster dimensions, two fresh exact-artifact pre-show reviews, user-only visual approval/fidelity, Style Intelligence, lighting, deterministic production, Google technical validation and Google policy gates.
 
-See `evals/real-world-failures.json`.
+This does **not** prove campaign performance, independent artistic excellence or actual Google approval.
 
-## Current deterministic milestone
+## Current MITGROUP acceptance state
 
-Branch: `dev/performance-banner-designer-v0.2`
+The valid business state is:
 
-Draft PR: `#2`
+- `COMMERCIAL_JOB = NEW_LICENSE_PURCHASE`;
+- cloud + box license scope;
+- CTA `Выбрать редакцию`;
+- `PROMOTIONAL_OFFER = NONE`;
+- renewal and implementation excluded from the current run.
 
-`main` remains unchanged.
+Old implementation/A2 material is stale/rejected.
 
-**202 tests — OK.**
+The latest generic blue/metal image-generation output is also rejected as a banner concept. It may exist only as failed raw component evidence; no user-selected current visual system exists.
 
-GitHub Actions run `34223811999` / #541 completed **SUCCESS** after REAL-06 commercial-job / three-concept exploration hardening and business-brief schema alignment.
+The next real acceptance must resume at complete-banner visual exploration, not repeat business intake unless a business fact changed.
 
-Deterministic CI proves contracts/tooling, not campaign performance, independent visual excellence, or actual Google approval.
+## Merge rule
 
-## Next real acceptance
+Do not merge because deterministic CI is green.
 
-The next MITGROUP run must not reuse the stale implementation-service assumption or treat A2 as user-approved.
+Merge only after real Work acceptance of the corrected visual flow, real-pack policy acceptance, independent rigor (or explicit degraded-rigor acceptance), and explicit user approval.
 
-It must:
-
-1. ask/resolve the exact Bitrix24 license commercial job;
-2. resolve purchase vs renewal structure;
-3. preserve the correct commercial job through strategy;
-4. render three materially different 300x250 visual concepts because no direction is currently user-locked;
-5. pre-review all three for basic visual quality before showing them;
-6. let the user select/revise/approve one direction;
-7. only then complete production assets, scale-out, technical QA and final Google policy preflight.
-
-See `docs/v0.2-release-gate.md`.
+See `docs/v0.2-release-gate.md` and `docs/ROADMAP.md`.
 
 ## Future
 
