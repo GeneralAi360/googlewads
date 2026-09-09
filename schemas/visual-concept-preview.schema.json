@@ -2,18 +2,21 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/GeneralAi360/googlewads/schemas/visual-concept-preview.schema.json",
   "title": "Rendered Visual Concept Preview",
-  "description": "User-facing rendered design concept bound to the exact campaign commercial job. It may use clearly declared non-production surrogate assets when production assets are missing; such a preview can be approved as a visual system but cannot be delivered as an ad.",
+  "description": "User-facing rendered banner composite bound to the exact campaign commercial job. A raw/generated hero asset is never a visual concept by itself. The preview may use declared non-production surrogate assets when production assets are missing, but the artifact shown to the user must already be a composed advertisement with message, CTA and brand anchor.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "visual_concept_id",
     "commercial_job_id",
     "status",
+    "artifact_role",
+    "render_stage",
     "artifact_path",
     "artifact_sha256",
     "width",
     "height",
     "approval_scope",
+    "composition_contract",
     "concept_summary",
     "asset_slots",
     "production_asset_readiness",
@@ -23,12 +26,51 @@
     "visual_concept_id": {"type": "string", "minLength": 1},
     "commercial_job_id": {"type": "string", "minLength": 1},
     "status": {"const": "VISUAL_CONCEPT_RENDERED"},
+    "artifact_role": {"const": "BANNER_COMPOSITE"},
+    "render_stage": {"const": "USER_FACING_CONCEPT_COMPOSITE"},
     "artifact_path": {"type": "string", "minLength": 1},
     "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "width": {"type": "integer", "minimum": 1},
     "height": {"type": "integer", "minimum": 1},
     "approval_scope": {
       "enum": ["EXACT_PRODUCTION_ARTIFACT", "VISUAL_SYSTEM_WITH_ASSET_SLOTS"]
+    },
+    "composition_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "composition_method",
+        "mandatory_visible_elements",
+        "raw_generated_asset_paths",
+        "raw_generated_asset_is_final_artifact"
+      ],
+      "properties": {
+        "composition_method": {
+          "enum": [
+            "DETERMINISTIC_COMPOSITOR",
+            "HTML_SCREENSHOT_COMPOSITE",
+            "DESIGN_TOOL_COMPOSITE",
+            "IMAGE_GENERATION_PLUS_COMPOSITOR"
+          ]
+        },
+        "mandatory_visible_elements": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primary_message", "commercial_job_cue", "cta", "brand_anchor"],
+          "properties": {
+            "primary_message": {"type": "string", "minLength": 1},
+            "commercial_job_cue": {"type": "string", "minLength": 1},
+            "cta": {"type": "string", "minLength": 1},
+            "brand_anchor": {"type": "string", "minLength": 1}
+          }
+        },
+        "raw_generated_asset_paths": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "raw_generated_asset_is_final_artifact": {"const": false}
+      }
     },
     "concept_summary": {
       "type": "object",
