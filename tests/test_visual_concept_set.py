@@ -36,15 +36,47 @@ class VisualConceptSetTests(unittest.TestCase):
             "change_requires_controller_reapproval": True,
         }
 
-    def review_report(self, root: Path, suffix: str, reviewer_index: int, artifact: Path):
+    def graphic_brief_binding(self, root: Path):
+        brief = {
+            "brief_id": "GBB-B24-001",
+            "status": "GRAPHIC_BANNER_BRIEF_READY_FOR_USER_REVIEW",
+            "source_bindings": {
+                "commercial_job_id": "CJ-B24-LICENSE-001",
+                "commercial_job_sha256": self.module.canonical_sha(self.commercial_job()),
+            },
+        }
+        brief_path = root / "graphic-banner-brief.json"
+        brief_path.write_text(json.dumps(brief, ensure_ascii=False, indent=2), encoding="utf-8")
+        brief_sha = self.module.sha256_file(brief_path)
+        decision = {
+            "brief_id": "GBB-B24-001",
+            "brief_sha256": brief_sha,
+            "decision": "APPROVE",
+            "decided_by": "USER",
+            "feedback": None,
+        }
+        decision_path = root / "graphic-banner-brief-decision.json"
+        decision_path.write_text(json.dumps(decision, ensure_ascii=False, indent=2), encoding="utf-8")
+        return {
+            "brief_id": "GBB-B24-001",
+            "path": brief_path.as_posix(),
+            "sha256": brief_sha,
+            "decision_path": decision_path.as_posix(),
+            "decision_sha256": self.module.sha256_file(decision_path),
+        }
+
+    def review_report(self, root: Path, suffix: str, reviewer_index: int, artifact: Path, brief_binding: dict):
         checks = {}
         for key in (
             "commercial_job_fidelity",
+            "approved_brief_fidelity",
             "banner_composite_complete",
             "primary_message_visible",
             "cta_visible_and_integrated",
             "brand_anchor_visible",
             "hero_semantic_relevance",
+            "generic_substitution_test",
+            "decorative_form_not_substituting_ad_idea",
             "advertising_impact",
             "compositional_confidence",
             "typographic_craft",
@@ -70,6 +102,8 @@ class VisualConceptSetTests(unittest.TestCase):
             },
             "visual_concept_id": f"VC-{suffix}",
             "commercial_job_id": "CJ-B24-LICENSE-001",
+            "graphic_banner_brief_id": brief_binding["brief_id"],
+            "graphic_banner_brief_sha256": brief_binding["sha256"],
             "artifact_role": "BANNER_COMPOSITE",
             "artifact_path": artifact.as_posix(),
             "artifact_sha256": self.module.sha256_file(artifact),
@@ -80,7 +114,7 @@ class VisualConceptSetTests(unittest.TestCase):
         path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         return {"path": path.as_posix(), "sha256": self.module.sha256_file(path)}
 
-    def concept(self, root: Path, suffix: str, axes: dict[str, str]):
+    def concept(self, root: Path, suffix: str, advertising_logic: str, axes: dict[str, str], brief_binding: dict):
         artifact = root / f"concept-{suffix}.png"
         artifact.write_bytes(f"visual-{suffix}".encode())
         preview = {
@@ -135,43 +169,45 @@ class VisualConceptSetTests(unittest.TestCase):
         return {
             "visual_concept_id": f"VC-{suffix}",
             "label": f"Concept {suffix}",
+            "advertising_logic": advertising_logic,
             "preview_contract_path": preview_path.as_posix(),
             "preview_contract_sha256": self.module.sha256_file(preview_path),
             "artifact_path": artifact.as_posix(),
             "artifact_sha256": self.module.sha256_file(artifact),
             "design_axes": axes,
             "pre_show_review_reports": [
-                self.review_report(root, suffix, 1, artifact),
-                self.review_report(root, suffix, 2, artifact),
+                self.review_report(root, suffix, 1, artifact, brief_binding),
+                self.review_report(root, suffix, 2, artifact, brief_binding),
             ],
         }
 
     def concept_set(self, root: Path, *, mode="EXPLORE_3", source="INTERNAL_RECOMMENDATION"):
+        brief_binding = self.graphic_brief_binding(root)
         concepts = [
-            self.concept(root, "A", {
+            self.concept(root, "A", "DECISION_LED", {
                 "hero_logic": "license decision typography",
                 "composition_system": "asymmetric type-led field",
                 "attention_profile": "offer first",
                 "typography_profile": "bold enterprise grotesk",
                 "graphic_device": "license keyline system",
                 "lighting_language": "flat high-clarity",
-            }),
-            self.concept(root, "B", {
+            }, brief_binding),
+            self.concept(root, "B", "PRODUCT_EVIDENCE_LED", {
                 "hero_logic": "product edition selector",
                 "composition_system": "split product-choice grid",
                 "attention_profile": "product proof first",
                 "typography_profile": "technical information sans",
                 "graphic_device": "edition modules",
                 "lighting_language": "restrained dimensional separation",
-            }),
-            self.concept(root, "C", {
+            }, brief_binding),
+            self.concept(root, "C", "TYPOGRAPHY_COMMERCIAL_LED", {
                 "hero_logic": "renewal continuity signal",
                 "composition_system": "editorial diagonal flow",
                 "attention_profile": "typographic statement",
                 "typography_profile": "condensed commercial sans",
                 "graphic_device": "continuity rail",
                 "lighting_language": "quiet contrast spotlight",
-            }),
+            }, brief_binding),
         ]
         if mode == "SINGLE_USER_LOCKED":
             concepts = concepts[:1]
@@ -182,6 +218,7 @@ class VisualConceptSetTests(unittest.TestCase):
             "status": "VISUAL_CONCEPT_SET_RENDERED",
             "commercial_job_id": "CJ-B24-LICENSE-001",
             "commercial_job_sha256": self.module.canonical_sha(self.commercial_job()),
+            "graphic_banner_brief": brief_binding,
             "mode": mode,
             "direction_lock_source": source,
             "user_lock_evidence": "User explicitly chose direction A" if source == "USER_LOCKED" else None,
@@ -197,9 +234,40 @@ class VisualConceptSetTests(unittest.TestCase):
             result = self.module.validate(self.commercial_job(), self.concept_set(root))
             self.assertEqual(result["status"], "VISUAL_CONCEPT_SET_AWAITING_USER_SELECTION")
             self.assertEqual(result["visual_exploration_count"], 3)
+            self.assertEqual(len(set(result["advertising_logics"])), 3)
             self.assertTrue(result["presentation_ready_design"])
             self.assertTrue(all(item["distinct_axes"] >= 3 for item in result["pairwise_distinction"]))
             self.assertFalse(result["full_production_allowed"])
+
+    def test_missing_graphic_brief_binding_blocks_exploration(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            concept_set = self.concept_set(root)
+            concept_set.pop("graphic_banner_brief")
+            with self.assertRaises(self.module.VisualConceptSetError):
+                self.module.validate(self.commercial_job(), concept_set)
+
+    def test_stale_or_unapproved_graphic_brief_blocks_exploration(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            concept_set = self.concept_set(root)
+            ref = concept_set["graphic_banner_brief"]
+            decision_path = Path(ref["decision_path"])
+            decision = json.loads(decision_path.read_text(encoding="utf-8"))
+            decision["decision"] = "REVISE"
+            decision["feedback"] = "Change brief"
+            decision_path.write_text(json.dumps(decision, ensure_ascii=False, indent=2), encoding="utf-8")
+            ref["decision_sha256"] = self.module.sha256_file(decision_path)
+            with self.assertRaises(self.module.VisualConceptSetError):
+                self.module.validate(self.commercial_job(), concept_set)
+
+    def test_duplicate_advertising_logic_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            concept_set = self.concept_set(root)
+            concept_set["concepts"][1]["advertising_logic"] = concept_set["concepts"][0]["advertising_logic"]
+            with self.assertRaises(self.module.VisualConceptSetError):
+                self.module.validate(self.commercial_job(), concept_set)
 
     def test_internal_recommendation_is_not_user_lock(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -233,6 +301,20 @@ class VisualConceptSetTests(unittest.TestCase):
             report_path = Path(ref["path"])
             report = json.loads(report_path.read_text(encoding="utf-8"))
             report["checks"]["ad_not_presentation_slide"]["status"] = "FAIL"
+            report["status"] = "REVISE_BEFORE_SHOW"
+            report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+            ref["sha256"] = self.module.sha256_file(report_path)
+            with self.assertRaises(self.module.VisualConceptSetError):
+                self.module.validate(self.commercial_job(), concept_set)
+
+    def test_generic_substitution_failure_blocks_before_user_show(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            concept_set = self.concept_set(root)
+            ref = concept_set["concepts"][0]["pre_show_review_reports"][0]
+            report_path = Path(ref["path"])
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            report["checks"]["generic_substitution_test"]["status"] = "FAIL"
             report["status"] = "REVISE_BEFORE_SHOW"
             report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
             ref["sha256"] = self.module.sha256_file(report_path)
