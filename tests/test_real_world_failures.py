@@ -10,6 +10,10 @@ class RealWorldFailureTests(unittest.TestCase):
         data = json.loads((ROOT / "evals" / "real-world-failures.json").read_text(encoding="utf-8"))
         return {item["case_id"]: item for item in data["cases"]}
 
+    def test_canonical_corpus_contains_real_01_through_real_07(self):
+        cases = self.load_cases()
+        self.assertEqual(set(cases), {f"REAL-0{i}" for i in range(1, 8)})
+
     def test_real_01_requires_research_written_direction_and_representative_gate(self):
         case = self.load_cases()["REAL-01"]
         expected = set(case["expected_findings"])
@@ -108,7 +112,7 @@ class RealWorldFailureTests(unittest.TestCase):
         self.assertIn("material visual drift", regressions)
         self.assertIn("production UX controls", case["performance_claim_policy"])
 
-    def test_real_06_locks_exact_commercial_job_and_requires_three_way_exploration(self):
+    def test_real_06_locks_exact_license_purchase_job_and_requires_three_way_exploration(self):
         case = self.load_cases()["REAL-06"]
         expected = set(case["expected_findings"])
         for code in (
@@ -118,18 +122,41 @@ class RealWorldFailureTests(unittest.TestCase):
             "INSUFFICIENT_CONCEPT_EXPLORATION",
             "WEAK_CONCEPT_QUALITY",
             "PRESENTATION_SLIDE_FEEL",
-            "COMMERCIAL_MESSAGE_NOT_ALIGNED_TO_PURCHASE_RENEWAL",
+            "COMMERCIAL_MESSAGE_NOT_ALIGNED_TO_LICENSE_PURCHASE",
         ):
             self.assertIn(code, expected)
         regressions = "\n".join(case["required_regressions"])
         self.assertIn("exact commercial job", regressions)
-        self.assertIn("IMPLEMENTATION_SERVICE to PURCHASE_OR_RENEWAL", regressions)
+        self.assertIn("IMPLEMENTATION_SERVICE to NEW_LICENSE_PURCHASE", regressions)
         self.assertIn("final production concept count", regressions)
         self.assertIn("exactly three materially distinct rendered concepts", regressions)
         self.assertIn("not USER_LOCKED", regressions)
         self.assertIn("at least three design axes", regressions)
         self.assertIn("ad-not-presentation-slide", regressions)
         self.assertIn("do not prove CTR", case["performance_claim_policy"])
+
+    def test_real_07_requires_complete_banner_and_fresh_exact_reviews(self):
+        case = self.load_cases()["REAL-07"]
+        expected = set(case["expected_findings"])
+        for code in (
+            "RAW_HERO_ASSET_MISTAKEN_FOR_BANNER",
+            "IMAGE_GENERATION_STALLED_BEFORE_COMPOSITE",
+            "REVIEW_PASS_BEFORE_BANNER_COMPOSITE",
+            "ART_DIRECTOR_REVIEW_FALSE_POSITIVE",
+            "GENERIC_ABSTRACT_HERO_WITHOUT_COMMERCIAL_MEANING",
+            "BANNER_COPY_CTA_BRAND_NOT_PRESENT_AT_REVIEW_TIME",
+            "USER_FORCED_TO_REJECT_BASIC_VISUAL_QUALITY",
+        ):
+            self.assertIn(code, expected)
+        regressions = "\n".join(case["required_regressions"])
+        self.assertIn("HERO_ASSET_CANDIDATE", regressions)
+        self.assertIn("BANNER_COMPOSITE", regressions)
+        self.assertIn("exact dimensions", regressions)
+        self.assertIn("PRESENTATION_READY_DESIGN", regressions)
+        self.assertIn("two fresh reviewer contexts", regressions)
+        self.assertIn("hero_semantic_relevance", regressions)
+        self.assertIn("stalled or low-value image-generation", regressions)
+        self.assertIn("do not predict CTR", case["performance_claim_policy"])
 
 
 if __name__ == "__main__":
