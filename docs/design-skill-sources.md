@@ -1,4 +1,4 @@
-# Design / creative-system source inventory
+# Design methodology and evidence boundaries
 
 This document records reusable design/process/policy sources that influence `performance-banner-designer`. External design advice is not treated as conversion evidence, and local policy checking is not treated as a guarantee of Google approval.
 
@@ -15,12 +15,12 @@ Useful transferable ideas from poster/marketing/design-engine/thumbnail skills i
 
 Do not transfer fixed CTA positions, text percentages or conversion claims as universal laws.
 
-## User-supplied methodologies
+## Production heuristics
 
-### `СВЕТ — 30 схем освещения`
+### Lighting vocabulary
 Integrated as practical lighting vocabulary, not CTR/CVR evidence. Lighting selection is downstream of idea/emotion/style/AOI/material context; real UI can make scene lighting `NOT_APPLICABLE`.
 
-### `ВИЗУАЛ И УПАКОВКА`
+### Meaning-first visual production
 Integrated as meaning-first production methodology:
 - task → idea → presentation → emotion → visual character;
 - focused main idea/hero/emotion/language as a default heuristic;
