@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/graphic-banner-brief-decision.schema.json",
+  "title": "Graphic Banner Brief User Decision",
+  "description": "Exact-SHA user decision on the graphic banner brief. Only USER may approve visual exploration.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["brief_id", "brief_sha256", "decision", "decided_by", "feedback"],
+  "properties": {
+    "brief_id": {"type": "string", "minLength": 1},
+    "brief_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "decision": {"enum": ["APPROVE", "REVISE"]},
+    "decided_by": {"const": "USER"},
+    "feedback": {"type": ["string", "null"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"decision": {"const": "REVISE"}}},
+      "then": {
+        "properties": {
+          "feedback": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/creative-contract.schema.json",
+  "title": "Frozen Creative Contract Candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "concept_id",
+    "status",
+    "angle",
+    "primary_proposition",
+    "visual_idea",
+    "primary_aoi",
+    "scan_path",
+    "brand_id",
+    "art_direction",
+    "reference_dna_ids",
+    "source_grounding",
+    "variants"
+  ],
+  "properties": {
+    "concept_id": {"type": "string", "pattern": "^C[0-9]{2,}$"},
+    "status": {"const": "APPROVED"},
+    "angle": {"type": "string", "minLength": 1},
+    "audience_state": {"type": ["string", "null"]},
+    "primary_proposition": {"type": "string", "minLength": 1},
+    "supporting_proof": {"type": ["string", "null"]},
+    "visual_idea": {"type": "string", "minLength": 1},
+    "primary_aoi": {"type": "string", "minLength": 1},
+    "scan_path": {"type": "array", "minItems": 2, "items": {"type": "string"}},
+    "brand_id": {"type": ["string", "null"]},
+    "art_direction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "art_direction_id", "visual_thesis", "selection_provenance"],
+      "properties": {
+        "mode": {"enum": ["ART_DIRECTION_LOCKED", "ART_DIRECTION_PREVIEW_3", "ART_DIRECTION_AUTOSELECT_3"]},
+        "art_direction_id": {"type": "string", "minLength": 1},
+        "visual_thesis": {"type": "string", "minLength": 1},
+        "selection_provenance": {"enum": ["BRAND_LOCKED", "USER_APPROVED", "ART_DIRECTOR_REVIEWER"]},
+        "representative_preview_id": {"type": ["string", "null"]},
+        "selected_from_candidate_ids": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "alignment_logic": {"type": ["string", "null"]},
+        "graphic_device": {"type": ["string", "null"]},
+        "image_treatment": {"type": ["string", "null"]},
+        "whitespace_character": {"type": ["string", "null"]},
+        "anti_template_exclusions": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      }
+    },
+    "reference_dna_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "lighting": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lighting_scheme_id": {"type": ["integer", "null"], "minimum": 1, "maximum": 30},
+        "scene_directive": {"type": ["string", "null"]},
+        "composition_directive": {"type": ["string", "null"]}
+      }
+    },
+    "source_grounding": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_id", "supports"],
+        "properties": {
+          "source_id": {"type": "string", "minLength": 1},
+          "supports": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variant_id", "test_hypothesis", "copy_by_language"],
+        "properties": {
+          "variant_id": {"type": "string", "pattern": "^V[0-9]{2,}$"},
+          "test_hypothesis": {"type": ["string", "null"]},
+          "visual_direction_override": {"type": ["string", "null"]},
+          "copy_by_language": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {"$ref": "#/$defs/fullCopy"}
+          },
+          "copy_overrides_by_layout_family": {
+            "type": "object",
+            "additionalProperties": {"$ref": "#/$defs/copyOverride"}
+          },
+          "copy_overrides_by_dimension": {
+            "type": "object",
+            "propertyNames": {"pattern": "^[0-9]+x[0-9]+$"},
+            "additionalProperties": {"$ref": "#/$defs/copyOverride"}
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "fullCopy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["headline", "cta"],
+      "properties": {
+        "headline": {"type": "string", "minLength": 1},
+        "support": {"type": ["string", "null"]},
+        "offer": {"type": ["string", "null"]},
+        "cta": {"type": "string", "minLength": 1}
+      }
+    },
+    "copyOverride": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "headline": {"type": ["string", "null"]},
+        "support": {"type": ["string", "null"]},
+        "offer": {"type": ["string", "null"]},
+        "cta": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

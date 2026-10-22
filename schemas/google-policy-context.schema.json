@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/google-policy-context.schema.json",
+  "title": "Google Ads Policy Preflight Context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "policy_context_id",
+    "policy_snapshot_date",
+    "campaign_mode",
+    "creative",
+    "copy",
+    "business_identity",
+    "claims",
+    "destination",
+    "trademark_review",
+    "vertical_review",
+    "semantic_visual_review"
+  ],
+  "properties": {
+    "policy_context_id": {"type": "string", "minLength": 1},
+    "policy_snapshot_date": {"type": "string", "format": "date"},
+    "campaign_mode": {"type": "string", "minLength": 1},
+    "target_countries": {"type": "array", "items": {"type": "string", "minLength": 2}, "uniqueItems": true},
+    "creative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file_path", "file_sha256", "width", "height", "format", "animation_state"],
+      "properties": {
+        "file_path": {"type": "string", "minLength": 1},
+        "file_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "width": {"type": "integer", "minimum": 1},
+        "height": {"type": "integer", "minimum": 1},
+        "format": {"enum": ["PNG", "JPG", "JPEG", "GIF"]},
+        "animation_state": {"enum": ["STATIC", "ANIMATED", "UNKNOWN"]}
+      }
+    },
+    "copy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["headline", "cta", "business_name"],
+      "properties": {
+        "headline": {"type": "string"},
+        "support": {"type": ["string", "null"]},
+        "offer": {"type": ["string", "null"]},
+        "cta": {"type": "string"},
+        "business_name": {"type": "string", "minLength": 1},
+        "legal_or_qualifier": {"type": ["string", "null"]}
+      }
+    },
+    "business_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["advertiser_name", "banner_business_name_matches", "affiliation_claimed", "affiliation_verified"],
+      "properties": {
+        "advertiser_name": {"type": "string", "minLength": 1},
+        "banner_business_name_matches": {"type": "boolean"},
+        "affiliation_claimed": {"type": "boolean"},
+        "affiliation_verified": {"type": "boolean"},
+        "notes": {"type": ["string", "null"]}
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "material", "verification_status", "destination_support", "offer_available"],
+        "properties": {
+          "text": {"type": "string", "minLength": 1},
+          "material": {"type": "boolean"},
+          "verification_status": {"enum": ["VERIFIED", "UNVERIFIED", "NOT_APPLICABLE"]},
+          "source": {"type": ["string", "null"]},
+          "destination_support": {"enum": ["PASS", "FAIL", "UNKNOWN", "NOT_APPLICABLE"]},
+          "offer_available": {"enum": ["PASS", "FAIL", "UNKNOWN", "NOT_APPLICABLE"]}
+        }
+      }
+    },
+    "destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "final_url",
+        "working",
+        "domain_match",
+        "google_adsbot_crawlable",
+        "target_geo_accessible",
+        "offer_easy_to_find",
+        "cta_action_available",
+        "advertiser_identity_matches",
+        "original_useful_content"
+      ],
+      "properties": {
+        "final_url": {"type": "string", "minLength": 1},
+        "working": {"enum": ["PASS", "FAIL", "UNKNOWN"]},
+        "domain_match": {"enum": ["PASS", "FAIL", "UNKNOWN"]},
+        "google_adsbot_crawlable": {"enum": ["PASS", "FAIL", "UNKNOWN"]},
+        "target_geo_accessible": {"enum": ["PASS", "FAIL", "UNKNOWN"]},
+        "offer_easy_to_find": {"enum": ["PASS", "FAIL", "UNKNOWN"]},
+        "cta_action_available": {"enum": ["PASS", "FAIL", "UNKNOWN"]},
+        "advertiser_identity_matches": {"enum": ["PASS", "FAIL", "UNKNOWN"]},
+        "original_useful_content": {"enum": ["PASS", "FAIL", "UNKNOWN"]}
+      }
+    },
+    "trademark_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["third_party_trademark_used", "status"],
+      "properties": {
+        "third_party_trademark_used": {"type": "boolean"},
+        "trademarks": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "status": {"enum": ["PASS", "REVIEW_REQUIRED", "FAIL", "NOT_APPLICABLE"]},
+        "basis": {"type": ["string", "null"]}
+      }
+    },
+    "vertical_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "restricted_or_sensitive", "status"],
+      "properties": {
+        "classification": {"type": "string", "minLength": 1},
+        "restricted_or_sensitive": {"type": "boolean"},
+        "status": {"enum": ["PASS", "REVIEW_REQUIRED", "BLOCKED", "NOT_APPLICABLE"]},
+        "certification_required": {"type": ["boolean", "null"]},
+        "certification_verified": {"type": ["boolean", "null"]},
+        "targeting_policy_status": {"enum": ["PASS", "REVIEW_REQUIRED", "BLOCKED", "NOT_APPLICABLE"]},
+        "notes": {"type": ["string", "null"]}
+      }
+    },
+    "ai_asset_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ai_generated_or_edited": {"type": "boolean"},
+        "label_or_disclosure_review": {"enum": ["PASS", "REVIEW_REQUIRED", "NOT_APPLICABLE"]},
+        "notes": {"type": ["string", "null"]}
+      }
+    },
+    "semantic_visual_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewer_role",
+        "reviewed_artifact_sha256",
+        "image_quality",
+        "essential_text_legible",
+        "fills_canvas",
+        "system_warning_or_dialog_mimic",
+        "nonfunctional_controls",
+        "download_install_ui",
+        "misleading_arrows_or_interactions",
+        "segmented_or_multi_ad_appearance",
+        "contextless_or_disproportionate_button",
+        "distracting_or_flashing",
+        "inappropriate_content",
+        "manipulated_media_deceptive"
+      ],
+      "properties": {
+        "reviewer_role": {"const": "GOOGLE_POLICY_REVIEWER"},
+        "independent_context": {"type": "boolean"},
+        "reviewed_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "image_quality": {"enum": ["PASS", "FAIL", "UNCHECKABLE"]},
+        "essential_text_legible": {"enum": ["PASS", "FAIL", "UNCHECKABLE"]},
+        "fills_canvas": {"enum": ["PASS", "FAIL", "UNCHECKABLE"]},
+        "system_warning_or_dialog_mimic": {"enum": ["ABSENT", "PRESENT", "UNCHECKABLE"]},
+        "nonfunctional_controls": {"enum": ["ABSENT", "PRESENT", "UNCHECKABLE"]},
+        "download_install_ui": {"enum": ["ABSENT", "PRESENT", "UNCHECKABLE"]},
+        "misleading_arrows_or_interactions": {"enum": ["ABSENT", "PRESENT", "UNCHECKABLE"]},
+        "segmented_or_multi_ad_appearance": {"enum": ["ABSENT", "PRESENT", "UNCHECKABLE"]},
+        "contextless_or_disproportionate_button": {"enum": ["ABSENT", "PRESENT", "UNCHECKABLE"]},
+        "distracting_or_flashing": {"enum": ["ABSENT", "PRESENT", "UNCHECKABLE"]},
+        "inappropriate_content": {"enum": ["ABSENT", "PRESENT", "UNCHECKABLE"]},
+        "manipulated_media_deceptive": {"enum": ["ABSENT", "PRESENT", "UNCHECKABLE"]},
+        "notes": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

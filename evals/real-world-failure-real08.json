@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.2.0",
+  "case_id": "REAL-08",
+  "title": "Synthetic scenario: visual exploration before approved graphic brief",
+  "context": "Synthetic advertiser example. Visual exploration begins before an approved Graphic Banner Brief, producing abstract shapes without a grounded commercial message. The case tests whether the workflow obtains the brief, first-glance takeaway, intended reaction and composition constraints before rendering directions.",
+  "failure_stage": "GRAPHIC_BANNER_BRIEF_AND_VISUAL_STRATEGY",
+  "expected_findings": [
+    "VISUAL_EXPLORATION_STARTED_BEFORE_USER_APPROVED_GRAPHIC_BRIEF",
+    "ABSTRACT_GEOMETRY_USED_TO_FILL_UNSPECIFIED_DESIGN_PROBLEM",
+    "DECORATIVE_FORM_SUBSTITUTED_FOR_ADVERTISING_IDEA",
+    "PSEUDO_PREMIUM_MATERIALITY_WITHOUT_COMMERCIAL_REASON",
+    "HERO_GENERATION_BECAME_DEFAULT_DESIGN_STRATEGY",
+    "ADVERTISING_LOGIC_NOT_FROZEN_BEFORE_VISUAL_FORM",
+    "USER_FORCED_TO_REJECT_BASIC_DIRECTION_REPEATEDLY"
+  ],
+  "required_regressions": [
+    "after exact commercial-job and relevant research/category evidence, create a user-reviewable Graphic Banner Brief before first-round visual rendering",
+    "Graphic Banner Brief must freeze first-glance takeaway, desired user reaction, primary/secondary message semantics, exact CTA, brand anchor, advertising role, composition/type/color/lighting boundaries and anti-failure rules",
+    "first-round visual rendering is blocked until an exact-SHA Graphic Banner Brief decision with decided_by=USER and decision=APPROVE passes",
+    "REVISE BRIEF keeps all visual rendering blocked until updated brief bytes are approved",
+    "abstract geometry without commercial meaning and decorative form substituted for advertising idea are hard REJECT rules",
+    "hero generation is optional and cannot be the default first step for concept exploration",
+    "A/B/C concepts must differ by advertising logic before they differ by visual form",
+    "brief approval is separate from later visual selection/approval and never unlocks full production"
+  ],
+  "performance_claim_policy": "Graphic Banner Brief approval is a production and design-clarity control; it does not predict CTR, CVR, sales lift, or Google approval."
+}

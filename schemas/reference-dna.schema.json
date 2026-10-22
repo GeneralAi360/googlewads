@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/reference-dna.schema.json",
+  "title": "Reference DNA",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reference_id",
+    "source",
+    "analyst_role",
+    "independent_context",
+    "status",
+    "observations",
+    "transferable_principles",
+    "do_not_copy",
+    "uncertainties"
+  ],
+  "properties": {
+    "reference_id": {"type": "string", "minLength": 1},
+    "source": {"type": "string", "minLength": 1},
+    "analyst_role": {"const": "REFERENCE_ANALYST"},
+    "analyst_thread_id": {"type": ["string", "null"]},
+    "independent_context": {"type": "boolean"},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "observations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "composition_grid",
+        "focal_object_scan_path",
+        "typography",
+        "color_contrast",
+        "whitespace_density",
+        "cta_treatment",
+        "subject_scale",
+        "lighting",
+        "angle_crop",
+        "mood_brand_signals"
+      ],
+      "properties": {
+        "composition_grid": {"type": "string"},
+        "focal_object_scan_path": {"type": "string"},
+        "typography": {"type": "string"},
+        "color_contrast": {"type": "string"},
+        "whitespace_density": {"type": "string"},
+        "cta_treatment": {"type": "string"},
+        "subject_scale": {"type": "string"},
+        "lighting": {"type": "string"},
+        "angle_crop": {"type": "string"},
+        "mood_brand_signals": {"type": "string"}
+      }
+    },
+    "user_preference_alignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "liked": {"type": "array", "items": {"type": "string"}},
+        "disliked": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "transferable_principles": {"type": "array", "items": {"type": "string"}},
+    "do_not_copy": {"type": "array", "items": {"type": "string"}},
+    "uncertainties": {"type": "array", "items": {"type": "string"}},
+    "summary": {"type": ["string", "null"]}
+  }
+}

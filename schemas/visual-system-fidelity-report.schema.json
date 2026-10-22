@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/visual-system-fidelity-report.schema.json",
+  "title": "Approved Visual System to Production Fidelity Report",
+  "description": "Binds a production-ready representative to a user-approved visual-system preview when non-production asset slots were replaced by real assets. Any material visual drift requires renewed user approval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "report_id",
+    "status",
+    "reviewed_by",
+    "visual_concept_id",
+    "approved_preview_artifact_path",
+    "approved_preview_artifact_sha256",
+    "production_artifact_path",
+    "production_artifact_sha256",
+    "checks",
+    "asset_substitutions"
+  ],
+  "properties": {
+    "report_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["PASS", "MATERIAL_DRIFT"]},
+    "reviewed_by": {"const": "ART_DIRECTOR_REVIEWER"},
+    "visual_concept_id": {"type": "string", "minLength": 1},
+    "approved_preview_artifact_path": {"type": "string", "minLength": 1},
+    "approved_preview_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "production_artifact_path": {"type": "string", "minLength": 1},
+    "production_artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "composition",
+        "hierarchy",
+        "typography",
+        "palette",
+        "cta_treatment",
+        "brand_anchor",
+        "asset_slot_geometry",
+        "attention_path",
+        "lighting_intent",
+        "copy_fidelity",
+        "no_new_claims",
+        "no_new_visual_language"
+      ],
+      "properties": {
+        "composition": {"enum": ["PASS", "FAIL"]},
+        "hierarchy": {"enum": ["PASS", "FAIL"]},
+        "typography": {"enum": ["PASS", "FAIL"]},
+        "palette": {"enum": ["PASS", "FAIL"]},
+        "cta_treatment": {"enum": ["PASS", "FAIL"]},
+        "brand_anchor": {"enum": ["PASS", "FAIL"]},
+        "asset_slot_geometry": {"enum": ["PASS", "FAIL"]},
+        "attention_path": {"enum": ["PASS", "FAIL"]},
+        "lighting_intent": {"enum": ["PASS", "FAIL"]},
+        "copy_fidelity": {"enum": ["PASS", "FAIL"]},
+        "no_new_claims": {"enum": ["PASS", "FAIL"]},
+        "no_new_visual_language": {"enum": ["PASS", "FAIL"]}
+      }
+    },
+    "asset_substitutions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset_id", "role", "from_preview_mode", "production_asset_path", "production_asset_sha256"],
+        "properties": {
+          "asset_id": {"type": "string", "minLength": 1},
+          "role": {"enum": ["PRODUCT_UI", "LOGO", "HERO", "OTHER"]},
+          "from_preview_mode": {
+            "enum": ["REFERENCE_ONLY_SURROGATE", "LOW_RES_AUTHENTIC_SURROGATE", "STRUCTURAL_PLACEHOLDER", "TEXT_BRAND_PLACEHOLDER"]
+          },
+          "production_asset_path": {"type": "string", "minLength": 1},
+          "production_asset_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "notes": {"type": ["string", "null"]}
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/visual-concept-preview.schema.json",
+  "title": "Rendered Visual Concept Preview",
+  "description": "User-facing rendered banner composite bound to the exact campaign commercial job. A raw/generated hero asset is never a visual concept by itself. The preview may use declared non-production surrogate assets when production assets are missing, but the artifact shown to the user must already be a composed advertisement with message, CTA and brand anchor.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "visual_concept_id",
+    "commercial_job_id",
+    "status",
+    "artifact_role",
+    "render_stage",
+    "artifact_path",
+    "artifact_sha256",
+    "width",
+    "height",
+    "approval_scope",
+    "composition_contract",
+    "concept_summary",
+    "asset_slots",
+    "production_asset_readiness",
+    "not_for_delivery"
+  ],
+  "properties": {
+    "visual_concept_id": {"type": "string", "minLength": 1},
+    "commercial_job_id": {"type": "string", "minLength": 1},
+    "status": {"const": "VISUAL_CONCEPT_RENDERED"},
+    "artifact_role": {"const": "BANNER_COMPOSITE"},
+    "render_stage": {"const": "USER_FACING_CONCEPT_COMPOSITE"},
+    "artifact_path": {"type": "string", "minLength": 1},
+    "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "width": {"type": "integer", "minimum": 1},
+    "height": {"type": "integer", "minimum": 1},
+    "approval_scope": {
+      "enum": ["EXACT_PRODUCTION_ARTIFACT", "VISUAL_SYSTEM_WITH_ASSET_SLOTS"]
+    },
+    "composition_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "composition_method",
+        "mandatory_visible_elements",
+        "raw_generated_asset_paths",
+        "raw_generated_asset_is_final_artifact"
+      ],
+      "properties": {
+        "composition_method": {
+          "enum": [
+            "DETERMINISTIC_COMPOSITOR",
+            "HTML_SCREENSHOT_COMPOSITE",
+            "DESIGN_TOOL_COMPOSITE",
+            "IMAGE_GENERATION_PLUS_COMPOSITOR"
+          ]
+        },
+        "mandatory_visible_elements": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primary_message", "commercial_job_cue", "cta", "brand_anchor"],
+          "properties": {
+            "primary_message": {"type": "string", "minLength": 1},
+            "commercial_job_cue": {"type": "string", "minLength": 1},
+            "cta": {"type": "string", "minLength": 1},
+            "brand_anchor": {"type": "string", "minLength": 1}
+          }
+        },
+        "raw_generated_asset_paths": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "raw_generated_asset_is_final_artifact": {"const": false}
+      }
+    },
+    "concept_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["core_idea", "commercial_angle", "primary_aoi", "scan_path", "style_strategy", "typography", "lighting", "adaptation_note"],
+      "properties": {
+        "core_idea": {"type": "string", "minLength": 1},
+        "commercial_angle": {"type": "string", "minLength": 1},
+        "primary_aoi": {"type": "string", "minLength": 1},
+        "scan_path": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "style_strategy": {"type": "string", "minLength": 1},
+        "typography": {"type": "string", "minLength": 1},
+        "lighting": {"type": "string", "minLength": 1},
+        "adaptation_note": {"type": "string", "minLength": 1}
+      }
+    },
+    "asset_slots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset_id", "role", "preview_mode", "production_ready", "generated_fake_asset", "notes"],
+        "properties": {
+          "asset_id": {"type": "string", "minLength": 1},
+          "role": {"enum": ["PRODUCT_UI", "LOGO", "HERO", "OTHER"]},
+          "preview_mode": {
+            "enum": ["PRODUCTION_ASSET", "REFERENCE_ONLY_SURROGATE", "LOW_RES_AUTHENTIC_SURROGATE", "STRUCTURAL_PLACEHOLDER", "TEXT_BRAND_PLACEHOLDER"]
+          },
+          "production_ready": {"type": "boolean"},
+          "generated_fake_asset": {"const": false},
+          "source": {"type": ["string", "null"]},
+          "notes": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "production_asset_readiness": {"enum": ["ASSETS_READY", "NEEDS_ASSET"]},
+    "not_for_delivery": {"type": "boolean"},
+    "policy_note": {"type": ["string", "null"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"approval_scope": {"const": "VISUAL_SYSTEM_WITH_ASSET_SLOTS"}}},
+      "then": {
+        "properties": {
+          "production_asset_readiness": {"const": "NEEDS_ASSET"},
+          "not_for_delivery": {"const": true}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"approval_scope": {"const": "EXACT_PRODUCTION_ARTIFACT"}}},
+      "then": {
+        "properties": {
+          "production_asset_readiness": {"const": "ASSETS_READY"}
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GeneralAi360/googlewads/schemas/google-policy-report.schema.json",
+  "title": "Google Ads Policy Preflight Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "policy_context_id",
+    "policy_snapshot_date",
+    "creative_sha256",
+    "approval_guaranteed",
+    "blockers",
+    "incomplete_checks",
+    "warnings",
+    "policy_scopes",
+    "final_statement"
+  ],
+  "properties": {
+    "status": {"enum": ["GOOGLE_POLICY_PREFLIGHT_PASS", "GOOGLE_POLICY_PREFLIGHT_BLOCKED", "GOOGLE_POLICY_PREFLIGHT_INCOMPLETE", "POLICY_REVIEW_REQUIRED"]},
+    "policy_context_id": {"type": "string", "minLength": 1},
+    "policy_snapshot_date": {"type": "string", "format": "date"},
+    "creative_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "approval_guaranteed": {"const": false},
+    "blockers": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "incomplete_checks": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "warnings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "policy_scopes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["creative_policy", "destination_policy", "vertical_certification", "targeting_policy", "trademark_policy"],
+      "properties": {
+        "creative_policy": {"enum": ["PASS", "FAIL", "INCOMPLETE", "REVIEW_REQUIRED"]},
+        "destination_policy": {"enum": ["PASS", "FAIL", "INCOMPLETE", "REVIEW_REQUIRED"]},
+        "vertical_certification": {"enum": ["PASS", "FAIL", "INCOMPLETE", "REVIEW_REQUIRED", "NOT_APPLICABLE"]},
+        "targeting_policy": {"enum": ["PASS", "FAIL", "INCOMPLETE", "REVIEW_REQUIRED", "NOT_APPLICABLE"]},
+        "trademark_policy": {"enum": ["PASS", "FAIL", "INCOMPLETE", "REVIEW_REQUIRED", "NOT_APPLICABLE"]}
+      }
+    },
+    "final_statement": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "scope", "message"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1},
+        "scope": {"enum": ["CREATIVE_POLICY", "DESTINATION_POLICY", "VERTICAL_CERTIFICATION", "TARGETING_POLICY", "TRADEMARK_POLICY", "ACCOUNT_ELIGIBILITY"]},
+        "message": {"type": "string", "minLength": 1},
+        "policy_family": {"type": ["string", "null"]}
+      }
+    }
+  }
+}
