@@ -1,8 +1,8 @@
 {
   "schema_version": "0.2.0",
   "case_id": "REAL-08",
-  "title": "Visual exploration started before a user-approved Graphic Banner Brief and drifted into pseudo-premium geometry",
-  "context": "After REAL-07, Work could produce complete banner composites, but the user still rejected the resulting directions as ugly and semantically weak. The system repeatedly invented abstract blue glass/metal geometry and assigned symbolic meaning to it after generation. The user identified the missing upstream control: before visual exploration, the skill should first formulate a concrete Graphic Banner Brief describing the commercial message, first-glance takeaway, desired user reaction, banner role, composition/type/color boundaries and explicit anti-failure rules; the user approves or revises that brief before any A/B/C rendering begins.",
+  "title": "Synthetic scenario: visual exploration before approved graphic brief",
+  "context": "Synthetic advertiser example. Visual exploration begins before an approved Graphic Banner Brief, producing abstract shapes without a grounded commercial message. The case tests whether the workflow obtains the brief, first-glance takeaway, intended reaction and composition constraints before rendering directions.",
   "failure_stage": "GRAPHIC_BANNER_BRIEF_AND_VISUAL_STRATEGY",
   "expected_findings": [
     "VISUAL_EXPLORATION_STARTED_BEFORE_USER_APPROVED_GRAPHIC_BRIEF",

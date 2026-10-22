@@ -1,8 +1,8 @@
 {
   "schema_version": "0.2.0",
   "case_id": "REAL-07",
-  "title": "Raw generated hero imagery was treated as presentation-ready banner design",
-  "context": "In the next MITGROUP license-purchase acceptance run, Work reported two independent review passes and PRESENTATION_READY_DESIGN=PASS, then remained in image generation and surfaced generic abstract blue/metal 3D imagery. The visible artifact was a raw hero-like component rather than a complete 300x250 advertisement: the commercial purchase cue, CTA, brand anchor and composed typography were not present in the shown image. The user also judged the resulting visuals as poor. This exposed both artifact-role confusion and an art-director false positive.",
+  "title": "Synthetic scenario: raw hero imagery mistaken for a complete banner",
+  "context": "Synthetic advertiser example. A review marks a raw abstract hero image as presentation-ready even though a complete 300x250 advertisement requires a clear commercial message, CTA, brand anchor and composed typography. The case tests artifact-role confusion and unsupported review approval.",
   "failure_stage": "VISUAL_COMPOSITE_AND_PRE_SHOW_REVIEW",
   "expected_findings": [
     "RAW_HERO_ASSET_MISTAKEN_FOR_BANNER",
